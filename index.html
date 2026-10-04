@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Bandy Animator – layout uppdaterad</title>
+<style>
+:root{
+  --bg:#0f172a; --panel:#111827; --panel2:#1f2937; --line:#334155;
+  --text:#f8fafc; --muted:#94a3b8; --accent:#38bdf8; --danger:#fb7185;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+.app{min-height:100vh;display:grid;grid-template-rows:auto 1fr auto}
+header{padding:10px 12px;background:#020617;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+header h1{font-size:17px;margin:0}
+header small{color:var(--muted)}
+.toolbar{display:flex;gap:6px;flex-wrap:wrap}
+button,select,input{font:inherit}
+button{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:8px 10px;border-radius:9px;cursor:pointer}
+button:hover{border-color:#64748b}
+button.primary{background:#0369a1;border-color:#0ea5e9}
+button.danger{background:#4c0519;border-color:#9f1239}
+button:disabled{opacity:.45;cursor:not-allowed}
+main{display:grid;grid-template-columns:minmax(0,1fr) 280px;min-height:0}
+.stageWrap{position:relative;display:flex;align-items:center;justify-content:center;padding:10px;overflow:hidden}
+#stage{width:100%;height:auto;max-height:calc(100vh - 190px);touch-action:none;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.25)}
+aside{border-left:1px solid var(--line);background:var(--panel);padding:12px;overflow:auto}
+.card{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px;background:#0b1220}
+.card h3{margin:0 0 8px;font-size:14px}
+.row{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:7px 0}
+label{font-size:12px;color:var(--muted)}
+input[type=text],input[type=number],select{background:#020617;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:7px}
+input[type=color]{width:42px;height:34px;background:none;border:0;padding:0}
+.timeline{background:#020617;border-top:1px solid var(--line);padding:8px 10px;display:flex;gap:8px;align-items:center;overflow-x:auto}
+.frame{min-width:88px;border:1px solid var(--line);border-radius:9px;padding:7px 9px;background:#111827;color:var(--text)}
+.frame.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+#status{position:absolute;left:18px;bottom:18px;background:rgba(2,6,23,.8);padding:7px 10px;border-radius:8px;font-size:12px;color:#dbeafe;pointer-events:none}
+kbd{background:#1e293b;border:1px solid #475569;border-bottom-width:2px;border-radius:4px;padding:1px 4px;font-size:11px}
+@media(max-width:850px){
+  main{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto}
+  aside{border-left:0;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px}
+  .card{margin:0}
+  #stage{max-height:none}
+}
+@media(max-width:560px){
+  header{padding:8px}
+  main{display:block}
+  aside{display:block}
+  .stageWrap{padding:6px}
+  .toolbar button{padding:7px 8px;font-size:13px}
+  #stage{border-radius:8px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div>
+    <h1>Bandy Animator</h1>
+    <small>Layout uppdaterad till din förenklade bandyplan</small>
+  </div>
+  <div class="toolbar">
+    <button id="addBlue">+ Blå spelare</button>
+    <button id="addRed">+ Röd spelare</button>
+    <button id="addBall">+ Boll</button>
+    <button id="addCone">+ Kon</button>
+    <button id="saveFrame" class="primary">Spara nyckelbild</button>
+    <button id="play">▶ Spela</button>
+  </div>
+</header>
+
+<main>
+  <div class="stageWrap">
+    <svg id="stage" viewBox="0 0 1050 650" aria-label="Bandyplan">
+      <defs>
+        <filter id="iceNoise" x="-10%" y="-10%" width="120%" height="120%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="4" result="noise"/>
+          <feColorMatrix in="noise" type="saturate" values="0" result="mono"/>
+          <feComponentTransfer>
+            <feFuncA type="table" tableValues="0 0.06"/>
+          </feComponentTransfer>
+        </filter>
+      </defs>
+
+      <rect x="0" y="0" width="1050" height="650" fill="#dfeaf7"/>
+      <g opacity="0.35">
+        <circle cx="110" cy="70" r="52" fill="#edf5ff"/>
+        <circle cx="280" cy="95" r="48" fill="#edf5ff"/>
+        <circle cx="525" cy="78" r="56" fill="#edf5ff"/>
+        <circle cx="760" cy="95" r="48" fill="#edf5ff"/>
+        <circle cx="940" cy="70" r="52" fill="#edf5ff"/>
+        <circle cx="110" cy="580" r="52" fill="#edf5ff"/>
+        <circle cx="280" cy="555" r="48" fill="#edf5ff"/>
+        <circle cx="525" cy="572" r="56" fill="#edf5ff"/>
+        <circle cx="760" cy="555" r="48" fill="#edf5ff"/>
+        <circle cx="940" cy="580" r="52" fill="#edf5ff"/>
+      </g>
+      <rect x="0" y="0" width="1050" height="650" filter="url(#iceNoise)" opacity="0.65"/>
+
+      <!-- boards -->
+      <g>
+        <rect x="32" y="40" width="986" height="570" rx="34" fill="none" stroke="#c7d2e3" stroke-width="18"/>
+        <rect x="32" y="40" width="986" height="570" rx="34" fill="none" stroke="#0a4db3" stroke-width="7"/>
+        <g stroke="#8ea2be" stroke-width="2">
+          <line x1="80" y1="36" x2="80" y2="50"/><line x1="140" y1="36" x2="140" y2="50"/>
+          <line x1="200" y1="36" x2="200" y2="50"/><line x1="260" y1="36" x2="260" y2="50"/>
+          <line x1="320" y1="36" x2="320" y2="50"/><line x1="380" y1="36" x2="380" y2="50"/>
+          <line x1="440" y1="36" x2="440" y2="50"/><line x1="500" y1="36" x2="500" y2="50"/>
+          <line x1="560" y1="36" x2="560" y2="50"/><line x1="620" y1="36" x2="620" y2="50"/>
+          <line x1="680" y1="36" x2="680" y2="50"/><line x1="740" y1="36" x2="740" y2="50"/>
+          <line x1="800" y1="36" x2="800" y2="50"/><line x1="860" y1="36" x2="860" y2="50"/>
+          <line x1="920" y1="36" x2="920" y2="50"/>
+          <line x1="80" y1="600" x2="80" y2="614"/><line x1="140" y1="600" x2="140" y2="614"/>
+          <line x1="200" y1="600" x2="200" y2="614"/><line x1="260" y1="600" x2="260" y2="614"/>
+          <line x1="320" y1="600" x2="320" y2="614"/><line x1="380" y1="600" x2="380" y2="614"/>
+          <line x1="440" y1="600" x2="440" y2="614"/><line x1="500" y1="600" x2="500" y2="614"/>
+          <line x1="560" y1="600" x2="560" y2="614"/><line x1="620" y1="600" x2="620" y2="614"/>
+          <line x1="680" y1="600" x2="680" y2="614"/><line x1="740" y1="600" x2="740" y2="614"/>
+          <line x1="800" y1="600" x2="800" y2="614"/><line x1="860" y1="600" x2="860" y2="614"/>
+          <line x1="920" y1="600" x2="920" y2="614"/>
+          <line x1="36" y1="110" x2="50" y2="110"/><line x1="36" y1="180" x2="50" y2="180"/>
+          <line x1="36" y1="250" x2="50" y2="250"/><line x1="36" y1="320" x2="50" y2="320"/>
+          <line x1="36" y1="390" x2="50" y2="390"/><line x1="36" y1="460" x2="50" y2="460"/>
+          <line x1="36" y1="530" x2="50" y2="530"/>
+          <line x1="1000" y1="110" x2="1014" y2="110"/><line x1="1000" y1="180" x2="1014" y2="180"/>
+          <line x1="1000" y1="250" x2="1014" y2="250"/><line x1="1000" y1="320" x2="1014" y2="320"/>
+          <line x1="1000" y1="390" x2="1014" y2="390"/><line x1="1000" y1="460" x2="1014" y2="460"/>
+          <line x1="1000" y1="530" x2="1014" y2="530"/>
+        </g>
+      </g>
+
+      <!-- rink lines -->
+      <g id="rinkLines" fill="none" stroke="#ff1e34" stroke-width="4">
+        <path d="M 52 74 H 998"/>
+        <path d="M 52 576 H 998"/>
+        <path d="M 52 74 V 576"/>
+        <path d="M 998 74 V 576"/>
+        <path d="M 60 74 A 12 12 0 0 0 48 86"/>
+        <path d="M 990 74 A 12 12 0 0 1 1002 86"/>
+        <path d="M 60 576 A 12 12 0 0 1 48 564"/>
+        <path d="M 990 576 A 12 12 0 0 0 1002 564"/>
+
+        <line x1="525" y1="74" x2="525" y2="576"/>
+        <circle cx="525" cy="325" r="42"/>
+        <circle cx="525" cy="325" r="4" fill="#ff1e34"/>
+
+        <!-- left side -->
+        <path d="M 52 190 C 130 190, 195 230, 235 310 C 245 331, 245 389, 235 410 C 195 490, 130 540, 52 540"/>
+        <circle cx="240" cy="245" r="40"/>
+        <circle cx="240" cy="435" r="40"/>
+        <circle cx="240" cy="245" r="4" fill="#ff1e34"/>
+        <circle cx="240" cy="435" r="4" fill="#ff1e34"/>
+        <path d="M 240 245 C 248 262, 256 282, 260 304"/>
+        <path d="M 240 435 C 248 418, 256 398, 260 376"/>
+
+        <!-- right side -->
+        <path d="M 998 190 C 920 190, 855 230, 815 310 C 805 331, 805 389, 815 410 C 855 490, 920 540, 998 540"/>
+        <circle cx="810" cy="245" r="40"/>
+        <circle cx="810" cy="435" r="40"/>
+        <circle cx="810" cy="245" r="4" fill="#ff1e34"/>
+        <circle cx="810" cy="435" r="4" fill="#ff1e34"/>
+        <path d="M 810 245 C 802 262, 794 282, 790 304"/>
+        <path d="M 810 435 C 802 418, 794 398, 790 376"/>
+      </g>
+
+      <!-- goals -->
+      <g stroke="#ff1e34" fill="none">
+        <rect x="38" y="309" width="12" height="32" stroke-width="4"/>
+        <rect x="1000" y="309" width="12" height="32" stroke-width="4"/>
+      </g>
+
+      <g id="paths"></g>
+      <g id="objects"></g>
+    </svg>
+    <div id="status">Uppdaterad layout aktiv. Tryck på ett objekt för att markera det. Dra för att flytta.</div>
+  </div>
+
+  <aside>
+    <div class="card">
+      <h3>Markerat objekt</h3>
+      <div class="row">
+        <label for="objLabel">Etikett</label>
+        <input id="objLabel" type="text" maxlength="8" placeholder="1">
+      </div>
+      <div class="row">
+        <label for="objColor">Färg</label>
+        <input id="objColor" type="color" value="#2563eb">
+        <button id="deleteObj" class="danger">Ta bort</button>
+      </div>
+      <div class="row">
+        <button id="bringFront">Lägg överst</button>
+        <button id="duplicateObj">Duplicera</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Animering</h3>
+      <div class="row">
+        <label for="seconds">Sekunder mellan nyckelbilder</label>
+        <select id="seconds">
+          <option value="0.5">0,5</option>
+          <option value="1" selected>1,0</option>
+          <option value="1.5">1,5</option>
+          <option value="2">2,0</option>
+          <option value="3">3,0</option>
+        </select>
+      </div>
+      <div class="row">
+        <label><input id="showPaths" type="checkbox" checked> Visa rörelsespår</label>
+        <label><input id="loop" type="checkbox"> Loopa</label>
+      </div>
+      <div class="row">
+        <button id="updateFrame">Uppdatera vald nyckelbild</button>
+        <button id="deleteFrame" class="danger">Ta bort nyckelbild</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Projekt</h3>
+      <div class="row">
+        <button id="exportJson">Exportera projekt</button>
+        <label style="display:inline-block">
+          <input id="importJson" type="file" accept=".json,application/json" style="display:none">
+          <span style="display:inline-block;border:1px solid var(--line);background:var(--panel2);padding:8px 10px;border-radius:9px;cursor:pointer">Importera projekt</span>
+        </label>
+      </div>
+      <div class="row">
+        <button id="clearAll" class="danger">Nytt tomt projekt</button>
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.35">
+        Arbetsgång: placera objekt → spara nyckelbild → flytta objekten → spara nästa nyckelbild → spela.
+      </div>
+    </div>
+  </aside>
+</main>
+
+<div class="timeline" id="timeline">
+  <span style="color:var(--muted);font-size:12px;white-space:nowrap">Nyckelbilder:</span>
+</div>
+</div>
+
+<script>
+(() => {
+const svg = document.getElementById('stage');
+const objectsG = document.getElementById('objects');
+const pathsG = document.getElementById('paths');
+const timeline = document.getElementById('timeline');
+const status = document.getElementById('status');
+const labelInput = document.getElementById('objLabel');
+const colorInput = document.getElementById('objColor');
+const secondsSel = document.getElementById('seconds');
+const showPaths = document.getElementById('showPaths');
+const loopCheck = document.getElementById('loop');
+
+let objects = [];
+let frames = [];
+let selectedId = null;
+let selectedFrame = -1;
+let dragging = null;
+let idCounter = 1;
+let playing = false;
+let animToken = 0;
+
+const clone = x => JSON.parse(JSON.stringify(x));
+const nextId = () => 'o' + (idCounter++);
+const defaults = {
+  player: {r:18, color:'#2563eb', label:'1'},
+  ball: {r:8, color:'#f59e0b', label:''},
+  cone: {r:15, color:'#f97316', label:''}
+};
+
+function setStatus(msg){ status.textContent = msg; }
+
+function addObject(type, color, label){
+  const idx = objects.filter(o => o.type === type).length + 1;
+  const o = {
+    id: nextId(), type,
+    x: 525 + (Math.random()*80-40), y: 325 + (Math.random()*80-40),
+    r: defaults[type].r,
+    color: color || defaults[type].color,
+    label: label ?? (type==='player' ? String(idx) : '')
+  };
+  objects.push(o);
+  selectedId = o.id;
+  render();
+}
+
+function objectMarkup(o, selected){
+  if(o.type === 'cone'){
+    const s = o.r;
+    return `<g class="obj" data-id="${o.id}" transform="translate(${o.x},${o.y})" style="cursor:grab">
+      <path d="M0 ${-s} L${s} ${s} L${-s} ${s} Z" fill="${o.color}" stroke="${selected?'#0f172a':'#ffffff'}" stroke-width="${selected?5:2}"/>
+    </g>`;
+  }
+  const stroke = selected ? '#0f172a' : '#ffffff';
+  return `<g class="obj" data-id="${o.id}" transform="translate(${o.x},${o.y})" style="cursor:grab">
+    <circle r="${o.r}" fill="${o.color}" stroke="${stroke}" stroke-width="${selected?5:2}"/>
+    ${o.label ? `<text text-anchor="middle" dominant-baseline="central" font-size="${o.type==='ball'?9:16}" font-weight="700" fill="#fff" style="pointer-events:none">${escapeHtml(o.label)}</text>`:''}
+  </g>`;
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c])); }
+
+function render(){
+  objectsG.innerHTML = objects.map(o => objectMarkup(o, o.id===selectedId)).join('');
+  const s = objects.find(o => o.id===selectedId);
+  labelInput.value = s?.label ?? '';
+  colorInput.value = s?.color ?? '#2563eb';
+  drawPaths();
+  renderTimeline();
+}
+
+function drawPaths(){
+  if(!showPaths.checked || frames.length < 2){
+    pathsG.innerHTML = '';
+    return;
+  }
+  const ids = new Set();
+  frames.forEach(f => f.objects.forEach(o => { if(o.type==='player' || o.type==='ball') ids.add(o.id); }));
+  let html = '';
+  ids.forEach(id => {
+    const pts = [];
+    let color = '#2563eb';
+    frames.forEach(f => {
+      const o = f.objects.find(x => x.id===id);
+      if(o){ pts.push([o.x,o.y]); color=o.color; }
+    });
+    if(pts.length >= 2){
+      const d = pts.map((p,i) => `${i?'L':'M'} ${p[0]} ${p[1]}`).join(' ');
+      html += `<path d="${d}" fill="none" stroke="${color}" stroke-width="4" stroke-dasharray="10 8" opacity=".55"/>`;
+    }
+  });
+  pathsG.innerHTML = html;
+}
+
+function saveFrame(){
+  frames.push({objects:clone(objects)});
+  selectedFrame = frames.length-1;
+  setStatus(`Nyckelbild ${frames.length} sparad.`);
+  render();
+}
+function updateFrame(){
+  if(selectedFrame < 0 || !frames[selectedFrame]) return setStatus('Välj först en nyckelbild.');
+  frames[selectedFrame] = {objects:clone(objects)};
+  setStatus(`Nyckelbild ${selectedFrame+1} uppdaterad.`);
+  render();
+}
+function deleteFrame(){
+  if(selectedFrame < 0) return;
+  frames.splice(selectedFrame,1);
+  if(!frames.length) selectedFrame=-1;
+  else selectedFrame=Math.min(selectedFrame, frames.length-1);
+  if(selectedFrame>=0) objects=clone(frames[selectedFrame].objects);
+  render();
+}
+function loadFrame(i){
+  if(!frames[i]) return;
+  stopPlayback();
+  selectedFrame=i;
+  objects=clone(frames[i].objects);
+  selectedId=null;
+  render();
+}
+function renderTimeline(){
+  timeline.querySelectorAll('.frame').forEach(n=>n.remove());
+  frames.forEach((f,i)=>{
+    const b=document.createElement('button');
+    b.className='frame'+(i===selectedFrame?' active':'');
+    b.textContent=`${i+1}. Nyckelbild`;
+    b.onclick=()=>loadFrame(i);
+    timeline.appendChild(b);
+  });
+}
+
+function getSvgPoint(e){
+  const pt=svg.createSVGPoint();
+  pt.x=e.clientX; pt.y=e.clientY;
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+svg.addEventListener('pointerdown', e=>{
+  const node=e.target.closest?.('.obj');
+  if(!node) { selectedId=null; render(); return; }
+  stopPlayback();
+  const id=node.dataset.id;
+  const o=objects.find(x=>x.id===id);
+  if(!o) return;
+  selectedId=id;
+  const p=getSvgPoint(e);
+  dragging={id,dx:o.x-p.x,dy:o.y-p.y};
+  svg.setPointerCapture?.(e.pointerId);
+  render();
+});
+svg.addEventListener('pointermove', e=>{
+  if(!dragging) return;
+  const o=objects.find(x=>x.id===dragging.id);
+  if(!o) return;
+  const p=getSvgPoint(e);
+  o.x=Math.max(52,Math.min(998,p.x+dragging.dx));
+  o.y=Math.max(74,Math.min(576,p.y+dragging.dy));
+  objectsG.innerHTML = objects.map(x => objectMarkup(x, x.id===selectedId)).join('');
+});
+svg.addEventListener('pointerup', ()=>{ dragging=null; render(); });
+svg.addEventListener('pointercancel', ()=>{ dragging=null; });
+
+labelInput.addEventListener('input', ()=>{
+  const o=objects.find(x=>x.id===selectedId); if(!o) return;
+  o.label=labelInput.value; render();
+});
+colorInput.addEventListener('input', ()=>{
+  const o=objects.find(x=>x.id===selectedId); if(!o) return;
+  o.color=colorInput.value; render();
+});
+document.getElementById('deleteObj').onclick=()=>{
+  if(!selectedId) return;
+  objects=objects.filter(o=>o.id!==selectedId);
+  selectedId=null; render();
+};
+document.getElementById('duplicateObj').onclick=()=>{
+  const o=objects.find(x=>x.id===selectedId); if(!o) return;
+  const n={...clone(o),id:nextId(),x:o.x+35,y:o.y+35};
+  objects.push(n); selectedId=n.id; render();
+};
+document.getElementById('bringFront').onclick=()=>{
+  const i=objects.findIndex(x=>x.id===selectedId); if(i<0) return;
+  const [o]=objects.splice(i,1); objects.push(o); render();
+};
+
+document.getElementById('addBlue').onclick=()=>addObject('player','#2563eb');
+document.getElementById('addRed').onclick=()=>addObject('player','#dc2626');
+document.getElementById('addBall').onclick=()=>addObject('ball','#f59e0b','');
+document.getElementById('addCone').onclick=()=>addObject('cone','#f97316','');
+document.getElementById('saveFrame').onclick=saveFrame;
+document.getElementById('updateFrame').onclick=updateFrame;
+document.getElementById('deleteFrame').onclick=deleteFrame;
+showPaths.onchange=render;
+
+function unionObjects(a,b){
+  const ids=new Set([...a.map(o=>o.id),...b.map(o=>o.id)]);
+  return [...ids].map(id=>[a.find(o=>o.id===id),b.find(o=>o.id===id)]);
+}
+function interpolate(a,b,t){
+  const out=[];
+  unionObjects(a,b).forEach(([oa,ob])=>{
+    if(oa&&ob){
+      out.push({...clone(ob), x:oa.x+(ob.x-oa.x)*t, y:oa.y+(ob.y-oa.y)*t});
+    } else if(oa && t<.5) out.push(clone(oa));
+    else if(ob && t>=.5) out.push(clone(ob));
+  });
+  return out;
+}
+function ease(t){ return t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2; }
+
+async function playOnce(token){
+  const sec=parseFloat(secondsSel.value)||1;
+  for(let i=0;i<frames.length-1;i++){
+    if(token!==animToken) return;
+    const start=performance.now(), dur=sec*1000;
+    await new Promise(resolve=>{
+      function step(now){
+        if(token!==animToken) return resolve();
+        let t=Math.min(1,(now-start)/dur);
+        objects=interpolate(frames[i].objects,frames[i+1].objects,ease(t));
+        objectsG.innerHTML=objects.map(o=>objectMarkup(o,false)).join('');
+        if(t<1) requestAnimationFrame(step); else resolve();
+      }
+      requestAnimationFrame(step);
+    });
+  }
+}
+async function play(){
+  if(frames.length<2) return setStatus('Spara minst två nyckelbilder först.');
+  stopPlayback();
+  playing=true;
+  const token=++animToken;
+  selectedId=null; selectedFrame=-1;
+  setStatus('Spelar animering…');
+  pathsG.style.display='none';
+  do{
+    objects=clone(frames[0].objects);
+    await playOnce(token);
+  }while(loopCheck.checked && token===animToken);
+  if(token===animToken){
+    objects=clone(frames[frames.length-1].objects);
+    playing=false;
+    pathsG.style.display='';
+    setStatus('Klar.');
+    render();
+  }
+}
+function stopPlayback(){
+  if(playing){ animToken++; playing=false; pathsG.style.display=''; }
+}
+document.getElementById('play').onclick=play;
+
+document.getElementById('exportJson').onclick=()=>{
+  const project={version:2,created:new Date().toISOString(),layout:'bandyplan_förenklad',seconds:secondsSel.value,objects,frames};
+  const blob=new Blob([JSON.stringify(project,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='bandy-animation-projekt.json'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+};
+document.getElementById('importJson').addEventListener('change', async e=>{
+  const file=e.target.files?.[0]; if(!file) return;
+  try{
+    const p=JSON.parse(await file.text());
+    objects=clone(p.objects||[]);
+    frames=clone(p.frames||[]);
+    secondsSel.value=String(p.seconds||'1');
+    idCounter=1+Math.max(0,...objects.map(o=>parseInt(String(o.id).replace(/\D/g,''))||0),...frames.flatMap(f=>f.objects||[]).map(o=>parseInt(String(o.id).replace(/\D/g,''))||0));
+    selectedFrame=-1; selectedId=null; render(); setStatus('Projekt importerat.');
+  }catch(err){ setStatus('Kunde inte läsa projektfilen.'); }
+  e.target.value='';
+});
+document.getElementById('clearAll').onclick=()=>{
+  if(!confirm('Rensa hela projektet?')) return;
+  stopPlayback(); objects=[]; frames=[]; selectedId=null; selectedFrame=-1; render(); setStatus('Nytt tomt projekt.');
+};
+
+window.addEventListener('keydown', e=>{
+  if((e.key==='Delete'||e.key==='Backspace') && document.activeElement?.tagName!=='INPUT'){
+    document.getElementById('deleteObj').click();
+  }
+  if(e.key===' ' && document.activeElement?.tagName!=='INPUT'){ e.preventDefault(); play(); }
+});
+
+addObject('player','#2563eb','1');
+objects[0].x=350; objects[0].y=325;
+addObject('player','#2563eb','2');
+objects[1].x=525; objects[1].y=430;
+addObject('ball','#f59e0b','');
+objects[2].x=350; objects[2].y=350;
+selectedId=null;
+render();
+})();
+</script>
+</body>
+</html>
