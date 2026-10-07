@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f8fafc">
-<title>Bandyövningar v0.2 – interaktiv taktiktavla</title>
+<title>Bandyövningar v0.3 – interaktiv taktiktavla</title>
 <style>
 :root{
   --bg:#eef3f8;--panel:#fff;--panel2:#f8fafc;--line:#d7e0ea;--text:#0f172a;--muted:#64748b;
@@ -43,7 +43,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
 <body>
 <div class="app">
 <header class="topbar">
-  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v0.2 · interaktiv taktiktavla</small></div></div>
+  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v0.3 · frihandsvägar + bollinnehav</small></div></div>
   <div class="topControls">
     <select id="rinkMode" aria-label="Planvy"><option value="full">Helplan</option><option value="half">Halvplan</option></select>
     <select id="orientation" aria-label="Anfallsriktning"><option value="up">Anfall uppåt</option><option value="down">Anfall nedåt</option></select>
@@ -69,8 +69,8 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
     <button id="quickCoach" class="tool" style="margin-top:9px"><span class="toolIcon playerIcon" style="background:#64748b">T</span><span>Tränare</span></button>
     <div class="divider"></div>
     <h2 class="panelTitle">Rita</h2>
-    <button id="pathModeDesktop" class="tool"><span class="toolIcon pathIcon">〰</span><span>Åkväg</span></button>
-    <p class="hint">Markera en spelare, välj Åkväg och rita sedan fritt med fingret eller musen.</p>
+    <button id="pathModeDesktop" class="tool"><span class="toolIcon pathIcon">〰</span><span id="pathDesktopLabel">Rita åkvägar</span></button>
+    <p class="hint">Aktivera en gång. Dra sedan direkt från varje spelare för att rita flera åkvägar efter varandra.</p>
   </aside>
 
   <section class="stageArea">
@@ -89,7 +89,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
         <g id="objects"></g>
       </svg>
     </div>
-    <div id="stageStatus" class="stageStatus">Markera en spelare → Åkväg → rita fritt. Ritningen blir spelarens animation.</div>
+    <div id="stageStatus" class="stageStatus">Tryck Rita åkvägar → dra direkt från en spelare. Läget ligger kvar så att du kan rita nästa spelare direkt.</div>
   </section>
 
   <aside id="properties" class="properties">
@@ -101,15 +101,16 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
       <div class="field"><label>Färg</label><div class="swatches" id="swatches"></div></div>
       <div class="field"><label>Storlek</label><input id="objSize" type="range" min="12" max="36" step="1"></div>
       <div class="row"><button id="duplicateObj" class="mini">Duplicera</button><button id="deleteObj" class="mini danger">Ta bort</button></div>
+      <div id="possessionControls" class="field" hidden><label>Bollinnehav</label><div class="row"><button id="giveBall" class="mini">🔴 Ge boll</button><button id="releaseBall" class="mini">Släpp boll</button></div><div id="ballState" class="hint" style="margin-top:6px"></div></div>
     </div>
     <div class="card">
       <h3>Åkväg</h3>
       <div class="pathTools">
-        <button id="pathMode" class="mini primary wide">✏️ Rita frihandsväg</button>
+        <button id="pathMode" class="mini primary wide">✏️ Rita åkvägar</button>
         <button id="redrawPath" class="mini">Rita om</button>
         <button id="deletePath" class="mini danger">Ta bort väg</button>
       </div>
-      <div id="pathState" class="pathState"><strong>Ingen spelare vald.</strong><br>Markera en spelare på planen.</div>
+      <div id="pathState" class="pathState"><strong>Rita som på en taktiktavla.</strong><br>Aktivera åkvägsläget och dra direkt från en spelare.</div>
     </div>
     <div class="card">
       <h3>Passning / skott</h3>
@@ -120,7 +121,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
     <div class="card">
       <h3>Fas / steg</h3>
       <div class="field"><label>Namn</label><input id="stepName" type="text" maxlength="40"></div>
-      <div class="field"><label>Längd</label><select id="stepDuration"><option value="0.5">0,5 s</option><option value="0.8">0,8 s</option><option value="1" selected>1,0 s</option><option value="1.5">1,5 s</option><option value="2">2,0 s</option><option value="3">3,0 s</option></select></div>
+      <div class="field"><label>Minsta faslängd</label><select id="stepDuration"><option value="1">1,0 s</option><option value="1.5" selected>1,5 s</option><option value="2">2,0 s</option><option value="3">3,0 s</option><option value="4">4,0 s</option></select><div class="hint" style="margin-top:4px">Långa åkvägar får automatiskt mer tid.</div></div>
       <div class="row"><button id="duplicateStep" class="mini">Duplicera fas</button><button id="deleteStep" class="mini danger">Ta bort</button></div>
     </div>
     <div class="card"><h3>Övning</h3><div class="field"><label>Namn</label><input id="projectName" type="text" maxlength="60" value="Ny bandyövning"></div><div class="field"><label>Kommentar</label><textarea id="projectNote" placeholder="Kort instruktion till övningen…"></textarea></div></div>
@@ -135,7 +136,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
   <div class="transport">
     <button id="restart" class="icon" title="Starta om">↶</button><button id="play" class="primary icon" title="Spela">▶</button><button id="pause" class="icon" title="Paus">Ⅱ</button>
     <span id="timeLabel" class="timeLabel">0:00</span>
-    <select id="speed" class="speed" title="Hastighet"><option value="0.5">0,5×</option><option value="1" selected>1×</option><option value="1.5">1,5×</option><option value="2">2×</option></select>
+    <select id="speed" class="speed" title="Hastighet"><option value="0.25">0,25×</option><option value="0.5" selected>0,5×</option><option value="0.75">0,75×</option><option value="1">1×</option></select>
     <label class="checkLabel"><input id="showPaths" type="checkbox" checked><span>Visa åkvägar</span></label>
     <label class="checkLabel"><input id="loop" type="checkbox"><span>Loop</span></label>
     <button id="toggleProps" class="icon" title="Egenskaper">⚙</button>
@@ -147,7 +148,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
   <button data-add="cone"><span class="toolIcon"><i class="coneIcon"></i></span><span>Kon</span></button>
   <button data-add="ball"><span class="toolIcon"><i class="ballIcon"></i></span><span>Boll</span></button>
   <button data-add="text"><span class="toolIcon textIcon">T</span><span>Text</span></button>
-  <button id="mobilePath"><span class="toolIcon pathIcon">〰</span><span>Åkväg</span></button>
+  <button id="mobilePath"><span class="toolIcon pathIcon">〰</span><span id="mobilePathLabel">Rita väg</span></button>
   <button id="mobileProps"><span class="toolIcon" style="font-size:22px">⚙</span><span>Val</span></button>
 </nav>
 </div>
@@ -158,11 +159,11 @@ const $=id=>document.getElementById(id);
 const stage=$('stage'), rinkG=$('rink'), objectsG=$('objects'), actionG=$('actionLayer'), movementG=$('movementPreview'), pathG=$('pathLayer'), draftG=$('draftLayer');
 const stepsEl=$('steps'), properties=$('properties'), statusEl=$('stageStatus'), rinkCard=$('rinkCard');
 const clone=x=>JSON.parse(JSON.stringify(x));
-const colors=['#1769e8','#df1f2d','#f2b705','#159447','#64748b','#111827'];
+const colors=['#1769e8','#e31818','#159447','#f2b705','#ff7a00','#7c3aed','#06b6d4','#db2777','#64748b','#111827'];
 let idCounter=1, selectedId=null, selectedStep=0, dragging=null, actionMode=null, actionFirst=null;
 let pathMode=false, drawingPath=null;
 let playing=false, paused=false, playToken=0;
-let project={version:2,name:'Ny bandyövning',note:'',rinkMode:'full',orientation:'up',steps:[]};
+let project={version:3,name:'Ny bandyövning',note:'',rinkMode:'full',orientation:'up',steps:[]};
 const defaults={player:{r:22,color:'#1769e8',label:'1'},ball:{r:9,color:'#df1f2d',label:''},cone:{r:20,color:'#ff7a00',label:''},text:{r:20,color:'#111827',label:'Text'}};
 
 function nextId(){return 'o'+idCounter++}
@@ -170,9 +171,9 @@ function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&l
 function setStatus(msg,sticky=false){statusEl.textContent=msg;statusEl.classList.remove('hide');clearTimeout(setStatus.t);if(!sticky)setStatus.t=setTimeout(()=>statusEl.classList.add('hide'),2800)}
 function current(){return project.steps[selectedStep]}
 function visibleCenter(){if(project.rinkMode==='full')return{x:350,y:550};return project.orientation==='up'?{x:350,y:330}:{x:350,y:770}}
-function blankStep(name='Start',objects=[]){return{name,duration:1,objects:clone(objects),actions:[],paths:{}}}
+function blankStep(name='Start',objects=[],ballOwner=null){return{name,duration:1.5,objects:clone(objects),actions:[],paths:{},ballOwner:ballOwner||null}}
 function ensureProject(){if(project.steps.length)return;project.steps=[blankStep('Start',[])];selectedStep=0}
-function ensureStepShape(s){s.objects=s.objects||[];s.actions=s.actions||[];s.paths=s.paths||{};s.duration=parseFloat(s.duration)||1;s.name=s.name||'Steg'}
+function ensureStepShape(s){s.objects=s.objects||[];s.actions=s.actions||[];s.paths=s.paths||{};s.duration=parseFloat(s.duration)||1.5;s.name=s.name||'Steg';if(!('ballOwner' in s))s.ballOwner=null}
 
 function rinkMarkup(){
   const R='#e31818';
@@ -202,9 +203,13 @@ function objectMarkup(o,selected=false){
   }
   if(o.type==='text')return `<g class="obj" data-id="${o.id}" transform="translate(${o.x} ${o.y})" style="cursor:grab"><rect x="-${Math.max(32,(o.label||'').length*8)}" y="-${o.r}" width="${Math.max(64,(o.label||'').length*16)}" height="${o.r*2}" rx="8" fill="${selected?'#e8f1ff':'rgba(255,255,255,.82)'}" stroke="${selected?'#1769e8':'transparent'}"/><text text-anchor="middle" dominant-baseline="central" font-size="${Math.max(14,o.r)}" font-weight="800" fill="${o.color}">${esc(o.label||'Text')}</text></g>`;
   const label=o.label?`<text text-anchor="middle" dominant-baseline="central" font-size="${o.type==='ball'?Math.max(8,o.r):Math.max(12,o.r*.8)}" font-weight="800" fill="#fff" pointer-events="none">${esc(o.label)}</text>`:'';
-  return `<g class="obj" data-id="${o.id}" transform="translate(${o.x} ${o.y})" filter="url(#objShadow)" style="cursor:grab"><circle r="${o.r}" fill="${o.color}" stroke="${sel}" stroke-width="${sw}"/>${label}</g>`;
+  const hit=o.type==='ball'?`<circle r="${Math.max(30,o.r+20)}" fill="transparent" pointer-events="all"/>`:'';
+  return `<g class="obj" data-id="${o.id}" transform="translate(${o.x} ${o.y})" filter="url(#objShadow)" style="cursor:grab">${hit}<circle r="${o.r}" fill="${o.color}" stroke="${sel}" stroke-width="${sw}" pointer-events="all"/>${label}</g>`;
 }
-function renderObjects(objects=current().objects){objectsG.innerHTML=objects.map(o=>objectMarkup(o,o.id===selectedId&&!playing)).join('')}
+function firstBall(objects=current().objects){return objects.find(o=>o.type==='ball')||null}
+function attachBall(objects,ownerId){if(!ownerId)return objects;const owner=objects.find(o=>o.id===ownerId&&o.type==='player'),ball=firstBall(objects);if(owner&&ball){ball.x=owner.x+Math.max(14,owner.r*.78);ball.y=owner.y+Math.max(9,owner.r*.45)}return objects}
+function displayObjects(objects=current().objects,ownerId=(playing?null:current().ballOwner)){const out=clone(objects);if(ownerId)attachBall(out,ownerId);return out}
+function renderObjects(objects=null){const obs=objects?clone(objects):displayObjects();const ordered=obs.sort((a,b)=>(a.type==='ball'?-1:0)-(b.type==='ball'?-1:0));objectsG.innerHTML=ordered.map(o=>objectMarkup(o,o.id===selectedId&&!playing)).join('')}
 function getObj(id,objects=current().objects){return objects.find(o=>o.id===id)}
 function getObjInStep(step,id){return step?.objects?.find(o=>o.id===id)}
 function addObject(type,label=null,color=null){
@@ -217,11 +222,14 @@ function syncSelectedControls(){
   const o=getObj(selectedId); $('selectionCard').hidden=!o;$('noSelection').hidden=!!o;
   if(o){$('objLabel').value=o.label||'';$('objSize').value=o.r;renderSwatches(o.color)}
   const hasPlayer=!!o&&o.type==='player';const hasPath=hasPlayer&&!!current().paths?.[o.id];
-  $('pathMode').disabled=!hasPlayer;$('redrawPath').disabled=!hasPlayer;$('deletePath').disabled=!hasPath;
-  if(!o)$('pathState').innerHTML='<strong>Ingen spelare vald.</strong><br>Markera en spelare på planen.';
-  else if(o.type!=='player')$('pathState').innerHTML='<strong>Åkvägar gäller spelare.</strong><br>Markera en spelare eller målvakt/tränare.';
-  else if(hasPath)$('pathState').innerHTML=`<strong>${esc(o.label||'Spelaren')} har en ritad åkväg.</strong><br>Rita om eller ta bort vägen.`;
-  else $('pathState').innerHTML=`<strong>${esc(o.label||'Spelaren')} är vald.</strong><br>Tryck “Rita frihandsväg” och dra på planen.`;
+  $('pathMode').disabled=false;$('redrawPath').disabled=!hasPlayer;$('deletePath').disabled=!hasPath;
+  const pc=$('possessionControls');pc.hidden=!hasPlayer;
+  if(hasPlayer){const owns=current().ballOwner===o.id;$('giveBall').disabled=owns;$('releaseBall').disabled=!owns;$('ballState').textContent=owns?'Den här spelaren har bollen.':'Tryck Ge boll om spelaren ska starta fasen med boll.'}
+  if(pathMode)$('pathState').innerHTML='<strong>Åkvägsläge aktivt.</strong><br>Dra direkt från en spelare för att rita. Fortsätt sedan direkt med nästa spelare.';
+  else if(!o)$('pathState').innerHTML='<strong>Rita som på en taktiktavla.</strong><br>Tryck “Rita åkvägar” och dra sedan direkt från en spelare.';
+  else if(o.type!=='player')$('pathState').innerHTML='<strong>Åkvägar gäller spelare.</strong><br>Aktivera Rita åkvägar och dra direkt från en spelare.';
+  else if(hasPath)$('pathState').innerHTML=`<strong>${esc(o.label||'Spelaren')} har en ritad åkväg.</strong><br>Du kan rita om eller ta bort vägen.`;
+  else $('pathState').innerHTML=`<strong>${esc(o.label||'Spelaren')} är vald.</strong><br>Aktivera Rita åkvägar och dra från spelaren.`;
 }
 function renderSwatches(active){$('swatches').innerHTML=colors.map(c=>`<button class="swatch ${c===active?'active':''}" data-color="${c}" style="background:${c}" aria-label="${c}"></button>`).join('')}
 
@@ -250,8 +258,8 @@ function smoothPoints(raw){
 function renderPaths(stepIndex=selectedStep,playback=false){
   pathG.innerHTML='';const s=project.steps[stepIndex];if(!s)return;const visible=playback?$('showPaths').checked:true;
   Object.entries(s.paths||{}).forEach(([id,pts])=>{
-    if(!pts||pts.length<2)return;const d=pathD(pts);const selected=id===selectedId&&!playing;
-    pathG.insertAdjacentHTML('beforeend',`<path id="motionPath-${stepIndex}-${id}" d="${d}" fill="none" stroke="#1769e8" stroke-width="${selected?7:5}" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowBlue)" opacity="${visible?(selected ? .95 : .72):.001}" pointer-events="none"/>`)
+    if(!pts||pts.length<2)return;const d=pathD(pts);const selected=id===selectedId&&!playing;const po=getObjInStep(s,id);const stroke=po?.color||'#1769e8';
+    pathG.insertAdjacentHTML('beforeend',`<path id="motionPath-${stepIndex}-${id}" d="${d}" fill="none" stroke="${stroke}" stroke-width="${selected?7:5}" stroke-linecap="round" stroke-linejoin="round" opacity="${visible?(selected ? .95 : .72):.001}" pointer-events="none"/>`)
   })
 }
 function renderFallbackMovement(){
@@ -277,82 +285,122 @@ function syncStepControls(){$('stepName').value=current().name||'';$('stepDurati
 function render(){ensureProject();project.steps.forEach(ensureStepShape);rinkG.innerHTML=rinkMarkup();setView();renderPaths();renderFallbackMovement();renderActions();renderObjects();renderSteps();syncSelectedControls();syncStepControls();$('projectName').value=project.name;$('projectNote').value=project.note;$('rinkMode').value=project.rinkMode;$('orientation').value=project.orientation;syncModeButtons()}
 
 function addStep(){
-  stopPlayback();cancelPathMode();const prev=current();const next=blankStep(`Fas ${selectedStep+2}`,prev.objects);project.steps.splice(selectedStep+1,0,next);selectedStep++;selectedId=null;render();setStatus(`Ny fas skapad. Rita nästa del av övningen.`)
+  stopPlayback();cancelPathMode();const prev=current();const next=blankStep(`Fas ${selectedStep+2}`,prev.objects,prev.ballOwner);project.steps.splice(selectedStep+1,0,next);selectedStep++;selectedId=null;render();setStatus(`Ny fas skapad. Rita nästa del av övningen.`)
 }
 function loadStep(i){stopPlayback();cancelPathMode();selectedStep=i;selectedId=null;actionMode=null;actionFirst=null;render()}
 function duplicateStep(){const s=clone(current());s.name=(s.name||`Fas ${selectedStep+1}`)+' kopia';s.paths={};s.actions=[];project.steps.splice(selectedStep+1,0,s);selectedStep++;render()}
 function deleteStep(){if(project.steps.length<=1)return;project.steps.splice(selectedStep,1);selectedStep=Math.min(selectedStep,project.steps.length-1);selectedId=null;cancelPathMode();render()}
 function ensureNextStep(){
   if(selectedStep<project.steps.length-1)return project.steps[selectedStep+1];
-  const n=blankStep(`Fas ${selectedStep+2}`,current().objects);project.steps.push(n);renderSteps();return n;
+  const n=blankStep(`Fas ${selectedStep+2}`,current().objects,current().ballOwner);project.steps.push(n);renderSteps();return n;
 }
 
 function getSvgPoint(e){const p=stage.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const r=p.matrixTransform(stage.getScreenCTM().inverse());return{x:r.x,y:r.y}}
 function clampPoint(p){return{x:Math.max(20,Math.min(680,p.x)),y:Math.max(20,Math.min(1080,p.y))}}
 function boundsFor(o){return{minX:28+o.r,maxX:672-o.r,minY:28+o.r,maxY:1072-o.r}}
 function beginPathMode(redraw=false){
-  stopPlayback();const o=getObj(selectedId);if(!o||o.type!=='player'){setStatus('Markera först den spelare vars åkväg du vill rita.',true);return}
-  if(redraw&&current().paths?.[o.id])delete current().paths[o.id];pathMode=true;actionMode=null;actionFirst=null;syncModeButtons();renderPaths();syncSelectedControls();setStatus(`Rita ${o.label||'spelarens'} åkväg med fingret. Du kan börja var som helst på planen.`,true)
+  stopPlayback();
+  if(pathMode&&!redraw){cancelPathMode();setStatus('Flyttläge aktivt.');return}
+  const o=getObj(selectedId);
+  if(redraw){if(!o||o.type!=='player'){setStatus('Markera spelaren vars väg ska ritas om.');return}if(current().paths?.[o.id])delete current().paths[o.id]}
+  pathMode=true;actionMode=null;actionFirst=null;syncModeButtons();renderPaths();syncSelectedControls();
+  setStatus(redraw?`Rita om ${o.label||'spelarens'} väg: dra från spelaren.`:'Åkvägsläge aktivt: dra direkt från en spelare. Fortsätt med nästa spelare utan att trycka Åkväg igen.',true)
 }
-function cancelPathMode(){pathMode=false;drawingPath=null;draftG.innerHTML='';rinkCard.classList.remove('drawing');syncModeButtons()}
+function cancelPathMode(){pathMode=false;drawingPath=null;draftG.innerHTML='';rinkCard.classList.remove('drawing');syncModeButtons();syncSelectedControls()}
 function syncModeButtons(){
   $('pathMode').classList.toggle('active',pathMode);$('pathModeDesktop').classList.toggle('active',pathMode);$('mobilePath').classList.toggle('active',pathMode);rinkCard.classList.toggle('drawing',pathMode);
+  $('pathMode').textContent=pathMode?'✓ Klar / flytta':'✏️ Rita åkvägar';
+  const dl=$('pathDesktopLabel');if(dl)dl.textContent=pathMode?'Klar / flytta':'Rita åkvägar';
+  const ml=$('mobilePathLabel');if(ml)ml.textContent=pathMode?'Klar':'Rita väg';
   $('passMode').classList.toggle('active',actionMode==='pass');$('shotMode').classList.toggle('active',actionMode==='shot')
 }
 function finishDrawPath(){
   if(!drawingPath)return;const {id,points}=drawingPath;drawingPath=null;draftG.innerHTML='';
-  const pts=smoothPoints(points);if(pts.length<2||Math.hypot(pts[pts.length-1].x-pts[0].x,pts[pts.length-1].y-pts[0].y)<18){setStatus('Åkvägen blev för kort. Försök igen.');cancelPathMode();return}
+  const pts=smoothPoints(points);if(pts.length<2||Math.hypot(pts[pts.length-1].x-pts[0].x,pts[pts.length-1].y-pts[0].y)<18){setStatus('Åkvägen blev för kort. Dra på nytt från spelaren.');return}
   current().paths[id]=pts;const next=ensureNextStep();let n=getObjInStep(next,id);if(!n){const src=getObj(id);n=clone(src);next.objects.push(n)}const end=pts[pts.length-1];n.x=end.x;n.y=end.y;
-  pathMode=false;render();setStatus('Åkvägen sparad. Tryck Play för att se spelaren följa den.')
+  render();pathMode=true;syncModeButtons();syncSelectedControls();setStatus('Åkvägen sparad. Dra direkt från nästa spelare, eller tryck Klar / flytta.',true)
 }
 
 stage.addEventListener('pointerdown',e=>{
   if(playing)return;
+  const node=e.target.closest?.('.obj');
   if(pathMode){
-    const o=getObj(selectedId);if(!o||o.type!=='player'){cancelPathMode();return}
-    e.preventDefault();stopPlayback();const p=clampPoint(getSvgPoint(e));drawingPath={id:o.id,points:[{x:o.x,y:o.y},p]};stage.setPointerCapture?.(e.pointerId);draftG.innerHTML=`<path d="${pathD(drawingPath.points)}" fill="none" stroke="#1769e8" stroke-width="7" stroke-linecap="round" opacity=".65"/>`;return
+    const p0=clampPoint(getSvgPoint(e));let o=null,best=Infinity;
+    for(const candidate of current().objects){if(candidate.type!=='player')continue;const d=Math.hypot(candidate.x-p0.x,candidate.y-p0.y);if(d<Math.max(42,candidate.r+18)&&d<best){o=candidate;best=d}}
+    if(!o){setStatus('Åkvägsläge: börja genom att lägga fingret på en spelare.',true);return}
+    e.preventDefault();stopPlayback();selectedId=o.id;drawingPath={id:o.id,points:[{x:o.x,y:o.y},p0]};stage.setPointerCapture?.(e.pointerId);draftG.innerHTML=`<path d="${pathD(drawingPath.points)}" fill="none" stroke="${o.color||'#1769e8'}" stroke-width="7" stroke-linecap="round" opacity=".68"/>`;renderObjects();syncSelectedControls();return
   }
-  const node=e.target.closest?.('.obj');if(!node){selectedId=null;syncSelectedControls();renderObjects();renderPaths();return}
+  if(!node){selectedId=null;syncSelectedControls();renderObjects();renderPaths();return}
   stopPlayback();const id=node.dataset.id,o=getObj(id);if(!o)return;
   if(actionMode){handleActionPick(o);return}
-  selectedId=id;const p=getSvgPoint(e);dragging={id,dx:o.x-p.x,dy:o.y-p.y};stage.setPointerCapture?.(e.pointerId);renderObjects();renderPaths();syncSelectedControls()
+  selectedId=id;
+  if(o.type==='ball'&&current().ballOwner){setStatus('Bollen följer bollhållaren. Välj bollhållaren och tryck Släpp boll om du vill flytta bollen fritt.');renderObjects();syncSelectedControls();return}
+  const p=getSvgPoint(e);dragging={id,dx:o.x-p.x,dy:o.y-p.y};stage.setPointerCapture?.(e.pointerId);renderObjects();renderPaths();syncSelectedControls()
 });
 stage.addEventListener('pointermove',e=>{
-  if(drawingPath){e.preventDefault();const p=clampPoint(getSvgPoint(e));const q=drawingPath.points[drawingPath.points.length-1];if(Math.hypot(p.x-q.x,p.y-q.y)>4){drawingPath.points.push(p);draftG.innerHTML=`<path d="${pathD(drawingPath.points)}" fill="none" stroke="#1769e8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity=".65" marker-end="url(#arrowBlue)"/>`}return}
+  if(drawingPath){e.preventDefault();const p=clampPoint(getSvgPoint(e));const q=drawingPath.points[drawingPath.points.length-1];if(Math.hypot(p.x-q.x,p.y-q.y)>4){drawingPath.points.push(p);const o=getObj(drawingPath.id);draftG.innerHTML=`<path d="${pathD(drawingPath.points)}" fill="none" stroke="${o?.color||'#1769e8'}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity=".68"/>`}return}
   if(!dragging)return;const o=getObj(dragging.id);if(!o)return;const p=getSvgPoint(e),b=boundsFor(o);o.x=Math.max(b.minX,Math.min(b.maxX,p.x+dragging.dx));o.y=Math.max(b.minY,Math.min(b.maxY,p.y+dragging.dy));renderObjects();renderActions()
 });
-stage.addEventListener('pointerup',()=>{if(drawingPath){finishDrawPath();return}if(dragging){dragging=null;renderFallbackMovement()}});
-stage.addEventListener('pointercancel',()=>{drawingPath=null;dragging=null;draftG.innerHTML='';if(pathMode)setStatus('Ritningen avbröts. Tryck Åkväg och försök igen.')});
+stage.addEventListener('pointerup',()=>{if(drawingPath){finishDrawPath();return}if(dragging){dragging=null;renderFallbackMovement();renderObjects()}});
+stage.addEventListener('pointercancel',()=>{drawingPath=null;dragging=null;draftG.innerHTML='';if(pathMode)setStatus('Ritningen avbröts. Dra på nytt från en spelare.',true)});
 
 function setActionMode(mode){
   cancelPathMode();actionMode=actionMode===mode?null:mode;actionFirst=null;syncModeButtons();$('actionHelp').textContent=!actionMode?'Passning och skott kopplas till den aktuella fasen.':actionMode==='pass'?'Tryck först på passaren och sedan på mottagaren.':'Tryck på spelaren som ska skjuta.';setStatus(actionMode==='pass'?'Passning: välj passare → mottagare.':actionMode==='shot'?'Skott: välj skytt.':'Aktion avbruten.',!!actionMode)
 }
+function ensureBallObject(){
+  let ball=firstBall();if(ball)return ball;const d=defaults.ball,c=visibleCenter();ball={id:nextId(),type:'ball',x:c.x,y:c.y,r:d.r,color:d.color,label:''};for(let i=selectedStep;i<project.steps.length;i++)project.steps[i].objects.push(clone(ball));return ball
+}
+function setBallOwner(id,propagate=false){
+  ensureBallObject();const previous=current().ballOwner;current().ballOwner=id||null;
+  if(propagate){for(let i=selectedStep+1;i<project.steps.length;i++){const s=project.steps[i];if(s.ballOwner&&s.ballOwner!==previous)break;s.ballOwner=id||null}}
+  render();
+}
 function handleActionPick(o){
   if(o.type!=='player'){setStatus('Välj en spelare.');return}
-  if(actionMode==='shot'){current().actions.push({type:'shot',from:o.id});setActionMode(null);renderActions();renderSteps();return}
-  if(actionMode==='pass'){if(!actionFirst){actionFirst=o.id;setStatus(`Passare ${o.label||''} vald. Välj mottagare.`,true);return}if(actionFirst===o.id){setStatus('Välj en annan mottagare.');return}current().actions.push({type:'pass',from:actionFirst,to:o.id});setActionMode(null);renderActions();renderSteps()}
+  if(actionMode==='shot'){
+    ensureBallObject();current().ballOwner=current().ballOwner||o.id;current().actions.push({type:'shot',from:o.id});const next=ensureNextStep();next.ballOwner=null;setActionMode(null);renderActions();renderSteps();renderObjects();return
+  }
+  if(actionMode==='pass'){
+    if(!actionFirst){actionFirst=o.id;setStatus(`Passare ${o.label||''} vald. Välj mottagare.`,true);return}
+    if(actionFirst===o.id){setStatus('Välj en annan mottagare.');return}
+    ensureBallObject();current().ballOwner=current().ballOwner||actionFirst;current().actions.push({type:'pass',from:actionFirst,to:o.id});const next=ensureNextStep();next.ballOwner=o.id;setActionMode(null);renderActions();renderSteps();renderObjects()
+  }
 }
 
 function unionObjects(a,b){const ids=new Set([...a.map(o=>o.id),...b.map(o=>o.id)]);return[...ids].map(id=>[a.find(o=>o.id===id),b.find(o=>o.id===id)])}
 function ease(t){return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2}
+function polyLength(pts){if(!pts||pts.length<2)return 0;let n=0;for(let i=1;i<pts.length;i++)n+=Math.hypot(pts[i].x-pts[i-1].x,pts[i].y-pts[i-1].y);return n}
+const BASE_TRAVEL_SPEED=180;
+function travelLengthFor(a,b,id){if(a.paths?.[id])return polyLength(a.paths[id]);const x=getObjInStep(a,id),y=getObjInStep(b,id);return x&&y?Math.hypot(y.x-x.x,y.y-x.y):0}
+function basePhaseDuration(a,b){let maxLen=0;a.objects.forEach(o=>{if(o.type==='player')maxLen=Math.max(maxLen,travelLengthFor(a,b,o.id))});return Math.max(parseFloat(a.duration)||1.5,maxLen/BASE_TRAVEL_SPEED)}
 function pointOnPath(stepIndex,id,t){
   const el=document.getElementById(`motionPath-${stepIndex}-${id}`);if(!el)return null;try{const len=el.getTotalLength();const p=el.getPointAtLength(Math.max(0,Math.min(1,t))*len);return{x:p.x,y:p.y}}catch{return null}
 }
-function animatedObjects(a,b,t,stepIndex){
+function objectProgress(a,b,id,t,baseDur){const len=travelLengthFor(a,b,id);if(len<1)return 1;return Math.min(1,t*baseDur*BASE_TRAVEL_SPEED/len)}
+function animatedObjects(a,b,t,stepIndex,baseDur=basePhaseDuration(a,b)){
   const out=[];for(const[oa,ob]of unionObjects(a.objects,b.objects)){
-    if(oa&&ob){const n={...clone(ob),x:oa.x+(ob.x-oa.x)*t,y:oa.y+(ob.y-oa.y)*t,r:oa.r+(ob.r-oa.r)*t};if(a.paths?.[oa.id]){const p=pointOnPath(stepIndex,oa.id,t);if(p){n.x=p.x;n.y=p.y}}out.push(n)}
+    if(oa&&ob){const p=objectProgress(a,b,oa.id,t,baseDur),ep=ease(p);const n={...clone(ob),x:oa.x+(ob.x-oa.x)*ep,y:oa.y+(ob.y-oa.y)*ep,r:oa.r+(ob.r-oa.r)*ep};if(a.paths?.[oa.id]){const q=pointOnPath(stepIndex,oa.id,ep);if(q){n.x=q.x;n.y=q.y}}out.push(n)}
     else if(oa&&t<.5)out.push(clone(oa));else if(ob&&t>=.5)out.push(clone(ob))
   }return out
 }
 function objPos(objects,id){const o=objects.find(x=>x.id===id);return o?{x:o.x,y:o.y}:null}
-function applyBallAction(objects,a,b,t,stepIndex){
-  const ball=objects.find(o=>o.type==='ball');if(!ball)return;const act=(a.actions||[]).find(x=>x.type==='pass'||x.type==='shot');if(!act)return;
-  const trigger=act.type==='pass' ? .62 : .68;
-  const nowFrom=objPos(objects,act.from);if(!nowFrom)return;
-  if(t<trigger){ball.x=nowFrom.x+18;ball.y=nowFrom.y+10;return}
-  const startObjects=animatedObjects(a,b,trigger,stepIndex),startFrom=objPos(startObjects,act.from)||nowFrom;const u=(t-trigger)/(1-trigger);
-  let target;if(act.type==='pass'){target=objPos(objects,act.to)||objPos(b.objects,act.to)}else target={x:350,y:project.orientation==='up'?24:1076};if(!target)return;
-  ball.x=startFrom.x+(target.x-startFrom.x)*u;ball.y=startFrom.y+(target.y-startFrom.y)*u
+function placeBallByOwner(objects,ownerId){const owner=objects.find(o=>o.id===ownerId),ball=firstBall(objects);if(owner&&ball){ball.x=owner.x+Math.max(14,owner.r*.78);ball.y=owner.y+Math.max(9,owner.r*.45)}}
+function applyBallTimeline(objects,a,b,t,stepIndex,baseDur){
+  const ball=firstBall(objects);if(!ball)return;const actions=(a.actions||[]).filter(x=>x.type==='pass'||x.type==='shot');
+  let owner=a.ballOwner||null;if(!actions.length){if(owner)placeBallByOwner(objects,owner);return}
+  if(!owner)owner=actions[0].from;
+  const n=actions.length,idx=Math.min(n-1,Math.floor(Math.min(.999999,t)*n));
+  for(let j=0;j<idx;j++){owner=actions[j].type==='pass'?actions[j].to:null}
+  const act=actions[idx],local=t*n-idx,globalStart=idx/n;
+  if(act.type==='pass'){
+    const depart=.28,arrive=.68;
+    if(local<depart){placeBallByOwner(objects,act.from||owner);return}
+    if(local>=arrive){placeBallByOwner(objects,act.to);return}
+    const g0=(idx+depart)/n,g1=(idx+arrive)/n;const startObs=animatedObjects(a,b,g0,stepIndex,baseDur),endObs=animatedObjects(a,b,g1,stepIndex,baseDur);
+    const p0=objPos(startObs,act.from)||objPos(objects,act.from),p1=objPos(endObs,act.to)||objPos(objects,act.to);if(!p0||!p1)return;const u=(local-depart)/(arrive-depart);ball.x=p0.x+(p1.x-p0.x)*u;ball.y=p0.y+(p1.y-p0.y)*u;return
+  }
+  const depart=.42;if(local<depart){placeBallByOwner(objects,act.from||owner);return}
+  const g0=(idx+depart)/n,startObs=animatedObjects(a,b,g0,stepIndex,baseDur),p0=objPos(startObs,act.from)||objPos(objects,act.from);if(!p0)return;const target={x:350,y:project.orientation==='up'?24:1076},u=(local-depart)/(1-depart);ball.x=p0.x+(target.x-p0.x)*u;ball.y=p0.y+(target.y-p0.y)*u
 }
 function stopPlayback(reset=false){if(playing||paused){playToken++;playing=false;paused=false}$('play').textContent='▶';if(reset){selectedStep=0;selectedId=null;cancelPathMode();render();$('timeLabel').textContent='0:00'}}
 async function play(){
@@ -361,8 +409,8 @@ async function play(){
   stopPlayback();playing=true;const token=++playToken;selectedId=null;let totalElapsed=0;const speed=parseFloat($('speed').value)||1;
   do{
     for(let i=0;i<project.steps.length-1;i++){
-      if(token!==playToken)return;selectedStep=i;renderSteps();renderPaths(i,true);renderActions(i,true);movementG.innerHTML='';const a=project.steps[i],b=project.steps[i+1],dur=(parseFloat(a.duration)||1)*1000/speed;let elapsed=0,last=performance.now();
-      while(elapsed<dur){if(token!==playToken)return;await new Promise(r=>requestAnimationFrame(r));const now=performance.now();if(paused){last=now;continue}elapsed+=now-last;last=now;const t=Math.min(1,elapsed/dur),e=ease(t);const obs=animatedObjects(a,b,e,i);applyBallAction(obs,a,b,e,i);renderObjects(obs);$('timeLabel').textContent=((totalElapsed+elapsed)/1000).toFixed((totalElapsed+elapsed)<10000?1:0)+'s'}
+      if(token!==playToken)return;selectedStep=i;renderSteps();renderPaths(i,true);renderActions(i,true);movementG.innerHTML='';const a=project.steps[i],b=project.steps[i+1],baseDur=basePhaseDuration(a,b),dur=baseDur*1000/speed;let elapsed=0,last=performance.now();
+      while(elapsed<dur){if(token!==playToken)return;await new Promise(r=>requestAnimationFrame(r));const now=performance.now();if(paused){last=now;continue}elapsed+=now-last;last=now;const t=Math.min(1,elapsed/dur);const obs=animatedObjects(a,b,t,i,baseDur);applyBallTimeline(obs,a,b,t,i,baseDur);renderObjects(obs);$('timeLabel').textContent=((totalElapsed+elapsed)/1000).toFixed((totalElapsed+elapsed)<10000?1:0)+'s'}
       totalElapsed+=dur;selectedStep=i+1
     }
   }while($('loop').checked&&token===playToken);
@@ -370,13 +418,13 @@ async function play(){
 }
 function pause(){if(!playing&&!paused)return;if(playing){paused=true;setStatus('Pausad.',true)}else paused=false}
 
-function saveLocal(){project.name=$('projectName').value.trim()||'Ny bandyövning';project.note=$('projectNote').value;localStorage.setItem('bandyEditor:v2:last',JSON.stringify(project));localStorage.setItem('bandyEditor:last',JSON.stringify(project));setStatus('Övningen sparad i denna webbläsare.')}
-function openLocal(){const raw=localStorage.getItem('bandyEditor:v2:last')||localStorage.getItem('bandyEditor:last');if(!raw){setStatus('Ingen sparad övning hittades i denna webbläsare.');return}try{project=JSON.parse(raw);rebuildProject();selectedStep=0;selectedId=null;render();setStatus(`Öppnade ${project.name||'övningen'}.`)}catch{setStatus('Den sparade övningen kunde inte läsas.')}}
+function saveLocal(){project.name=$('projectName').value.trim()||'Ny bandyövning';project.note=$('projectNote').value;localStorage.setItem('bandyEditor:v3:last',JSON.stringify(project));localStorage.setItem('bandyEditor:last',JSON.stringify(project));setStatus('Övningen sparad i denna webbläsare.')}
+function openLocal(){const raw=localStorage.getItem('bandyEditor:v3:last')||localStorage.getItem('bandyEditor:v2:last')||localStorage.getItem('bandyEditor:last');if(!raw){setStatus('Ingen sparad övning hittades i denna webbläsare.');return}try{project=JSON.parse(raw);rebuildProject();selectedStep=0;selectedId=null;render();setStatus(`Öppnade ${project.name||'övningen'}.`)}catch{setStatus('Den sparade övningen kunde inte läsas.')}}
 function exportJson(){project.name=$('projectName').value.trim()||'Ny bandyövning';project.note=$('projectNote').value;const blob=new Blob([JSON.stringify(project,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(project.name.replace(/[^a-z0-9åäö_-]+/gi,'_')||'bandyovning')+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function rebuildProject(){
-  project.version=2;project.steps=project.steps||[];project.steps.forEach(ensureStepShape);const ids=project.steps.flatMap(s=>s.objects||[]).map(o=>parseInt(String(o.id).replace(/\D/g,''))||0);idCounter=1+Math.max(0,...ids);project.rinkMode=project.rinkMode||'full';project.orientation=project.orientation||'up';project.name=project.name||'Ny bandyövning';project.note=project.note||''
+  project.version=3;project.steps=project.steps||[];project.steps.forEach(ensureStepShape);const ids=project.steps.flatMap(s=>s.objects||[]).map(o=>parseInt(String(o.id).replace(/\D/g,''))||0);idCounter=1+Math.max(0,...ids);project.rinkMode=project.rinkMode||'full';project.orientation=project.orientation||'up';project.name=project.name||'Ny bandyövning';project.note=project.note||''
 }
-function newProject(){if(!confirm('Skapa en ny tom övning?'))return;stopPlayback();project={version:2,name:'Ny bandyövning',note:'',rinkMode:$('rinkMode').value,orientation:$('orientation').value,steps:[blankStep('Start',[])]};selectedStep=0;selectedId=null;idCounter=1;render();setStatus('Ny övning skapad.')}
+function newProject(){if(!confirm('Skapa en ny tom övning?'))return;stopPlayback();project={version:3,name:'Ny bandyövning',note:'',rinkMode:$('rinkMode').value,orientation:$('orientation').value,steps:[blankStep('Start',[])]};selectedStep=0;selectedId=null;idCounter=1;render();setStatus('Ny övning skapad.')}
 
 // UI events
 document.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click',()=>addObject(b.dataset.add)));
@@ -384,6 +432,8 @@ $('quickGK').onclick=()=>addObject('player','MV','#64748b');$('quickCoach').oncl
 $('objLabel').addEventListener('input',e=>{const o=getObj(selectedId);if(!o)return;const id=o.id;for(let i=selectedStep;i<project.steps.length;i++){const x=getObjInStep(project.steps[i],id);if(x)x.label=e.target.value}renderObjects();renderActions();renderSteps();syncSelectedControls()});
 $('objSize').addEventListener('input',e=>{const o=getObj(selectedId);if(!o)return;const id=o.id;for(let i=selectedStep;i<project.steps.length;i++){const x=getObjInStep(project.steps[i],id);if(x)x.r=+e.target.value}renderObjects()});
 $('swatches').addEventListener('click',e=>{const b=e.target.closest('[data-color]');if(!b)return;const o=getObj(selectedId);if(!o)return;const id=o.id;for(let i=selectedStep;i<project.steps.length;i++){const x=getObjInStep(project.steps[i],id);if(x)x.color=b.dataset.color}renderObjects();syncSelectedControls()});
+$('giveBall').onclick=()=>{const o=getObj(selectedId);if(!o||o.type!=='player')return;setBallOwner(o.id,true);setStatus(`${o.label||'Spelaren'} har bollen och tar den med sig längs åkvägen.`)};
+$('releaseBall').onclick=()=>{const o=getObj(selectedId);if(!o||o.type!=='player')return;setBallOwner(null,true);setStatus('Bollen är fri och kan flyttas manuellt.')};
 $('deleteObj').onclick=()=>{if(!selectedId)return;const id=selectedId;project.steps.forEach(s=>{s.objects=s.objects.filter(o=>o.id!==id);s.actions=s.actions.filter(a=>a.from!==id&&a.to!==id);if(s.paths)delete s.paths[id]});selectedId=null;render()};
 $('duplicateObj').onclick=()=>{const o=getObj(selectedId);if(!o)return;const n={...clone(o),id:nextId(),x:o.x+32,y:o.y+32};for(let i=selectedStep;i<project.steps.length;i++)project.steps[i].objects.push(clone(n));selectedId=n.id;render()};
 $('pathMode').onclick=()=>beginPathMode();$('pathModeDesktop').onclick=()=>beginPathMode();$('mobilePath').onclick=()=>beginPathMode();$('redrawPath').onclick=()=>beginPathMode(true);$('deletePath').onclick=()=>{const o=getObj(selectedId);if(!o||!current().paths?.[o.id])return;delete current().paths[o.id];render();setStatus('Åkvägen borttagen.')};
@@ -407,7 +457,7 @@ const seed=[
  {id:nextId(),type:'player',x:165,y:820,r:22,color:'#1769e8',label:'3'},
  {id:nextId(),type:'cone',x:455,y:610,r:20,color:'#ff7a00',label:''},
  {id:nextId(),type:'ball',x:375,y:820,r:9,color:'#df1f2d',label:''}
-];project.steps[0].objects=seed;render();
+];project.steps[0].objects=seed;project.steps[0].ballOwner=seed[0].id;render();
 })();
 </script>
 </body>
