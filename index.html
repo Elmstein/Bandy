@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f8fafc">
-<title>Bandyövningar v0.1 – steg-editor</title>
+<title>Bandyövningar v0.2 – interaktiv taktiktavla</title>
 <style>
 :root{
   --bg:#eef3f8;--panel:#fff;--panel2:#f8fafc;--line:#d7e0ea;--text:#0f172a;--muted:#64748b;
@@ -16,32 +16,34 @@ body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSy
 button,select,input,textarea{font:inherit} button{touch-action:manipulation}
 .app{min-height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto}
 .topbar{position:relative;z-index:5;display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,.96);border-bottom:1px solid var(--line);backdrop-filter:blur(8px)}
-.brand{display:flex;align-items:center;gap:10px;min-width:165px}.brandMark{width:34px;height:34px;border-radius:10px;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:900}.brand h1{font-size:17px;line-height:1.05;margin:0}.brand small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.brand{display:flex;align-items:center;gap:10px;min-width:185px}.brandMark{width:34px;height:34px;border-radius:10px;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:900}.brand h1{font-size:17px;line-height:1.05;margin:0}.brand small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
 .topControls,.fileControls{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.topControls{justify-content:center;flex:1}.fileControls{justify-content:flex-end;min-width:230px}
 button,.btnLike,select,input[type=text]{border:1px solid var(--line);background:#fff;color:var(--text);border-radius:10px;padding:8px 10px;box-shadow:0 1px 0 rgba(15,23,42,.02)}
 button{cursor:pointer;font-weight:650}button:hover{border-color:#9fb2c7}button:active{transform:translateY(1px)}button.primary{background:var(--blue);border-color:var(--blue);color:#fff}button.primary:hover{background:var(--blue2)}button.icon{min-width:39px;padding:8px}.btnLike{display:inline-block;cursor:pointer;font-weight:650}.danger{color:#b42318}
-.workspace{min-height:0;display:grid;grid-template-columns:148px minmax(0,1fr) 255px;gap:0}
+button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4;box-shadow:0 0 0 2px rgba(23,105,232,.10)}
+.workspace{min-height:0;display:grid;grid-template-columns:158px minmax(0,1fr) 270px;gap:0}
 .palette,.properties{background:var(--panel);padding:12px;overflow:auto}.palette{border-right:1px solid var(--line)}.properties{border-left:1px solid var(--line)}
-.panelTitle{font-size:13px;font-weight:800;margin:0 0 10px}.paletteGrid{display:grid;gap:9px}.tool{display:flex;gap:10px;align-items:center;text-align:left;width:100%;padding:10px;border-radius:12px;background:var(--panel2)}.toolIcon{width:34px;height:34px;display:grid;place-items:center;flex:0 0 34px}.playerIcon{border-radius:50%;background:var(--blue);color:#fff;font-weight:800}.ballIcon{width:15px;height:15px;border-radius:50%;background:var(--ball)}.coneIcon{width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-bottom:29px solid var(--orange);position:relative}.coneIcon:after{content:"";position:absolute;left:-15px;top:25px;width:30px;height:5px;background:var(--orange);border-radius:4px}.textIcon{font-size:28px;font-family:Georgia,serif;font-weight:700}.divider{height:1px;background:var(--line);margin:12px 0}.hint{font-size:11px;color:var(--muted);line-height:1.45}
+.panelTitle{font-size:13px;font-weight:800;margin:0 0 10px}.paletteGrid{display:grid;gap:9px}.tool{display:flex;gap:10px;align-items:center;text-align:left;width:100%;padding:10px;border-radius:12px;background:var(--panel2)}.toolIcon{width:34px;height:34px;display:grid;place-items:center;flex:0 0 34px}.playerIcon{border-radius:50%;background:var(--blue);color:#fff;font-weight:800}.ballIcon{width:15px;height:15px;border-radius:50%;background:var(--ball)}.coneIcon{width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-bottom:29px solid var(--orange);position:relative}.coneIcon:after{content:"";position:absolute;left:-15px;top:25px;width:30px;height:5px;background:var(--orange);border-radius:4px}.textIcon{font-size:28px;font-family:Georgia,serif;font-weight:700}.pathIcon{font-size:26px;font-weight:900;color:var(--blue);line-height:1}.divider{height:1px;background:var(--line);margin:12px 0}.hint{font-size:11px;color:var(--muted);line-height:1.45}
 .stageArea{position:relative;min-width:0;min-height:0;display:flex;justify-content:center;align-items:center;padding:12px;overflow:hidden;background:linear-gradient(#edf4fa,#e7eff7)}
 .rinkCard{position:relative;height:100%;max-height:calc(100vh - 230px);max-width:100%;aspect-ratio:7/11;background:white;border-radius:18px;box-shadow:var(--shadow);overflow:hidden;border:1px solid #cbd6e2}
-.rinkCard.half{aspect-ratio:7/5.5}.rinkCard svg{display:block;width:100%;height:100%;touch-action:none;user-select:none;-webkit-user-select:none;background:#fdfefe}.stageStatus{position:absolute;left:22px;bottom:20px;max-width:min(520px,calc(100% - 44px));background:rgba(15,23,42,.84);color:#fff;padding:7px 10px;border-radius:9px;font-size:11px;pointer-events:none;transition:.2s opacity}.stageStatus.hide{opacity:0}
+.rinkCard.half{aspect-ratio:7/5.5}.rinkCard svg{display:block;width:100%;height:100%;touch-action:none;user-select:none;-webkit-user-select:none;background:#fdfefe}.rinkCard.drawing{outline:3px solid rgba(23,105,232,.30);outline-offset:-3px}.stageStatus{position:absolute;left:22px;bottom:20px;max-width:min(560px,calc(100% - 44px));background:rgba(15,23,42,.86);color:#fff;padding:7px 10px;border-radius:9px;font-size:11px;pointer-events:none;transition:.2s opacity}.stageStatus.hide{opacity:0}
 .card{border:1px solid var(--line);border-radius:13px;background:var(--panel2);padding:10px;margin-bottom:10px}.card h3{font-size:13px;margin:0 0 8px}.field{margin:9px 0}.field label{display:block;font-size:11px;color:var(--muted);font-weight:650;margin-bottom:4px}.field input,.field select,.field textarea{width:100%}.field textarea{min-height:60px;resize:vertical;border:1px solid var(--line);border-radius:9px;padding:7px;background:#fff}.row{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.row>*{min-width:0}.swatches{display:flex;gap:7px;flex-wrap:wrap}.swatch{width:29px;height:29px;padding:0;border-radius:50%;border:3px solid #fff;outline:1px solid var(--line)}.swatch.active{outline:3px solid #93c5fd}.mini{padding:6px 8px;font-size:12px}.full{width:100%}.muted{color:var(--muted)}
-.actionMode{display:grid;grid-template-columns:1fr 1fr;gap:7px}.actionMode button.active{background:#e8f1ff;border-color:#80aef4;color:#0b56c4}.actionList{display:grid;gap:6px;margin-top:8px}.actionChip{display:flex;align-items:center;justify-content:space-between;gap:6px;background:#fff;border:1px solid var(--line);border-radius:9px;padding:6px 8px;font-size:11px}.actionChip b{color:var(--blue)}
-.timelinePanel{background:#fff;border-top:1px solid var(--line);padding:10px 12px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end}.timelineWrap{min-width:0}.timelineHeader{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.timelineHeader b{font-size:13px}.steps{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 4px;scrollbar-width:thin}.step{position:relative;min-width:116px;max-width:142px;border:1px solid var(--line);background:#fff;border-radius:11px;padding:8px;cursor:pointer;text-align:left}.step.active{border-color:var(--blue);box-shadow:0 0 0 2px rgba(23,105,232,.15)}.stepNo{display:inline-grid;place-items:center;width:23px;height:23px;border-radius:50%;background:#64748b;color:#fff;font-size:11px;font-weight:800}.step.active .stepNo{background:var(--blue)}.stepName{display:block;font-size:11px;font-weight:750;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stepMeta{display:block;font-size:10px;color:var(--muted);margin-top:2px}.addStep{min-width:105px;display:grid;place-items:center;border-style:dashed;color:var(--blue);font-size:13px}.addStep strong{font-size:22px;line-height:1}
-.transport{display:flex;gap:7px;align-items:center;justify-content:flex-end;flex-wrap:wrap}.transport button{min-width:42px}.timeLabel{font-size:11px;color:var(--muted);min-width:52px;text-align:center}.speed{width:74px}
+.actionMode{display:grid;grid-template-columns:1fr 1fr;gap:7px}.actionList{display:grid;gap:6px;margin-top:8px}.actionChip{display:flex;align-items:center;justify-content:space-between;gap:6px;background:#fff;border:1px solid var(--line);border-radius:9px;padding:6px 8px;font-size:11px}.actionChip b{color:var(--blue)}
+.pathTools{display:grid;grid-template-columns:1fr 1fr;gap:7px}.pathTools .wide{grid-column:1/-1}.pathState{margin-top:8px;padding:7px 8px;border-radius:9px;background:#fff;border:1px solid var(--line);font-size:11px;color:var(--muted)}.pathState strong{color:var(--text)}
+.timelinePanel{background:#fff;border-top:1px solid var(--line);padding:10px 12px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end}.timelineWrap{min-width:0}.timelineHeader{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.timelineHeader b{font-size:13px}.steps{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 4px;scrollbar-width:thin}.step{position:relative;min-width:116px;max-width:150px;border:1px solid var(--line);background:#fff;border-radius:11px;padding:8px;cursor:pointer;text-align:left}.step.active{border-color:var(--blue);box-shadow:0 0 0 2px rgba(23,105,232,.15)}.stepNo{display:inline-grid;place-items:center;width:23px;height:23px;border-radius:50%;background:#64748b;color:#fff;font-size:11px;font-weight:800}.step.active .stepNo{background:var(--blue)}.stepName{display:block;font-size:11px;font-weight:750;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stepMeta{display:block;font-size:10px;color:var(--muted);margin-top:2px}.addStep{min-width:105px;display:grid;place-items:center;border-style:dashed;color:var(--blue);font-size:13px}.addStep strong{font-size:22px;line-height:1}
+.transport{display:flex;gap:7px;align-items:center;justify-content:flex-end;flex-wrap:wrap}.transport button{min-width:42px}.timeLabel{font-size:11px;color:var(--muted);min-width:52px;text-align:center}.speed{width:74px}.checkLabel{font-size:11px;color:var(--muted);white-space:nowrap;display:flex;align-items:center;gap:4px}
 .mobilePalette{display:none}
-@media(max-width:1000px){.workspace{grid-template-columns:116px minmax(0,1fr) 220px}.tool{padding:8px}.tool span:last-child{font-size:12px}.fileControls{min-width:auto}.brand small{display:none}}
+@media(max-width:1000px){.workspace{grid-template-columns:125px minmax(0,1fr) 230px}.tool{padding:8px}.tool span:last-child{font-size:12px}.fileControls{min-width:auto}.brand small{display:none}}
 @media(max-width:760px){
-  .app{grid-template-rows:auto minmax(0,1fr) auto auto}.topbar{padding:8px;display:grid;grid-template-columns:1fr auto}.brand{min-width:0}.brand h1{font-size:15px}.topControls{grid-column:1/-1;grid-row:2;justify-content:stretch}.topControls select{flex:1}.fileControls button:not(.primary),.fileControls .btnLike{display:none}.workspace{display:block;min-height:0}.palette{display:none}.properties{position:fixed;left:8px;right:8px;bottom:128px;z-index:20;border:1px solid var(--line);border-radius:15px;box-shadow:0 20px 50px rgba(15,23,42,.22);max-height:42vh;display:none}.properties.open{display:block}.stageArea{padding:7px;height:calc(100vh - 300px);min-height:320px}.rinkCard{max-height:100%;border-radius:12px}.timelinePanel{padding:8px;display:block}.timelineHeader{margin-bottom:6px}.transport{margin-top:7px;justify-content:center}.step{min-width:100px}.mobilePalette{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:7px 8px max(7px,env(safe-area-inset-bottom));background:#fff;border-top:1px solid var(--line)}.mobilePalette button{padding:7px 4px;font-size:10px;display:grid;place-items:center;gap:3px}.mobilePalette .toolIcon{width:25px;height:25px;flex-basis:25px}.mobilePalette .playerIcon{font-size:11px}.mobilePalette .textIcon{font-size:21px}.mobilePalette .coneIcon{transform:scale(.72)}.mobilePalette .ballIcon{width:12px;height:12px}.stageStatus{left:12px;bottom:12px;max-width:calc(100% - 24px)}
+  .app{grid-template-rows:auto minmax(0,1fr) auto auto}.topbar{padding:8px;display:grid;grid-template-columns:1fr auto}.brand{min-width:0}.brand h1{font-size:15px}.topControls{grid-column:1/-1;grid-row:2;justify-content:stretch}.topControls select{flex:1}.fileControls button:not(.primary),.fileControls .btnLike{display:none}.workspace{display:block;min-height:0}.palette{display:none}.properties{position:fixed;left:8px;right:8px;bottom:128px;z-index:20;border:1px solid var(--line);border-radius:15px;box-shadow:0 20px 50px rgba(15,23,42,.22);max-height:48vh;display:none}.properties.open{display:block}.stageArea{padding:7px;height:calc(100vh - 300px);min-height:320px}.rinkCard{max-height:100%;border-radius:12px}.timelinePanel{padding:8px;display:block}.timelineHeader{margin-bottom:6px}.transport{margin-top:7px;justify-content:center}.step{min-width:100px}.mobilePalette{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;padding:7px 8px max(7px,env(safe-area-inset-bottom));background:#fff;border-top:1px solid var(--line)}.mobilePalette button{padding:7px 2px;font-size:9.5px;display:grid;place-items:center;gap:3px}.mobilePalette .toolIcon{width:24px;height:24px;flex-basis:24px}.mobilePalette .playerIcon{font-size:11px}.mobilePalette .textIcon{font-size:20px}.mobilePalette .pathIcon{font-size:20px}.mobilePalette .coneIcon{transform:scale(.70)}.mobilePalette .ballIcon{width:12px;height:12px}.stageStatus{left:12px;bottom:12px;max-width:calc(100% - 24px)}
 }
-@media(max-width:410px){.brandMark{display:none}.fileControls .primary{padding:7px 8px}.stageArea{height:calc(100vh - 315px)}.timelinePanel{padding-left:6px;padding-right:6px}.transport{gap:5px}.transport button{padding:7px;min-width:37px}}
+@media(max-width:410px){.brandMark{display:none}.fileControls .primary{padding:7px 8px}.stageArea{height:calc(100vh - 315px)}.timelinePanel{padding-left:6px;padding-right:6px}.transport{gap:5px}.transport button{padding:7px;min-width:37px}.checkLabel span{display:none}}
 </style>
 </head>
 <body>
 <div class="app">
 <header class="topbar">
-  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v0.1 · steg-editor</small></div></div>
+  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v0.2 · interaktiv taktiktavla</small></div></div>
   <div class="topControls">
     <select id="rinkMode" aria-label="Planvy"><option value="full">Helplan</option><option value="half">Halvplan</option></select>
     <select id="orientation" aria-label="Anfallsriktning"><option value="up">Anfall uppåt</option><option value="down">Anfall nedåt</option></select>
@@ -65,7 +67,10 @@ button{cursor:pointer;font-weight:650}button:hover{border-color:#9fb2c7}button:a
     <div class="divider"></div>
     <button id="quickGK" class="tool"><span class="toolIcon playerIcon" style="background:#64748b">MV</span><span>Målvakt</span></button>
     <button id="quickCoach" class="tool" style="margin-top:9px"><span class="toolIcon playerIcon" style="background:#64748b">T</span><span>Tränare</span></button>
-    <div class="divider"></div><p class="hint">Tryck för att lägga till ett objekt. Dra sedan objektet direkt på planen.</p>
+    <div class="divider"></div>
+    <h2 class="panelTitle">Rita</h2>
+    <button id="pathModeDesktop" class="tool"><span class="toolIcon pathIcon">〰</span><span>Åkväg</span></button>
+    <p class="hint">Markera en spelare, välj Åkväg och rita sedan fritt med fingret eller musen.</p>
   </aside>
 
   <section class="stageArea">
@@ -76,10 +81,15 @@ button{cursor:pointer;font-weight:650}button:hover{border-color:#9fb2c7}button:a
           <marker id="arrowBlue" viewBox="0 0 10 10" refX="8.7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1769e8"/></marker>
           <marker id="arrowShot" viewBox="0 0 10 10" refX="8.7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#df1f2d"/></marker>
         </defs>
-        <g id="rink"></g><g id="movementPreview"></g><g id="actionLayer"></g><g id="objects"></g>
+        <g id="rink"></g>
+        <g id="movementPreview"></g>
+        <g id="pathLayer"></g>
+        <g id="draftLayer"></g>
+        <g id="actionLayer"></g>
+        <g id="objects"></g>
       </svg>
     </div>
-    <div id="stageStatus" class="stageStatus">Lägg ut spelare, koner och boll. Steg 1 är startläget.</div>
+    <div id="stageStatus" class="stageStatus">Markera en spelare → Åkväg → rita fritt. Ritningen blir spelarens animation.</div>
   </section>
 
   <aside id="properties" class="properties">
@@ -93,16 +103,25 @@ button{cursor:pointer;font-weight:650}button:hover{border-color:#9fb2c7}button:a
       <div class="row"><button id="duplicateObj" class="mini">Duplicera</button><button id="deleteObj" class="mini danger">Ta bort</button></div>
     </div>
     <div class="card">
-      <h3>Rörelse / aktion</h3>
+      <h3>Åkväg</h3>
+      <div class="pathTools">
+        <button id="pathMode" class="mini primary wide">✏️ Rita frihandsväg</button>
+        <button id="redrawPath" class="mini">Rita om</button>
+        <button id="deletePath" class="mini danger">Ta bort väg</button>
+      </div>
+      <div id="pathState" class="pathState"><strong>Ingen spelare vald.</strong><br>Markera en spelare på planen.</div>
+    </div>
+    <div class="card">
+      <h3>Passning / skott</h3>
       <div class="actionMode"><button id="passMode" class="mini">Passning</button><button id="shotMode" class="mini">Skott</button></div>
-      <p id="actionHelp" class="hint" style="margin:8px 0 0">Rörelse skapas automatiskt när ett objekt flyttas mellan två steg.</p>
+      <p id="actionHelp" class="hint" style="margin:8px 0 0">Passning och skott kopplas till den aktuella fasen.</p>
       <div id="actionList" class="actionList"></div>
     </div>
     <div class="card">
-      <h3>Steg</h3>
+      <h3>Fas / steg</h3>
       <div class="field"><label>Namn</label><input id="stepName" type="text" maxlength="40"></div>
       <div class="field"><label>Längd</label><select id="stepDuration"><option value="0.5">0,5 s</option><option value="0.8">0,8 s</option><option value="1" selected>1,0 s</option><option value="1.5">1,5 s</option><option value="2">2,0 s</option><option value="3">3,0 s</option></select></div>
-      <div class="row"><button id="duplicateStep" class="mini">Duplicera steg</button><button id="deleteStep" class="mini danger">Ta bort</button></div>
+      <div class="row"><button id="duplicateStep" class="mini">Duplicera fas</button><button id="deleteStep" class="mini danger">Ta bort</button></div>
     </div>
     <div class="card"><h3>Övning</h3><div class="field"><label>Namn</label><input id="projectName" type="text" maxlength="60" value="Ny bandyövning"></div><div class="field"><label>Kommentar</label><textarea id="projectNote" placeholder="Kort instruktion till övningen…"></textarea></div></div>
   </aside>
@@ -110,14 +129,15 @@ button{cursor:pointer;font-weight:650}button:hover{border-color:#9fb2c7}button:a
 
 <footer class="timelinePanel">
   <div class="timelineWrap">
-    <div class="timelineHeader"><b>Steg</b><span class="hint">Flytta objekten → lägg till nästa steg</span></div>
+    <div class="timelineHeader"><b>Faser</b><span class="hint">Rita flera spelares vägar i samma fas → gå vidare till nästa fas</span></div>
     <div id="steps" class="steps"></div>
   </div>
   <div class="transport">
     <button id="restart" class="icon" title="Starta om">↶</button><button id="play" class="primary icon" title="Spela">▶</button><button id="pause" class="icon" title="Paus">Ⅱ</button>
     <span id="timeLabel" class="timeLabel">0:00</span>
     <select id="speed" class="speed" title="Hastighet"><option value="0.5">0,5×</option><option value="1" selected>1×</option><option value="1.5">1,5×</option><option value="2">2×</option></select>
-    <label class="hint" style="white-space:nowrap"><input id="loop" type="checkbox"> Loop</label>
+    <label class="checkLabel"><input id="showPaths" type="checkbox" checked><span>Visa åkvägar</span></label>
+    <label class="checkLabel"><input id="loop" type="checkbox"><span>Loop</span></label>
     <button id="toggleProps" class="icon" title="Egenskaper">⚙</button>
   </div>
 </footer>
@@ -127,6 +147,7 @@ button{cursor:pointer;font-weight:650}button:hover{border-color:#9fb2c7}button:a
   <button data-add="cone"><span class="toolIcon"><i class="coneIcon"></i></span><span>Kon</span></button>
   <button data-add="ball"><span class="toolIcon"><i class="ballIcon"></i></span><span>Boll</span></button>
   <button data-add="text"><span class="toolIcon textIcon">T</span><span>Text</span></button>
+  <button id="mobilePath"><span class="toolIcon pathIcon">〰</span><span>Åkväg</span></button>
   <button id="mobileProps"><span class="toolIcon" style="font-size:22px">⚙</span><span>Val</span></button>
 </nav>
 </div>
@@ -134,21 +155,24 @@ button{cursor:pointer;font-weight:650}button:hover{border-color:#9fb2c7}button:a
 (()=>{
 'use strict';
 const $=id=>document.getElementById(id);
-const stage=$('stage'), rinkG=$('rink'), objectsG=$('objects'), actionG=$('actionLayer'), movementG=$('movementPreview');
-const stepsEl=$('steps'), properties=$('properties'), statusEl=$('stageStatus');
+const stage=$('stage'), rinkG=$('rink'), objectsG=$('objects'), actionG=$('actionLayer'), movementG=$('movementPreview'), pathG=$('pathLayer'), draftG=$('draftLayer');
+const stepsEl=$('steps'), properties=$('properties'), statusEl=$('stageStatus'), rinkCard=$('rinkCard');
 const clone=x=>JSON.parse(JSON.stringify(x));
 const colors=['#1769e8','#df1f2d','#f2b705','#159447','#64748b','#111827'];
 let idCounter=1, selectedId=null, selectedStep=0, dragging=null, actionMode=null, actionFirst=null;
+let pathMode=false, drawingPath=null;
 let playing=false, paused=false, playToken=0;
-let project={version:1,name:'Ny bandyövning',note:'',rinkMode:'full',orientation:'up',steps:[]};
+let project={version:2,name:'Ny bandyövning',note:'',rinkMode:'full',orientation:'up',steps:[]};
 const defaults={player:{r:22,color:'#1769e8',label:'1'},ball:{r:9,color:'#df1f2d',label:''},cone:{r:20,color:'#ff7a00',label:''},text:{r:20,color:'#111827',label:'Text'}};
 
 function nextId(){return 'o'+idCounter++}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
-function setStatus(msg,sticky=false){statusEl.textContent=msg;statusEl.classList.remove('hide');clearTimeout(setStatus.t);if(!sticky)setStatus.t=setTimeout(()=>statusEl.classList.add('hide'),2600)}
+function setStatus(msg,sticky=false){statusEl.textContent=msg;statusEl.classList.remove('hide');clearTimeout(setStatus.t);if(!sticky)setStatus.t=setTimeout(()=>statusEl.classList.add('hide'),2800)}
 function current(){return project.steps[selectedStep]}
 function visibleCenter(){if(project.rinkMode==='full')return{x:350,y:550};return project.orientation==='up'?{x:350,y:330}:{x:350,y:770}}
-function ensureProject(){if(project.steps.length)return;project.steps=[{name:'Start',duration:1,objects:[],actions:[]}];selectedStep=0}
+function blankStep(name='Start',objects=[]){return{name,duration:1,objects:clone(objects),actions:[],paths:{}}}
+function ensureProject(){if(project.steps.length)return;project.steps=[blankStep('Start',[])];selectedStep=0}
+function ensureStepShape(s){s.objects=s.objects||[];s.actions=s.actions||[];s.paths=s.paths||{};s.duration=parseFloat(s.duration)||1;s.name=s.name||'Steg'}
 
 function rinkMarkup(){
   const R='#e31818';
@@ -168,121 +192,214 @@ function rinkMarkup(){
   <g transform="translate(0 1072)" stroke="${R}" fill="none" stroke-width="4"><rect x="315" y="0" width="70" height="28"/><line x1="326" y1="2" x2="326" y2="26"/><line x1="338" y1="2" x2="338" y2="26"/><line x1="350" y1="2" x2="350" y2="26"/><line x1="362" y1="2" x2="362" y2="26"/><line x1="374" y1="2" x2="374" y2="26"/><line x1="316" y1="10" x2="384" y2="10"/><line x1="316" y1="19" x2="384" y2="19"/></g>`;
 }
 function setView(){
-  if(project.rinkMode==='full'){stage.setAttribute('viewBox','0 0 700 1100');$('rinkCard').classList.remove('half')}
-  else{$('rinkCard').classList.add('half');stage.setAttribute('viewBox',project.orientation==='up'?'0 0 700 550':'0 550 700 550')}
+  if(project.rinkMode==='full'){stage.setAttribute('viewBox','0 0 700 1100');rinkCard.classList.remove('half')}
+  else{rinkCard.classList.add('half');stage.setAttribute('viewBox',project.orientation==='up'?'0 0 700 550':'0 550 700 550')}
 }
 function objectMarkup(o,selected=false){
   const sel=selected?'#0f172a':'#fff', sw=selected?5:2;
   if(o.type==='cone'){
     const s=o.r;return `<g class="obj" data-id="${o.id}" transform="translate(${o.x} ${o.y})" filter="url(#objShadow)" style="cursor:grab"><path d="M0 ${-s} L${s*.68} ${s*.72} L${-s*.68} ${s*.72} Z" fill="${o.color}" stroke="${sel}" stroke-width="${sw}"/><rect x="${-s*.9}" y="${s*.58}" width="${s*1.8}" height="${Math.max(5,s*.28)}" rx="3" fill="${o.color}" stroke="${sel}" stroke-width="${sw/1.5}"/>${o.label?`<text y="${s*1.55}" text-anchor="middle" font-size="${Math.max(11,s*.7)}" font-weight="800" fill="#0f172a">${esc(o.label)}</text>`:''}</g>`
   }
-  if(o.type==='text')return `<g class="obj" data-id="${o.id}" transform="translate(${o.x} ${o.y})" style="cursor:grab"><rect x="-${Math.max(32,o.label.length*8)}" y="-${o.r}" width="${Math.max(64,o.label.length*16)}" height="${o.r*2}" rx="8" fill="${selected?'#e8f1ff':'rgba(255,255,255,.82)'}" stroke="${selected?'#1769e8':'transparent'}"/><text text-anchor="middle" dominant-baseline="central" font-size="${Math.max(14,o.r)}" font-weight="800" fill="${o.color}">${esc(o.label||'Text')}</text></g>`;
+  if(o.type==='text')return `<g class="obj" data-id="${o.id}" transform="translate(${o.x} ${o.y})" style="cursor:grab"><rect x="-${Math.max(32,(o.label||'').length*8)}" y="-${o.r}" width="${Math.max(64,(o.label||'').length*16)}" height="${o.r*2}" rx="8" fill="${selected?'#e8f1ff':'rgba(255,255,255,.82)'}" stroke="${selected?'#1769e8':'transparent'}"/><text text-anchor="middle" dominant-baseline="central" font-size="${Math.max(14,o.r)}" font-weight="800" fill="${o.color}">${esc(o.label||'Text')}</text></g>`;
   const label=o.label?`<text text-anchor="middle" dominant-baseline="central" font-size="${o.type==='ball'?Math.max(8,o.r):Math.max(12,o.r*.8)}" font-weight="800" fill="#fff" pointer-events="none">${esc(o.label)}</text>`:'';
   return `<g class="obj" data-id="${o.id}" transform="translate(${o.x} ${o.y})" filter="url(#objShadow)" style="cursor:grab"><circle r="${o.r}" fill="${o.color}" stroke="${sel}" stroke-width="${sw}"/>${label}</g>`;
 }
-function renderObjects(objects=current().objects){objectsG.innerHTML=objects.map(o=>objectMarkup(o,o.id===selectedId && !playing)).join('')}
+function renderObjects(objects=current().objects){objectsG.innerHTML=objects.map(o=>objectMarkup(o,o.id===selectedId&&!playing)).join('')}
 function getObj(id,objects=current().objects){return objects.find(o=>o.id===id)}
+function getObjInStep(step,id){return step?.objects?.find(o=>o.id===id)}
 function addObject(type,label=null,color=null){
-  stopPlayback(); const c=visibleCenter(); const count=current().objects.filter(o=>o.type==='player').length+1;
+  stopPlayback();cancelPathMode(); const c=visibleCenter(); const count=current().objects.filter(o=>o.type==='player').length+1;
   const d=defaults[type], o={id:nextId(),type,x:c.x+(Math.random()*70-35),y:c.y+(Math.random()*70-35),r:d.r,color:color||d.color,label:label??(type==='player'?String(count):d.label)};
-  current().objects.push(o);selectedId=o.id;render();setStatus(`${type==='player'?'Spelare':type==='cone'?'Kon':type==='ball'?'Boll':'Text'} tillagd.`)
+  for(let i=selectedStep;i<project.steps.length;i++){project.steps[i].objects.push(clone(o))}
+  selectedId=o.id;render();setStatus(`${type==='player'?'Spelare':type==='cone'?'Kon':type==='ball'?'Boll':'Text'} tillagd.`)
 }
 function syncSelectedControls(){
   const o=getObj(selectedId); $('selectionCard').hidden=!o;$('noSelection').hidden=!!o;
   if(o){$('objLabel').value=o.label||'';$('objSize').value=o.r;renderSwatches(o.color)}
+  const hasPlayer=!!o&&o.type==='player';const hasPath=hasPlayer&&!!current().paths?.[o.id];
+  $('pathMode').disabled=!hasPlayer;$('redrawPath').disabled=!hasPlayer;$('deletePath').disabled=!hasPath;
+  if(!o)$('pathState').innerHTML='<strong>Ingen spelare vald.</strong><br>Markera en spelare på planen.';
+  else if(o.type!=='player')$('pathState').innerHTML='<strong>Åkvägar gäller spelare.</strong><br>Markera en spelare eller målvakt/tränare.';
+  else if(hasPath)$('pathState').innerHTML=`<strong>${esc(o.label||'Spelaren')} har en ritad åkväg.</strong><br>Rita om eller ta bort vägen.`;
+  else $('pathState').innerHTML=`<strong>${esc(o.label||'Spelaren')} är vald.</strong><br>Tryck “Rita frihandsväg” och dra på planen.`;
 }
 function renderSwatches(active){$('swatches').innerHTML=colors.map(c=>`<button class="swatch ${c===active?'active':''}" data-color="${c}" style="background:${c}" aria-label="${c}"></button>`).join('')}
+
+function pathD(points){
+  if(!points||points.length<2)return'';
+  if(points.length===2)return`M ${points[0].x} ${points[0].y} L ${points[1].x} ${points[1].y}`;
+  let d=`M ${points[0].x} ${points[0].y}`;
+  for(let i=1;i<points.length-1;i++){
+    const mid={x:(points[i].x+points[i+1].x)/2,y:(points[i].y+points[i+1].y)/2};
+    d+=` Q ${points[i].x} ${points[i].y} ${mid.x} ${mid.y}`;
+  }
+  const last=points[points.length-1];d+=` L ${last.x} ${last.y}`;return d;
+}
+function smoothPoints(raw){
+  if(!raw||raw.length<2)return raw||[];
+  let pts=[raw[0]];
+  for(let i=1;i<raw.length;i++){const p=raw[i],q=pts[pts.length-1];if(Math.hypot(p.x-q.x,p.y-q.y)>=7||i===raw.length-1)pts.push(p)}
+  if(pts.length>140){const step=Math.ceil(pts.length/140);pts=pts.filter((_,i)=>i===0||i===pts.length-1||i%step===0)}
+  for(let pass=0;pass<2;pass++){
+    if(pts.length<4)break;const out=[pts[0]];
+    for(let i=1;i<pts.length-1;i++)out.push({x:(pts[i-1].x+2*pts[i].x+pts[i+1].x)/4,y:(pts[i-1].y+2*pts[i].y+pts[i+1].y)/4});
+    out.push(pts[pts.length-1]);pts=out;
+  }
+  return pts;
+}
+function renderPaths(stepIndex=selectedStep,playback=false){
+  pathG.innerHTML='';const s=project.steps[stepIndex];if(!s)return;const visible=playback?$('showPaths').checked:true;
+  Object.entries(s.paths||{}).forEach(([id,pts])=>{
+    if(!pts||pts.length<2)return;const d=pathD(pts);const selected=id===selectedId&&!playing;
+    pathG.insertAdjacentHTML('beforeend',`<path id="motionPath-${stepIndex}-${id}" d="${d}" fill="none" stroke="#1769e8" stroke-width="${selected?7:5}" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowBlue)" opacity="${visible?(selected ? .95 : .72):.001}" pointer-events="none"/>`)
+  })
+}
+function renderFallbackMovement(){
+  movementG.innerHTML='';if(selectedStep>=project.steps.length-1)return;const a=current(),b=project.steps[selectedStep+1];let html='';
+  a.objects.forEach(o=>{if(o.type!=='player'||a.paths?.[o.id])return;const n=getObjInStep(b,o.id);if(!n)return;const dist=Math.hypot(n.x-o.x,n.y-o.y);if(dist>8)html+=`<path d="M${o.x} ${o.y} L${n.x} ${n.y}" fill="none" stroke="#1769e8" stroke-width="4" stroke-dasharray="8 10" opacity=".22" marker-end="url(#arrowBlue)"/>`});movementG.innerHTML=html
+}
 function actionText(a){if(a.type==='pass')return `Pass ${labelOf(a.from)} → ${labelOf(a.to)}`;return `Skott ${labelOf(a.from)} → mål`}
 function labelOf(id){const o=getObj(id);return o?.label||o?.id||'?'}
-function renderActions(){
-  actionG.innerHTML='';const s=current();
+function renderActions(stepIndex=selectedStep,playback=false){
+  actionG.innerHTML='';const s=project.steps[stepIndex];if(!s)return;const visible=playback?$('showPaths').checked:true;
   s.actions.forEach(a=>{
-    const from=getObj(a.from); if(!from)return; let to,stroke,marker;
-    if(a.type==='pass'){to=getObj(a.to);stroke='#1769e8';marker='url(#arrowBlue)'} else {to=project.orientation==='up'?{x:350,y:24}:{x:350,y:1076};stroke='#df1f2d';marker='url(#arrowShot)'}
-    if(!to)return;actionG.insertAdjacentHTML('beforeend',`<path d="M${from.x} ${from.y} L${to.x} ${to.y}" fill="none" stroke="${stroke}" stroke-width="5" stroke-dasharray="${a.type==='pass'?'12 10':'0'}" marker-end="${marker}" opacity=".78"/>`)
+    const from=getObjInStep(s,a.from);if(!from)return;let to,stroke,marker;
+    if(a.type==='pass'){to=getObjInStep(s,a.to);stroke='#1769e8';marker='url(#arrowBlue)'}else{to=project.orientation==='up'?{x:350,y:24}:{x:350,y:1076};stroke='#df1f2d';marker='url(#arrowShot)'}
+    if(!to)return;actionG.insertAdjacentHTML('beforeend',`<path d="M${from.x} ${from.y} L${to.x} ${to.y}" fill="none" stroke="${stroke}" stroke-width="5" stroke-dasharray="${a.type==='pass'?'12 10':'0'}" marker-end="${marker}" opacity="${visible ? .78 : .001}" pointer-events="none"/>`)
   });
-  $('actionList').innerHTML=s.actions.length?s.actions.map((a,i)=>`<div class="actionChip"><span><b>${a.type==='pass'?'PASS':'SKOTT'}</b> ${esc(actionText(a).replace(/^Pass |^Skott /,''))}</span><button class="mini danger" data-remove-action="${i}">×</button></div>`).join(''):'<span class="hint">Inga passningar eller skott i detta steg.</span>';
-}
-function renderMovement(){
-  movementG.innerHTML='';if(selectedStep>=project.steps.length-1)return;const a=current().objects,b=project.steps[selectedStep+1].objects;let html='';
-  a.forEach(o=>{if(o.type!=='player')return;const n=b.find(x=>x.id===o.id);if(!n)return;const dist=Math.hypot(n.x-o.x,n.y-o.y);if(dist>8)html+=`<path d="M${o.x} ${o.y} L${n.x} ${n.y}" fill="none" stroke="#1769e8" stroke-width="4" stroke-dasharray="8 10" opacity=".3" marker-end="url(#arrowBlue)"/>`});movementG.innerHTML=html
+  if(stepIndex===selectedStep&&!playing)$('actionList').innerHTML=s.actions.length?s.actions.map((a,i)=>`<div class="actionChip"><span><b>${a.type==='pass'?'PASS':'SKOTT'}</b> ${esc(actionText(a).replace(/^Pass |^Skott /,''))}</span><button class="mini danger" data-remove-action="${i}">×</button></div>`).join(''):'<span class="hint">Inga passningar eller skott i denna fas.</span>';
 }
 function renderSteps(){
-  stepsEl.innerHTML='';project.steps.forEach((s,i)=>{const b=document.createElement('button');b.className='step'+(i===selectedStep?' active':'');b.innerHTML=`<span class="stepNo">${i+1}</span><span class="stepName">${esc(s.name||('Steg '+(i+1)))}</span><span class="stepMeta">${s.actions.length?`${s.actions.length} aktion`+(s.actions.length>1?'er':''):i===0?'Startläge':'Rörelse'}</span>`;b.onclick=()=>loadStep(i);stepsEl.appendChild(b)});
-  const add=document.createElement('button');add.className='step addStep';add.innerHTML='<strong>＋</strong><span>Lägg till steg</span>';add.onclick=addStep;stepsEl.appendChild(add)
+  stepsEl.innerHTML='';project.steps.forEach((s,i)=>{const b=document.createElement('button');b.className='step'+(i===selectedStep?' active':'');const pc=Object.keys(s.paths||{}).length,ac=(s.actions||[]).length;let meta=i===project.steps.length-1&&!pc&&!ac?'Slutläge':`${pc?pc+' väg'+(pc>1?'ar':''):''}${pc&&ac?' · ':''}${ac?ac+' aktion'+(ac>1?'er':''):''}`||'Positioner';b.innerHTML=`<span class="stepNo">${i+1}</span><span class="stepName">${esc(s.name||('Fas '+(i+1)))}</span><span class="stepMeta">${meta}</span>`;b.onclick=()=>loadStep(i);stepsEl.appendChild(b)});
+  const add=document.createElement('button');add.className='step addStep';add.innerHTML='<strong>＋</strong><span>Ny fas</span>';add.onclick=addStep;stepsEl.appendChild(add)
 }
 function syncStepControls(){$('stepName').value=current().name||'';$('stepDuration').value=String(current().duration||1);$('deleteStep').disabled=project.steps.length<=1}
-function render(){ensureProject();rinkG.innerHTML=rinkMarkup();setView();renderObjects();renderActions();renderMovement();renderSteps();syncSelectedControls();syncStepControls();$('projectName').value=project.name;$('projectNote').value=project.note;$('rinkMode').value=project.rinkMode;$('orientation').value=project.orientation}
+function render(){ensureProject();project.steps.forEach(ensureStepShape);rinkG.innerHTML=rinkMarkup();setView();renderPaths();renderFallbackMovement();renderActions();renderObjects();renderSteps();syncSelectedControls();syncStepControls();$('projectName').value=project.name;$('projectNote').value=project.note;$('rinkMode').value=project.rinkMode;$('orientation').value=project.orientation;syncModeButtons()}
 
-function addStep(){stopPlayback();const prev=current();project.steps.splice(selectedStep+1,0,{name:`Steg ${selectedStep+2}`,duration:1,objects:clone(prev.objects),actions:[]});selectedStep++;selectedId=null;render();setStatus(`Steg ${selectedStep+1} tillagt. Flytta det som ska ändras.`)}
-function loadStep(i){stopPlayback();selectedStep=i;selectedId=null;actionMode=null;actionFirst=null;render()}
-function duplicateStep(){const s=clone(current());s.name=(s.name||`Steg ${selectedStep+1}`)+' kopia';project.steps.splice(selectedStep+1,0,s);selectedStep++;render()}
-function deleteStep(){if(project.steps.length<=1)return;project.steps.splice(selectedStep,1);selectedStep=Math.min(selectedStep,project.steps.length-1);selectedId=null;render()}
-
-function getSvgPoint(e){const p=stage.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(stage.getScreenCTM().inverse())}
-function boundsFor(o){return {minX:28+o.r,maxX:672-o.r,minY:28+o.r,maxY:1072-o.r}}
-stage.addEventListener('pointerdown',e=>{
-  const node=e.target.closest?.('.obj');if(!node){selectedId=null;syncSelectedControls();renderObjects();return}
-  stopPlayback();const id=node.dataset.id,o=getObj(id);if(!o)return;
-  if(actionMode){handleActionPick(o);return}
-  selectedId=id;const p=getSvgPoint(e);dragging={id,dx:o.x-p.x,dy:o.y-p.y};stage.setPointerCapture?.(e.pointerId);renderObjects();syncSelectedControls()
-});
-stage.addEventListener('pointermove',e=>{if(!dragging)return;const o=getObj(dragging.id);if(!o)return;const p=getSvgPoint(e),b=boundsFor(o);o.x=Math.max(b.minX,Math.min(b.maxX,p.x+dragging.dx));o.y=Math.max(b.minY,Math.min(b.maxY,p.y+dragging.dy));renderObjects();renderActions()});
-stage.addEventListener('pointerup',()=>{if(dragging){dragging=null;renderMovement()}});stage.addEventListener('pointercancel',()=>dragging=null);
-
-function setActionMode(mode){actionMode=actionMode===mode?null:mode;actionFirst=null;$('passMode').classList.toggle('active',actionMode==='pass');$('shotMode').classList.toggle('active',actionMode==='shot');$('actionHelp').textContent=!actionMode?'Rörelse skapas automatiskt när ett objekt flyttas mellan två steg.':actionMode==='pass'?'Tryck först på passaren och sedan på mottagaren.':'Tryck på spelaren som ska skjuta.';setStatus(actionMode==='pass'?'Passning: välj passare → mottagare.':actionMode==='shot'?'Skott: välj skytt.':'Aktion avbruten.',!!actionMode)}
-function handleActionPick(o){
-  if(o.type!=='player'){setStatus('Välj en spelare.');return}
-  if(actionMode==='shot'){current().actions.push({type:'shot',from:o.id});setActionMode(null);renderActions();return}
-  if(actionMode==='pass'){if(!actionFirst){actionFirst=o.id;setStatus(`Passare ${o.label||''} vald. Välj mottagare.`,true);return}if(actionFirst===o.id){setStatus('Välj en annan mottagare.');return}current().actions.push({type:'pass',from:actionFirst,to:o.id});setActionMode(null);renderActions()}
+function addStep(){
+  stopPlayback();cancelPathMode();const prev=current();const next=blankStep(`Fas ${selectedStep+2}`,prev.objects);project.steps.splice(selectedStep+1,0,next);selectedStep++;selectedId=null;render();setStatus(`Ny fas skapad. Rita nästa del av övningen.`)
+}
+function loadStep(i){stopPlayback();cancelPathMode();selectedStep=i;selectedId=null;actionMode=null;actionFirst=null;render()}
+function duplicateStep(){const s=clone(current());s.name=(s.name||`Fas ${selectedStep+1}`)+' kopia';s.paths={};s.actions=[];project.steps.splice(selectedStep+1,0,s);selectedStep++;render()}
+function deleteStep(){if(project.steps.length<=1)return;project.steps.splice(selectedStep,1);selectedStep=Math.min(selectedStep,project.steps.length-1);selectedId=null;cancelPathMode();render()}
+function ensureNextStep(){
+  if(selectedStep<project.steps.length-1)return project.steps[selectedStep+1];
+  const n=blankStep(`Fas ${selectedStep+2}`,current().objects);project.steps.push(n);renderSteps();return n;
 }
 
-function unionObjects(a,b){const ids=new Set([...a.map(o=>o.id),...b.map(o=>o.id)]);return [...ids].map(id=>[a.find(o=>o.id===id),b.find(o=>o.id===id)])}
-function interpObjects(a,b,t){const out=[];for(const [oa,ob] of unionObjects(a,b)){if(oa&&ob)out.push({...clone(ob),x:oa.x+(ob.x-oa.x)*t,y:oa.y+(ob.y-oa.y)*t,r:oa.r+(ob.r-oa.r)*t});else if(oa&&t<.5)out.push(clone(oa));else if(ob&&t>=.5)out.push(clone(ob))}return out}
+function getSvgPoint(e){const p=stage.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const r=p.matrixTransform(stage.getScreenCTM().inverse());return{x:r.x,y:r.y}}
+function clampPoint(p){return{x:Math.max(20,Math.min(680,p.x)),y:Math.max(20,Math.min(1080,p.y))}}
+function boundsFor(o){return{minX:28+o.r,maxX:672-o.r,minY:28+o.r,maxY:1072-o.r}}
+function beginPathMode(redraw=false){
+  stopPlayback();const o=getObj(selectedId);if(!o||o.type!=='player'){setStatus('Markera först den spelare vars åkväg du vill rita.',true);return}
+  if(redraw&&current().paths?.[o.id])delete current().paths[o.id];pathMode=true;actionMode=null;actionFirst=null;syncModeButtons();renderPaths();syncSelectedControls();setStatus(`Rita ${o.label||'spelarens'} åkväg med fingret. Du kan börja var som helst på planen.`,true)
+}
+function cancelPathMode(){pathMode=false;drawingPath=null;draftG.innerHTML='';rinkCard.classList.remove('drawing');syncModeButtons()}
+function syncModeButtons(){
+  $('pathMode').classList.toggle('active',pathMode);$('pathModeDesktop').classList.toggle('active',pathMode);$('mobilePath').classList.toggle('active',pathMode);rinkCard.classList.toggle('drawing',pathMode);
+  $('passMode').classList.toggle('active',actionMode==='pass');$('shotMode').classList.toggle('active',actionMode==='shot')
+}
+function finishDrawPath(){
+  if(!drawingPath)return;const {id,points}=drawingPath;drawingPath=null;draftG.innerHTML='';
+  const pts=smoothPoints(points);if(pts.length<2||Math.hypot(pts[pts.length-1].x-pts[0].x,pts[pts.length-1].y-pts[0].y)<18){setStatus('Åkvägen blev för kort. Försök igen.');cancelPathMode();return}
+  current().paths[id]=pts;const next=ensureNextStep();let n=getObjInStep(next,id);if(!n){const src=getObj(id);n=clone(src);next.objects.push(n)}const end=pts[pts.length-1];n.x=end.x;n.y=end.y;
+  pathMode=false;render();setStatus('Åkvägen sparad. Tryck Play för att se spelaren följa den.')
+}
+
+stage.addEventListener('pointerdown',e=>{
+  if(playing)return;
+  if(pathMode){
+    const o=getObj(selectedId);if(!o||o.type!=='player'){cancelPathMode();return}
+    e.preventDefault();stopPlayback();const p=clampPoint(getSvgPoint(e));drawingPath={id:o.id,points:[{x:o.x,y:o.y},p]};stage.setPointerCapture?.(e.pointerId);draftG.innerHTML=`<path d="${pathD(drawingPath.points)}" fill="none" stroke="#1769e8" stroke-width="7" stroke-linecap="round" opacity=".65"/>`;return
+  }
+  const node=e.target.closest?.('.obj');if(!node){selectedId=null;syncSelectedControls();renderObjects();renderPaths();return}
+  stopPlayback();const id=node.dataset.id,o=getObj(id);if(!o)return;
+  if(actionMode){handleActionPick(o);return}
+  selectedId=id;const p=getSvgPoint(e);dragging={id,dx:o.x-p.x,dy:o.y-p.y};stage.setPointerCapture?.(e.pointerId);renderObjects();renderPaths();syncSelectedControls()
+});
+stage.addEventListener('pointermove',e=>{
+  if(drawingPath){e.preventDefault();const p=clampPoint(getSvgPoint(e));const q=drawingPath.points[drawingPath.points.length-1];if(Math.hypot(p.x-q.x,p.y-q.y)>4){drawingPath.points.push(p);draftG.innerHTML=`<path d="${pathD(drawingPath.points)}" fill="none" stroke="#1769e8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity=".65" marker-end="url(#arrowBlue)"/>`}return}
+  if(!dragging)return;const o=getObj(dragging.id);if(!o)return;const p=getSvgPoint(e),b=boundsFor(o);o.x=Math.max(b.minX,Math.min(b.maxX,p.x+dragging.dx));o.y=Math.max(b.minY,Math.min(b.maxY,p.y+dragging.dy));renderObjects();renderActions()
+});
+stage.addEventListener('pointerup',()=>{if(drawingPath){finishDrawPath();return}if(dragging){dragging=null;renderFallbackMovement()}});
+stage.addEventListener('pointercancel',()=>{drawingPath=null;dragging=null;draftG.innerHTML='';if(pathMode)setStatus('Ritningen avbröts. Tryck Åkväg och försök igen.')});
+
+function setActionMode(mode){
+  cancelPathMode();actionMode=actionMode===mode?null:mode;actionFirst=null;syncModeButtons();$('actionHelp').textContent=!actionMode?'Passning och skott kopplas till den aktuella fasen.':actionMode==='pass'?'Tryck först på passaren och sedan på mottagaren.':'Tryck på spelaren som ska skjuta.';setStatus(actionMode==='pass'?'Passning: välj passare → mottagare.':actionMode==='shot'?'Skott: välj skytt.':'Aktion avbruten.',!!actionMode)
+}
+function handleActionPick(o){
+  if(o.type!=='player'){setStatus('Välj en spelare.');return}
+  if(actionMode==='shot'){current().actions.push({type:'shot',from:o.id});setActionMode(null);renderActions();renderSteps();return}
+  if(actionMode==='pass'){if(!actionFirst){actionFirst=o.id;setStatus(`Passare ${o.label||''} vald. Välj mottagare.`,true);return}if(actionFirst===o.id){setStatus('Välj en annan mottagare.');return}current().actions.push({type:'pass',from:actionFirst,to:o.id});setActionMode(null);renderActions();renderSteps()}
+}
+
+function unionObjects(a,b){const ids=new Set([...a.map(o=>o.id),...b.map(o=>o.id)]);return[...ids].map(id=>[a.find(o=>o.id===id),b.find(o=>o.id===id)])}
 function ease(t){return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2}
-function applyBallAction(objects,fromStep,toStep,t){const ball=objects.find(o=>o.type==='ball');if(!ball)return;const act=fromStep.actions.find(a=>a.type==='pass'||a.type==='shot');if(!act)return;const from=fromStep.objects.find(o=>o.id===act.from);if(!from)return;let tx,ty;if(act.type==='pass'){const target=toStep.objects.find(o=>o.id===act.to)||fromStep.objects.find(o=>o.id===act.to);if(!target)return;tx=target.x;ty=target.y}else{tx=350;ty=project.orientation==='up'?24:1076}ball.x=from.x+(tx-from.x)*t;ball.y=from.y+(ty-from.y)*t}
-function stopPlayback(reset=false){if(playing||paused){playToken++;playing=false;paused=false}$('play').textContent='▶';if(reset){selectedStep=0;selectedId=null;render();$('timeLabel').textContent='0:00'}}
+function pointOnPath(stepIndex,id,t){
+  const el=document.getElementById(`motionPath-${stepIndex}-${id}`);if(!el)return null;try{const len=el.getTotalLength();const p=el.getPointAtLength(Math.max(0,Math.min(1,t))*len);return{x:p.x,y:p.y}}catch{return null}
+}
+function animatedObjects(a,b,t,stepIndex){
+  const out=[];for(const[oa,ob]of unionObjects(a.objects,b.objects)){
+    if(oa&&ob){const n={...clone(ob),x:oa.x+(ob.x-oa.x)*t,y:oa.y+(ob.y-oa.y)*t,r:oa.r+(ob.r-oa.r)*t};if(a.paths?.[oa.id]){const p=pointOnPath(stepIndex,oa.id,t);if(p){n.x=p.x;n.y=p.y}}out.push(n)}
+    else if(oa&&t<.5)out.push(clone(oa));else if(ob&&t>=.5)out.push(clone(ob))
+  }return out
+}
+function objPos(objects,id){const o=objects.find(x=>x.id===id);return o?{x:o.x,y:o.y}:null}
+function applyBallAction(objects,a,b,t,stepIndex){
+  const ball=objects.find(o=>o.type==='ball');if(!ball)return;const act=(a.actions||[]).find(x=>x.type==='pass'||x.type==='shot');if(!act)return;
+  const trigger=act.type==='pass' ? .62 : .68;
+  const nowFrom=objPos(objects,act.from);if(!nowFrom)return;
+  if(t<trigger){ball.x=nowFrom.x+18;ball.y=nowFrom.y+10;return}
+  const startObjects=animatedObjects(a,b,trigger,stepIndex),startFrom=objPos(startObjects,act.from)||nowFrom;const u=(t-trigger)/(1-trigger);
+  let target;if(act.type==='pass'){target=objPos(objects,act.to)||objPos(b.objects,act.to)}else target={x:350,y:project.orientation==='up'?24:1076};if(!target)return;
+  ball.x=startFrom.x+(target.x-startFrom.x)*u;ball.y=startFrom.y+(target.y-startFrom.y)*u
+}
+function stopPlayback(reset=false){if(playing||paused){playToken++;playing=false;paused=false}$('play').textContent='▶';if(reset){selectedStep=0;selectedId=null;cancelPathMode();render();$('timeLabel').textContent='0:00'}}
 async function play(){
-  if(project.steps.length<2){setStatus('Lägg till minst ett steg efter startläget.');return}
-  if(paused){paused=false;$('play').textContent='▶';setStatus('Fortsätter…');return}
-  stopPlayback();playing=true;const token=++playToken;selectedId=null;movementG.innerHTML='';actionG.innerHTML='';let totalElapsed=0;const speed=parseFloat($('speed').value)||1;
+  if(project.steps.length<2){setStatus('Rita en åkväg eller skapa minst en ny fas först.');return}
+  if(paused){paused=false;setStatus('Fortsätter…');return}
+  stopPlayback();playing=true;const token=++playToken;selectedId=null;let totalElapsed=0;const speed=parseFloat($('speed').value)||1;
   do{
     for(let i=0;i<project.steps.length-1;i++){
-      if(token!==playToken)return;selectedStep=i;renderSteps();const a=project.steps[i],b=project.steps[i+1],dur=(parseFloat(a.duration)||1)*1000/speed;let elapsed=0,last=performance.now();
-      while(elapsed<dur){if(token!==playToken)return;await new Promise(r=>requestAnimationFrame(r));const now=performance.now();if(paused){last=now;continue}elapsed+=now-last;last=now;const t=Math.min(1,elapsed/dur),e=ease(t);const obs=interpObjects(a.objects,b.objects,e);applyBallAction(obs,a,b,e);renderObjects(obs);$('timeLabel').textContent=(totalElapsed+elapsed<10000?((totalElapsed+elapsed)/1000).toFixed(1):Math.round((totalElapsed+elapsed)/1000))+'s'}
-      totalElapsed+=dur;selectedStep=i+1;
+      if(token!==playToken)return;selectedStep=i;renderSteps();renderPaths(i,true);renderActions(i,true);movementG.innerHTML='';const a=project.steps[i],b=project.steps[i+1],dur=(parseFloat(a.duration)||1)*1000/speed;let elapsed=0,last=performance.now();
+      while(elapsed<dur){if(token!==playToken)return;await new Promise(r=>requestAnimationFrame(r));const now=performance.now();if(paused){last=now;continue}elapsed+=now-last;last=now;const t=Math.min(1,elapsed/dur),e=ease(t);const obs=animatedObjects(a,b,e,i);applyBallAction(obs,a,b,e,i);renderObjects(obs);$('timeLabel').textContent=((totalElapsed+elapsed)/1000).toFixed((totalElapsed+elapsed)<10000?1:0)+'s'}
+      totalElapsed+=dur;selectedStep=i+1
     }
   }while($('loop').checked&&token===playToken);
   if(token===playToken){playing=false;paused=false;selectedStep=project.steps.length-1;$('play').textContent='▶';render();setStatus('Övningen klar.')}
 }
-function pause(){if(!playing&&!paused)return;if(playing){paused=true;$('play').textContent='▶';setStatus('Pausad.',true)}else{paused=false;$('play').textContent='▶'}}
+function pause(){if(!playing&&!paused)return;if(playing){paused=true;setStatus('Pausad.',true)}else paused=false}
 
-function saveLocal(){project.name=$('projectName').value.trim()||'Ny bandyövning';project.note=$('projectNote').value;localStorage.setItem('bandyEditor:last',JSON.stringify(project));localStorage.setItem('bandyEditor:name',project.name);setStatus('Övningen sparad i denna webbläsare.')}
-function openLocal(){const raw=localStorage.getItem('bandyEditor:last');if(!raw){setStatus('Ingen sparad övning hittades i denna webbläsare.');return}try{project=JSON.parse(raw);selectedStep=0;selectedId=null;rebuildCounter();render();setStatus(`Öppnade ${project.name||'övningen'}.`)}catch{setStatus('Den sparade övningen kunde inte läsas.') }}
+function saveLocal(){project.name=$('projectName').value.trim()||'Ny bandyövning';project.note=$('projectNote').value;localStorage.setItem('bandyEditor:v2:last',JSON.stringify(project));localStorage.setItem('bandyEditor:last',JSON.stringify(project));setStatus('Övningen sparad i denna webbläsare.')}
+function openLocal(){const raw=localStorage.getItem('bandyEditor:v2:last')||localStorage.getItem('bandyEditor:last');if(!raw){setStatus('Ingen sparad övning hittades i denna webbläsare.');return}try{project=JSON.parse(raw);rebuildProject();selectedStep=0;selectedId=null;render();setStatus(`Öppnade ${project.name||'övningen'}.`)}catch{setStatus('Den sparade övningen kunde inte läsas.')}}
 function exportJson(){project.name=$('projectName').value.trim()||'Ny bandyövning';project.note=$('projectNote').value;const blob=new Blob([JSON.stringify(project,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(project.name.replace(/[^a-z0-9åäö_-]+/gi,'_')||'bandyovning')+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-function rebuildCounter(){const ids=project.steps.flatMap(s=>s.objects||[]).map(o=>parseInt(String(o.id).replace(/\D/g,''))||0);idCounter=1+Math.max(0,...ids);project.steps.forEach(s=>{s.actions=s.actions||[];s.duration=s.duration||1});project.rinkMode=project.rinkMode||'full';project.orientation=project.orientation||'up'}
-function newProject(){if(!confirm('Skapa en ny tom övning?'))return;stopPlayback();project={version:1,name:'Ny bandyövning',note:'',rinkMode:$('rinkMode').value,orientation:$('orientation').value,steps:[{name:'Start',duration:1,objects:[],actions:[]}]};selectedStep=0;selectedId=null;idCounter=1;render();setStatus('Ny övning skapad.')}
+function rebuildProject(){
+  project.version=2;project.steps=project.steps||[];project.steps.forEach(ensureStepShape);const ids=project.steps.flatMap(s=>s.objects||[]).map(o=>parseInt(String(o.id).replace(/\D/g,''))||0);idCounter=1+Math.max(0,...ids);project.rinkMode=project.rinkMode||'full';project.orientation=project.orientation||'up';project.name=project.name||'Ny bandyövning';project.note=project.note||''
+}
+function newProject(){if(!confirm('Skapa en ny tom övning?'))return;stopPlayback();project={version:2,name:'Ny bandyövning',note:'',rinkMode:$('rinkMode').value,orientation:$('orientation').value,steps:[blankStep('Start',[])]};selectedStep=0;selectedId=null;idCounter=1;render();setStatus('Ny övning skapad.')}
 
 // UI events
 document.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click',()=>addObject(b.dataset.add)));
 $('quickGK').onclick=()=>addObject('player','MV','#64748b');$('quickCoach').onclick=()=>addObject('player','T','#64748b');
-$('objLabel').addEventListener('input',e=>{const o=getObj(selectedId);if(!o)return;o.label=e.target.value;renderObjects();renderActions();renderSteps()});
-$('objSize').addEventListener('input',e=>{const o=getObj(selectedId);if(!o)return;o.r=+e.target.value;renderObjects()});
-$('swatches').addEventListener('click',e=>{const b=e.target.closest('[data-color]');if(!b)return;const o=getObj(selectedId);if(!o)return;o.color=b.dataset.color;renderObjects();syncSelectedControls()});
-$('deleteObj').onclick=()=>{if(!selectedId)return;const id=selectedId;project.steps.forEach(s=>{s.objects=s.objects.filter(o=>o.id!==id);s.actions=s.actions.filter(a=>a.from!==id&&a.to!==id)});selectedId=null;render()};
-$('duplicateObj').onclick=()=>{const o=getObj(selectedId);if(!o)return;const n={...clone(o),id:nextId(),x:o.x+32,y:o.y+32};current().objects.push(n);selectedId=n.id;render()};
+$('objLabel').addEventListener('input',e=>{const o=getObj(selectedId);if(!o)return;const id=o.id;for(let i=selectedStep;i<project.steps.length;i++){const x=getObjInStep(project.steps[i],id);if(x)x.label=e.target.value}renderObjects();renderActions();renderSteps();syncSelectedControls()});
+$('objSize').addEventListener('input',e=>{const o=getObj(selectedId);if(!o)return;const id=o.id;for(let i=selectedStep;i<project.steps.length;i++){const x=getObjInStep(project.steps[i],id);if(x)x.r=+e.target.value}renderObjects()});
+$('swatches').addEventListener('click',e=>{const b=e.target.closest('[data-color]');if(!b)return;const o=getObj(selectedId);if(!o)return;const id=o.id;for(let i=selectedStep;i<project.steps.length;i++){const x=getObjInStep(project.steps[i],id);if(x)x.color=b.dataset.color}renderObjects();syncSelectedControls()});
+$('deleteObj').onclick=()=>{if(!selectedId)return;const id=selectedId;project.steps.forEach(s=>{s.objects=s.objects.filter(o=>o.id!==id);s.actions=s.actions.filter(a=>a.from!==id&&a.to!==id);if(s.paths)delete s.paths[id]});selectedId=null;render()};
+$('duplicateObj').onclick=()=>{const o=getObj(selectedId);if(!o)return;const n={...clone(o),id:nextId(),x:o.x+32,y:o.y+32};for(let i=selectedStep;i<project.steps.length;i++)project.steps[i].objects.push(clone(n));selectedId=n.id;render()};
+$('pathMode').onclick=()=>beginPathMode();$('pathModeDesktop').onclick=()=>beginPathMode();$('mobilePath').onclick=()=>beginPathMode();$('redrawPath').onclick=()=>beginPathMode(true);$('deletePath').onclick=()=>{const o=getObj(selectedId);if(!o||!current().paths?.[o.id])return;delete current().paths[o.id];render();setStatus('Åkvägen borttagen.')};
 $('passMode').onclick=()=>setActionMode('pass');$('shotMode').onclick=()=>setActionMode('shot');
-$('actionList').addEventListener('click',e=>{const b=e.target.closest('[data-remove-action]');if(!b)return;current().actions.splice(+b.dataset.removeAction,1);renderActions()});
+$('actionList').addEventListener('click',e=>{const b=e.target.closest('[data-remove-action]');if(!b)return;current().actions.splice(+b.dataset.removeAction,1);renderActions();renderSteps()});
 $('stepName').addEventListener('input',e=>{current().name=e.target.value;renderSteps()});$('stepDuration').onchange=e=>current().duration=parseFloat(e.target.value)||1;$('duplicateStep').onclick=duplicateStep;$('deleteStep').onclick=deleteStep;
 $('projectName').addEventListener('input',e=>project.name=e.target.value);$('projectNote').addEventListener('input',e=>project.note=e.target.value);
 $('rinkMode').onchange=e=>{project.rinkMode=e.target.value;render()};$('orientation').onchange=e=>{project.orientation=e.target.value;render()};
+$('showPaths').onchange=()=>{if(playing)renderPaths(selectedStep,true);else renderPaths()};
 $('play').onclick=()=>paused?(paused=false,setStatus('Fortsätter…')):play();$('pause').onclick=pause;$('restart').onclick=()=>stopPlayback(true);
 $('saveProject').onclick=saveLocal;$('openProject').onclick=openLocal;$('exportJson').onclick=exportJson;$('newProject').onclick=newProject;
-$('importJson').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;try{project=JSON.parse(await f.text());rebuildCounter();selectedStep=0;selectedId=null;render();setStatus('Projekt importerat.')}catch{setStatus('Kunde inte läsa projektfilen.')}e.target.value=''});
-function toggleProps(){properties.classList.toggle('open')} $('toggleProps').onclick=toggleProps;$('mobileProps').onclick=toggleProps;
-window.addEventListener('keydown',e=>{if((e.key==='Delete'||e.key==='Backspace')&&!/INPUT|TEXTAREA/.test(document.activeElement?.tagName)){$('deleteObj').click()}if(e.key===' '&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)){e.preventDefault();play()}});
+$('importJson').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;try{project=JSON.parse(await f.text());rebuildProject();selectedStep=0;selectedId=null;render();setStatus('Projekt importerat.')}catch{setStatus('Kunde inte läsa projektfilen.')}e.target.value=''});
+function toggleProps(){properties.classList.toggle('open')}$('toggleProps').onclick=toggleProps;$('mobileProps').onclick=toggleProps;
+window.addEventListener('keydown',e=>{if((e.key==='Delete'||e.key==='Backspace')&&!/INPUT|TEXTAREA/.test(document.activeElement?.tagName))$('deleteObj').click();if(e.key===' '&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)){e.preventDefault();play()}if(e.key==='Escape')cancelPathMode()});
 
-// Seed with a useful empty start layout: three numbered players + one cone + ball.
+// Startlayout för snabb testning.
 ensureProject();
 const seed=[
  {id:nextId(),type:'player',x:350,y:820,r:22,color:'#1769e8',label:'1'},
