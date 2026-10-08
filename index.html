@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f8fafc">
-<title>Bandyövningar v0.6 – fri taktiktavla</title>
+<title>Bandyövningar v0.7 – ren uppspelning</title>
 <style>
 :root{
   --bg:#eef3f8;--panel:#fff;--panel2:#f8fafc;--line:#d7e0ea;--text:#0f172a;--muted:#64748b;
@@ -39,7 +39,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
 <body>
 <div class="app">
 <header class="topbar">
-  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v0.6 · fri taktiktavla</small></div></div>
+  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v0.7 · ren uppspelning + händelsekedja</small></div></div>
   <div class="topControls">
     <select id="rinkMode" aria-label="Planvy"><option value="full">Helplan</option><option value="half">Halvplan</option></select>
     <select id="orientation" aria-label="Anfallsriktning"><option value="up">Anfall uppåt</option><option value="down">Anfall nedåt</option></select>
@@ -116,7 +116,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
 
 <footer class="flowPanel">
   <div class="flowWrap"><div class="flowHeader"><b>Övningsflöde</b><span class="flowHint">Skapas automatiskt av det du ritar – inga faser behöver sparas.</span><button id="undo" class="mini">↶ Ångra</button></div><div id="flowItems" class="flowItems"></div></div>
-  <div class="transport"><button id="restart" class="icon" title="Starta om">↺</button><button id="play" class="primary icon" title="Spela">▶</button><button id="pause" class="icon" title="Paus">Ⅱ</button><span id="timeLabel" class="timeLabel">0,0 / 0,0 s</span><div class="progressTrack" aria-hidden="true"><div id="progressFill" class="progressFill"></div></div><select id="speed" class="speed" title="Hastighet"><option value="0.25">0,25×</option><option value="0.30">0,30×</option><option value="0.35">0,35×</option><option value="0.40" selected>0,40×</option><option value="0.45">0,45×</option><option value="0.50">0,50×</option><option value="0.60">0,60×</option><option value="0.75">0,75×</option><option value="1">1×</option></select><label class="checkLabel"><input id="showPaths" type="checkbox" checked><span>Visa vägar</span></label><label class="checkLabel"><input id="loop" type="checkbox"><span>Loop</span></label><button id="toggleProps" class="icon" title="Egenskaper">⚙</button></div>
+  <div class="transport"><button id="restart" class="icon" title="Starta om">↺</button><button id="play" class="primary icon" title="Spela">▶</button><button id="pause" class="icon" title="Paus">Ⅱ</button><span id="timeLabel" class="timeLabel">0,0 / 0,0 s</span><div class="progressTrack" aria-hidden="true"><div id="progressFill" class="progressFill"></div></div><select id="speed" class="speed" title="Hastighet"><option value="0.25">0,25×</option><option value="0.30">0,30×</option><option value="0.35">0,35×</option><option value="0.40" selected>0,40×</option><option value="0.45">0,45×</option><option value="0.50">0,50×</option><option value="0.60">0,60×</option><option value="0.75">0,75×</option><option value="1">1×</option></select><label class="checkLabel"><input id="showPaths" type="checkbox"><span>Linjer under Play</span></label><label class="checkLabel"><input id="loop" type="checkbox"><span>Loop</span></label><button id="toggleProps" class="icon" title="Egenskaper">⚙</button></div>
 </footer>
 
 <div id="mobileQuickColors" class="mobileQuickColors"><span class="miniLabel">Spelarfärg</span><div id="mobileSwatches" class="swatches"></div></div>
@@ -133,7 +133,7 @@ const colors=['#1769e8','#e31818','#159447','#f2b705','#ff7a00','#7c3aed','#06b6
 const defaults={player:{r:22,color:'#1769e8',label:'1'},goalkeeper:{r:23,color:'#64748b',label:'MV'},ball:{r:10,color:'#df1f2d',label:''},cone:{r:20,color:'#ff7a00',label:''},text:{r:20,color:'#111827',label:'Text'}};
 const BASE_TRAVEL_SPEED=86,PASS_SPEED=330,SHOT_SPEED=430;
 let idCounter=1,selectedId=null,dragging=null,pathMode=false,drawingPath=null,actionMode=null,actionFirst=null,playing=false,paused=false,playToken=0,defaultPathSpeed=1,defaultPathDelay=0,undoStack=[];
-let project={version:6,name:'Ny bandyövning',note:'',rinkMode:'full',orientation:'up',objects:[],tracks:{},actions:[],ballOwnerStart:null};
+let project={version:7,name:'Ny bandyövning',note:'',rinkMode:'full',orientation:'up',objects:[],tracks:{},actions:[],ballOwnerStart:null};
 
 function nextId(prefix='o'){return prefix+(idCounter++)}function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
 function setStatus(msg,sticky=false){statusEl.textContent=msg;statusEl.classList.remove('hide');clearTimeout(setStatus.t);if(!sticky)setStatus.t=setTimeout(()=>statusEl.classList.add('hide'),2800)}
@@ -147,6 +147,8 @@ function lastTrackEndPoint(id){const ts=playerTracks(id);if(ts.length){const p=t
 function latestPassArrival(id){let t=0;for(const a of project.actions)if(a.type==='pass'&&a.to===id)t=Math.max(t,a.start+a.duration);return t}
 function nextTrackStart(id){return Math.max(trackEndTime(id),latestPassArrival(id))+Math.max(0,defaultPathDelay)}
 function totalDuration(){let t=.4;for(const o of project.objects)if(o.type==='player')t=Math.max(t,trackEndTime(o.id));for(const a of project.actions)t=Math.max(t,a.start+a.duration);return t}
+function lastActionEnd(){return project.actions.reduce((m,a)=>Math.max(m,(+a.start||0)+(+a.duration||0)),0)}
+function normalizeActionTimeline(){let cursor=0;for(const a of project.actions){a.start=Math.max(0,+a.start||0,cursor);a.duration=Math.max(.05,+a.duration||.35);cursor=a.start+a.duration}}
 function pointAtDistance(pts,d){if(!pts?.length)return null;if(pts.length===1)return pts[0];let remain=d;for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i],seg=Math.hypot(b.x-a.x,b.y-a.y);if(remain<=seg||i===pts.length-1){const u=seg?Math.max(0,Math.min(1,remain/seg)):0;return{x:a.x+(b.x-a.x)*u,y:a.y+(b.y-a.y)*u}}remain-=seg}return pts.at(-1)}
 function playerPos(id,t){const o=getObj(id);if(!o)return null;let pos={x:o.x,y:o.y};for(const seg of playerTracks(id)){const dur=segmentDuration(seg);if(t<seg.start)break;if(t>=seg.start+dur){pos={...seg.points.at(-1)};continue}const u=Math.max(0,Math.min(1,(t-seg.start)/dur));return pointAtDistance(seg.points,polyLength(seg.points)*u)||pos}return pos}
 function actionOwnerAt(t){let owner=project.ballOwnerStart;for(const a of [...project.actions].sort((a,b)=>a.start-b.start)){if(t<a.start)break;if(t<a.start+a.duration)return null;if(a.type==='pass')owner=a.to;else if(a.type==='shot')owner=null}return owner}
@@ -157,13 +159,92 @@ function applyGoalkeeperTracking(objects){const ball=firstBall(objects);if(!ball
 function rinkMarkup(){const R='#e31818';return `<rect x="18" y="18" width="664" height="1064" rx="4" fill="#fff" stroke="${R}" stroke-width="4"/><line x1="18" y1="550" x2="682" y2="550" stroke="${R}" stroke-width="4"/><circle cx="350" cy="550" r="56" fill="none" stroke="${R}" stroke-width="4"/><circle cx="350" cy="550" r="5" fill="${R}"/><path d="M95 18 A255 255 0 0 0 605 18" fill="none" stroke="${R}" stroke-width="4"/><path d="M95 1082 A255 255 0 0 1 605 1082" fill="none" stroke="${R}" stroke-width="4"/><circle cx="255" cy="188" r="58" fill="none" stroke="${R}" stroke-width="4"/><circle cx="445" cy="188" r="58" fill="none" stroke="${R}" stroke-width="4"/><circle cx="255" cy="912" r="58" fill="none" stroke="${R}" stroke-width="4"/><circle cx="445" cy="912" r="58" fill="none" stroke="${R}" stroke-width="4"/><circle cx="255" cy="188" r="5" fill="${R}"/><circle cx="445" cy="188" r="5" fill="${R}"/><circle cx="350" cy="130" r="5" fill="${R}"/><circle cx="255" cy="912" r="5" fill="${R}"/><circle cx="445" cy="912" r="5" fill="${R}"/><circle cx="350" cy="970" r="5" fill="${R}"/><line x1="18" y1="104" x2="86" y2="104" stroke="${R}" stroke-width="4" stroke-dasharray="10 8"/><line x1="614" y1="104" x2="682" y2="104" stroke="${R}" stroke-width="4" stroke-dasharray="10 8"/><line x1="18" y1="996" x2="86" y2="996" stroke="${R}" stroke-width="4" stroke-dasharray="10 8"/><line x1="614" y1="996" x2="682" y2="996" stroke="${R}" stroke-width="4" stroke-dasharray="10 8"/><g stroke="${R}" fill="none" stroke-width="4"><rect x="315" y="0" width="70" height="28"/><line x1="326" y1="2" x2="326" y2="26"/><line x1="338" y1="2" x2="338" y2="26"/><line x1="350" y1="2" x2="350" y2="26"/><line x1="362" y1="2" x2="362" y2="26"/><line x1="374" y1="2" x2="374" y2="26"/><line x1="316" y1="10" x2="384" y2="10"/><line x1="316" y1="19" x2="384" y2="19"/></g><g transform="translate(0 1072)" stroke="${R}" fill="none" stroke-width="4"><rect x="315" y="0" width="70" height="28"/><line x1="326" y1="2" x2="326" y2="26"/><line x1="338" y1="2" x2="338" y2="26"/><line x1="350" y1="2" x2="350" y2="26"/><line x1="362" y1="2" x2="362" y2="26"/><line x1="374" y1="2" x2="374" y2="26"/><line x1="316" y1="10" x2="384" y2="10"/><line x1="316" y1="19" x2="384" y2="19"/></g>`}
 function setView(){if(project.rinkMode==='full'){stage.setAttribute('viewBox','0 0 700 1100');rinkCard.classList.remove('half')}else{rinkCard.classList.add('half');stage.setAttribute('viewBox',project.orientation==='up'?'0 0 700 550':'0 550 700 550')}}
 function objectMarkup(o,selected=false){const sel=selected?'#0f172a':'#fff',sw=selected?5:2;if(o.type==='cone'){const s=o.r;return `<g class="obj" data-id="${o.id}" transform="translate(${o.x} ${o.y})" filter="url(#objShadow)" style="cursor:grab"><path d="M0 ${-s}L${s*.68} ${s*.72}L${-s*.68} ${s*.72}Z" fill="${o.color}" stroke="${sel}" stroke-width="${sw}"/><rect x="${-s*.9}" y="${s*.58}" width="${s*1.8}" height="${Math.max(5,s*.28)}" rx="3" fill="${o.color}" stroke="${sel}" stroke-width="${sw/1.5}"/>${o.label?`<text y="${s*1.55}" text-anchor="middle" font-size="${Math.max(11,s*.7)}" font-weight="800" fill="#0f172a">${esc(o.label)}</text>`:''}</g>`}if(o.type==='text')return `<g class="obj" data-id="${o.id}" transform="translate(${o.x} ${o.y})" style="cursor:grab"><rect x="-${Math.max(32,(o.label||'').length*8)}" y="-${o.r}" width="${Math.max(64,(o.label||'').length*16)}" height="${o.r*2}" rx="8" fill="${selected?'#e8f1ff':'rgba(255,255,255,.82)'}" stroke="${selected?'#1769e8':'transparent'}"/><text text-anchor="middle" dominant-baseline="central" font-size="${Math.max(14,o.r)}" font-weight="800" fill="${o.color}">${esc(o.label||'Text')}</text></g>`;const hit=o.type==='ball'&&!o._lockedBall?`<circle r="${Math.max(72,o.r+60)}" fill="transparent" pointer-events="all"/>`:'';const halo=o.type==='ball'&&selected?`<circle r="${Math.max(26,o.r+16)}" fill="none" stroke="#1769e8" stroke-width="4" stroke-dasharray="5 4" pointer-events="none"/>`:'';const goalieRing=o.type==='goalkeeper'?`<circle r="${o.r+5}" fill="none" stroke="${selected?'#0f172a':'#fff'}" stroke-width="3" pointer-events="none"/>`:'';const label=o.label?`<text text-anchor="middle" dominant-baseline="central" font-size="${o.type==='ball'?Math.max(8,o.r):Math.max(12,o.r*.8)}" font-weight="800" fill="#fff" pointer-events="none">${esc(o.label)}</text>`:'';return `<g class="obj" data-id="${o.id}" transform="translate(${o.x} ${o.y})" filter="url(#objShadow)" style="cursor:grab">${hit}${halo}${goalieRing}<circle r="${o.r}" fill="${o.color}" stroke="${sel}" stroke-width="${sw}" pointer-events="${o.type==='ball'&&o._lockedBall?'none':'all'}"/>${label}</g>`}
-function pathD(pts){if(!pts?.length)return'';return'M '+pts.map(p=>`${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' L ')}
-function smoothPoints(raw){if(!raw?.length)return[];const sampled=[raw[0]];for(let i=1;i<raw.length;i++){const p=raw[i],q=sampled.at(-1);if(Math.hypot(p.x-q.x,p.y-q.y)>=7)sampled.push(p)}if(sampled.length<3)return sampled;const out=[sampled[0]];for(let i=1;i<sampled.length-1;i++){const a=sampled[i-1],b=sampled[i],c=sampled[i+1];out.push({x:(a.x+2*b.x+c.x)/4,y:(a.y+2*b.y+c.y)/4})}out.push(sampled.at(-1));return out}
+function pathD(pts){
+  if(!pts?.length)return'';
+  if(pts.length===1)return`M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+  if(pts.length===2)return`M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)} L ${pts[1].x.toFixed(1)} ${pts[1].y.toFixed(1)}`;
+  let d=`M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+  for(let i=0;i<pts.length-1;i++){
+    const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
+    const c1={x:p1.x+(p2.x-p0.x)/6,y:p1.y+(p2.y-p0.y)/6};
+    const c2={x:p2.x-(p3.x-p1.x)/6,y:p2.y-(p3.y-p1.y)/6};
+    d+=` C ${c1.x.toFixed(1)} ${c1.y.toFixed(1)}, ${c2.x.toFixed(1)} ${c2.y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+  }
+  return d;
+}
+function smoothPoints(raw){
+  if(!raw?.length)return[];
+  const sampled=[raw[0]];
+  for(let i=1;i<raw.length;i++){
+    const p=raw[i],q=sampled.at(-1);
+    if(Math.hypot(p.x-q.x,p.y-q.y)>=7)sampled.push(p);
+  }
+  if(sampled.length<3)return sampled;
+  let pts=sampled;
+  for(let pass=0;pass<2;pass++){
+    const out=[pts[0]];
+    for(let i=1;i<pts.length-1;i++){
+      const a=pts[i-1],b=pts[i],c=pts[i+1];
+      out.push({x:(a.x+4*b.x+c.x)/6,y:(a.y+4*b.y+c.y)/6});
+    }
+    out.push(pts.at(-1));pts=out;
+  }
+  return pts;
+}
+function arrowHeadMarkup(pts,color,size=9,width=2.3,opacity=.95){
+  if(!pts||pts.length<2)return'';
+  const tip=pts.at(-1);let prev=null;
+  for(let i=pts.length-2;i>=0;i--){if(Math.hypot(tip.x-pts[i].x,tip.y-pts[i].y)>1){prev=pts[i];break}}
+  if(!prev)return'';
+  const dx=tip.x-prev.x,dy=tip.y-prev.y,len=Math.hypot(dx,dy)||1,ux=dx/len,uy=dy/len,px=-uy,py=ux;
+  const bx=tip.x-ux*size,by=tip.y-uy*size,w=size*.46;
+  const l={x:bx+px*w,y:by+py*w},r={x:bx-px*w,y:by-py*w};
+  return`<path d="M${l.x.toFixed(1)} ${l.y.toFixed(1)} L${tip.x.toFixed(1)} ${tip.y.toFixed(1)} L${r.x.toFixed(1)} ${r.y.toFixed(1)}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round" opacity="${opacity}" pointer-events="none"/>`;
+}
+function trimLine(a,b,padA=0,padB=0){
+  const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy)||1,ux=dx/len,uy=dy/len;
+  const maxPad=Math.max(0,len-4),pa=Math.min(padA,maxPad*.45),pb=Math.min(padB,maxPad-pa);
+  return[{x:a.x+ux*pa,y:a.y+uy*pa},{x:b.x-ux*pb,y:b.y-uy*pb}];
+}
 function renderObjects(objects=null){const obs=objects?clone(objects):objectsAt(0);objectsG.innerHTML=obs.sort((a,b)=>(a.type==='ball'?1:0)-(b.type==='ball'?1:0)).map(o=>objectMarkup(o,o.id===selectedId&&!playing)).join('')}
-function renderPaths(){if(!$('showPaths').checked){pathG.innerHTML='';ghostG.innerHTML='';return}const parts=[],ghost=[];for(const o of project.objects.filter(o=>o.type==='player')){const ts=playerTracks(o.id);ts.forEach((seg,i)=>{parts.push(`<path d="${pathD(seg.points)}" fill="none" stroke="${o.color}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity="${i===ts.length-1?'.9':'.68'}" marker-end="url(#arrowBlue)"/>`)});if(ts.length){const p=ts.at(-1).points.at(-1);ghost.push(`<g class="endpoint" data-endpoint-id="${o.id}" transform="translate(${p.x} ${p.y})" style="cursor:crosshair"><circle r="${Math.max(25,o.r+6)}" fill="${o.color}" opacity=".23"/><circle r="${o.r}" fill="${o.color}" opacity=".48" stroke="#fff" stroke-width="3"/><text text-anchor="middle" dominant-baseline="central" font-size="${Math.max(12,o.r*.75)}" font-weight="800" fill="#fff">${esc(o.label||'')}</text></g>`)}}pathG.innerHTML=parts.join('');ghostG.innerHTML=ghost.join('')}
-function renderActions(){const html=[];for(const a of project.actions){const from=playerPos(a.from,a.start);let to;if(a.type==='pass')to=playerPos(a.to,a.start+a.duration);else to=project.orientation==='up'?{x:350,y:20}:{x:350,y:1080};if(!from||!to)continue;if(a.type==='pass')html.push(`<path d="M${from.x} ${from.y} L${to.x} ${to.y}" fill="none" stroke="#169b62" stroke-width="5" stroke-dasharray="12 9" stroke-linecap="round" marker-end="url(#arrowGreen)"/>`);else html.push(`<path d="M${from.x} ${from.y} L${to.x} ${to.y}" fill="none" stroke="#df1f2d" stroke-width="5" stroke-dasharray="4 7" stroke-linecap="round" marker-end="url(#arrowShot)"/>`)}actionG.innerHTML=html.join('')}
+function renderPaths(showGhost=!playing){
+  const parts=[],ghost=[];
+  for(const o of project.objects.filter(o=>o.type==='player')){
+    const ts=playerTracks(o.id);
+    ts.forEach((seg,i)=>{
+      const opacity=i===ts.length-1?.88:.64;
+      parts.push(`<path d="${pathD(seg.points)}" fill="none" stroke="${o.color}" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" opacity="${opacity}" vector-effect="non-scaling-stroke"/>`);
+      parts.push(arrowHeadMarkup(seg.points,o.color,9,2.2,opacity));
+    });
+    if(showGhost&&ts.length){
+      const p=ts.at(-1).points.at(-1);
+      ghost.push(`<g class="endpoint" data-endpoint-id="${o.id}" transform="translate(${p.x} ${p.y})" style="cursor:crosshair"><circle r="${Math.max(25,o.r+6)}" fill="${o.color}" opacity=".18"/><circle r="${o.r}" fill="${o.color}" opacity=".42" stroke="#fff" stroke-width="2.5"/><text text-anchor="middle" dominant-baseline="central" font-size="${Math.max(12,o.r*.75)}" font-weight="800" fill="#fff">${esc(o.label||'')}</text></g>`);
+    }
+  }
+  pathG.innerHTML=parts.join('');ghostG.innerHTML=ghost.join('');
+}
+function renderActions(){
+  const html=[];
+  for(const a of project.actions){
+    const from=playerPos(a.from,a.start);let to;
+    if(a.type==='pass')to=playerPos(a.to,a.start+a.duration);else to=project.orientation==='up'?{x:350,y:20}:{x:350,y:1080};
+    if(!from||!to)continue;
+    const fo=getObj(a.from),toObj=a.type==='pass'?getObj(a.to):null;
+    const [p0,p1]=trimLine(from,to,(fo?.r||22)+7,a.type==='pass'?(toObj?.r||22)+12:8);
+    if(a.type==='pass'){
+      const pts=[p0,p1];
+      html.push(`<path d="M${p0.x.toFixed(1)} ${p0.y.toFixed(1)} L${p1.x.toFixed(1)} ${p1.y.toFixed(1)}" fill="none" stroke="#169b62" stroke-width="3.1" stroke-dasharray="9 7" stroke-linecap="round" opacity=".92" vector-effect="non-scaling-stroke"/>`);
+      html.push(arrowHeadMarkup(pts,'#169b62',8,2.1,.95));
+    }else{
+      const pts=[p0,p1];
+      html.push(`<path d="M${p0.x.toFixed(1)} ${p0.y.toFixed(1)} L${p1.x.toFixed(1)} ${p1.y.toFixed(1)}" fill="none" stroke="#df1f2d" stroke-width="3.2" stroke-dasharray="4 6" stroke-linecap="round" opacity=".9" vector-effect="non-scaling-stroke"/>`);
+      html.push(arrowHeadMarkup(pts,'#df1f2d',8,2.1,.95));
+    }
+  }
+  actionG.innerHTML=html.join('');
+}
 function renderFlow(){const events=[{type:'start',start:0,label:'Start',meta:'Startpositioner'}];for(const o of project.objects.filter(o=>o.type==='player'))playerTracks(o.id).forEach((s,i)=>events.push({type:'path',start:s.start,label:`${o.label||'Spelare'} · åkning ${i+1}`,meta:`${s.start.toFixed(1)}–${(s.start+segmentDuration(s)).toFixed(1)} s`,id:o.id}));for(const a of project.actions){const f=getObj(a.from),t=a.type==='pass'?getObj(a.to):null;events.push({type:a.type,start:a.start,label:a.type==='pass'?`Pass ${f?.label||''} → ${t?.label||''}`:`Skott ${f?.label||''}`,meta:`${a.start.toFixed(1)} s`,actionId:a.id})}events.sort((a,b)=>a.start-b.start||({start:0,path:1,pass:2,shot:3}[a.type]-({start:0,path:1,pass:2,shot:3}[b.type])));flowItems.innerHTML=events.map(e=>`<button class="flowItem ${e.type}" data-flow-id="${e.id||''}" data-action-id="${e.actionId||''}"><strong>${esc(e.label)}</strong><span>${esc(e.meta)}</span></button>`).join('')}
-function renderActionsList(){const list=$('actionList');list.innerHTML=project.actions.length?project.actions.map((a,i)=>{const f=getObj(a.from),t=a.type==='pass'?getObj(a.to):null;return `<div class="actionChip"><span>${a.type==='pass'?`🟢 Pass ${esc(f?.label||'')} → ${esc(t?.label||'')}`:`🔴 Skott ${esc(f?.label||'')}`} · ${a.start.toFixed(1)}s</span><button class="mini danger" data-remove-action="${i}">×</button></div>`}).join(''):'<span class="hint">Inga passningar eller skott ännu.</span>'}
+function renderActionsList(){const list=$('actionList');list.innerHTML=project.actions.length?project.actions.map((a,i)=>{const f=getObj(a.from),t=a.type==='pass'?getObj(a.to):null;return `<div class="actionChip"><span><b>${i+1}.</b> ${a.type==='pass'?`🟢 Pass ${esc(f?.label||'')} → ${esc(t?.label||'')}`:`🔴 Skott ${esc(f?.label||'')}`} · ${a.start.toFixed(1)}s</span><button class="mini danger" data-remove-action="${i}">×</button></div>`}).join(''):'<span class="hint">Inga passningar eller skott ännu.</span>'}
 function renderSwatches(){const html=colors.map(c=>`<button class="swatch" data-color="${c}" style="background:${c}" aria-label="Färg ${c}"></button>`).join('');$('swatches').innerHTML=html;$('mobileSwatches').innerHTML=html}
 function syncSelectedControls(){const o=getObj(selectedId),has=!!o;$('noSelection').hidden=has;$('selectionCard').hidden=!has;$('mobileQuickColors').classList.toggle('show',!!o&&o.type==='player');if(!o){$('motionSettings').hidden=true;return}$('objLabel').value=o.label||'';$('objSize').value=o.r||20;$('possessionControls').hidden=o.type!=='player';$('goalieControls').hidden=o.type!=='goalkeeper';if(o.type==='goalkeeper')$('goalieFollow').checked=o.followBall!==false;const ballState=$('ballState');if(o.type==='player'){const owner=actionOwnerAt(0);ballState.textContent=project.ballOwnerStart===o.id?'Har boll vid start.':'Tryck Ge boll för att göra spelaren till bollhållare vid start.'}$('motionSettings').hidden=o.type!=='player';if(o.type==='player'){const ts=playerTracks(o.id),last=ts.at(-1);$('pathSpeed').value=last?.speed||defaultPathSpeed;$('pathDelay').value=defaultPathDelay;const end=lastTrackEndPoint(o.id),start=nextTrackStart(o.id);$('pathState').innerHTML=ts.length?`<strong>${ts.length} del${ts.length>1?'ar':''} ritad.</strong><br>Nästa bana börjar vid slutmarkeringen (${end.x.toFixed(0)}, ${end.y.toFixed(0)}) och tid ${start.toFixed(1)} s.`:'<strong>Ingen bana ännu.</strong><br>Dra från spelaren i ritläget.'}}
 function syncModeButtons(){for(const id of ['pathMode','pathModeDesktop','mobilePath'])$(id)?.classList.toggle('active',pathMode);for(const id of ['passMode','passModeDesktop','mobilePass'])$(id)?.classList.toggle('active',actionMode==='pass');for(const id of ['shotMode','shotModeDesktop','mobileShot'])$(id)?.classList.toggle('active',actionMode==='shot');rinkCard.classList.toggle('drawing',pathMode)}
@@ -178,41 +259,84 @@ function cancelModes(){pathMode=false;actionMode=null;actionFirst=null;drawingPa
 function nearestPathAnchor(p){let best=null,dist=Infinity;for(const o of project.objects.filter(o=>o.type==='player')){const a=lastTrackEndPoint(o.id),d=Math.hypot(a.x-p.x,a.y-p.y);if(d<Math.max(52,o.r+28)&&d<dist){best={o,a};dist=d}if(!playerTracks(o.id).length){const ds=Math.hypot(o.x-p.x,o.y-p.y);if(ds<Math.max(52,o.r+28)&&ds<dist){best={o,a:{x:o.x,y:o.y}};dist=ds}}}return best}
 function finishDrawPath(){if(!drawingPath)return;const d=drawingPath;drawingPath=null;draftG.innerHTML='';const pts=smoothPoints(d.points);if(pts.length<2||Math.hypot(pts.at(-1).x-pts[0].x,pts.at(-1).y-pts[0].y)<18){setStatus('Åkvägen blev för kort. Dra på nytt.',true);return}pushUndo();const seg={id:nextId('s'),points:pts,speed:d.speed,start:d.start};playerTracks(d.playerId).push(seg);selectedId=d.playerId;render();pathMode=true;syncModeButtons();setStatus('Banan tillagd. Dra vidare från slutmarkeringen eller rita en annan spelares bana.',true)}
 function setActionMode(mode){stopPlayback();pathMode=false;actionMode=actionMode===mode?null:mode;actionFirst=null;syncModeButtons();setStatus(actionMode==='pass'?'Passning: tryck passare och därefter mottagare.':'Skott: tryck spelaren som ska skjuta.',!!actionMode)}
-function addPass(from,to){pushUndo();const start=trackEndTime(from),fp=playerPos(from,start),approx=playerPos(to,start),dist=fp&&approx?Math.hypot(approx.x-fp.x,approx.y-fp.y):120,duration=Math.max(.28,Math.min(1.2,dist/PASS_SPEED));project.actions.push({id:nextId('a'),type:'pass',from,to,start,duration});render();setStatus('Passning tillagd. Mottagaren får bollen automatiskt och kan fortsätta sin åkväg därefter.')}
-function addShot(from){pushUndo();const start=trackEndTime(from),fp=playerPos(from,start),target=project.orientation==='up'?{x:350,y:20}:{x:350,y:1080},dist=fp?Math.hypot(target.x-fp.x,target.y-fp.y):180,duration=Math.max(.25,Math.min(.9,dist/SHOT_SPEED));project.actions.push({id:nextId('a'),type:'shot',from,start,duration});render();setStatus('Skott tillagt.')}
+function addPass(from,to){
+  pushUndo();
+  const start=Math.max(trackEndTime(from),lastActionEnd()),fp=playerPos(from,start),approx=playerPos(to,start);
+  const dist=fp&&approx?Math.hypot(approx.x-fp.x,approx.y-fp.y):120,duration=Math.max(.28,Math.min(1.2,dist/PASS_SPEED));
+  project.actions.push({id:nextId('a'),type:'pass',from,to,start,duration,order:project.actions.length});
+  normalizeActionTimeline();render();
+  setStatus('Passning tillagd i bollens händelsekedja. Nästa pass eller skott placeras automatiskt efter denna.');
+}
+function addShot(from){
+  pushUndo();
+  const start=Math.max(trackEndTime(from),lastActionEnd()),fp=playerPos(from,start),target=project.orientation==='up'?{x:350,y:20}:{x:350,y:1080};
+  const dist=fp?Math.hypot(target.x-fp.x,target.y-fp.y):180,duration=Math.max(.25,Math.min(.9,dist/SHOT_SPEED));
+  project.actions.push({id:nextId('a'),type:'shot',from,start,duration,order:project.actions.length});
+  normalizeActionTimeline();render();setStatus('Skott tillagt efter föregående bollhändelse.');
+}
 function handleActionPick(o){if(o.type!=='player'){setStatus('Välj en spelare.');return}if(actionMode==='shot'){addShot(o.id);actionMode=null;syncModeButtons();return}if(actionMode==='pass'){if(!actionFirst){actionFirst=o.id;setStatus('Välj mottagaren.',true)}else if(actionFirst!==o.id){addPass(actionFirst,o.id);actionFirst=null;actionMode=null;syncModeButtons()}}}
 
-stage.addEventListener('pointerdown',e=>{if(playing)return;const p=clampPoint(getSvgPoint(e));if(pathMode){const hit=nearestPathAnchor(p);if(!hit){setStatus('Börja genom att lägga fingret på spelaren eller spelarens tonade slutmarkering.',true);return}e.preventDefault();selectedId=hit.o.id;const start=nextTrackStart(hit.o.id);drawingPath={playerId:hit.o.id,start,speed:defaultPathSpeed,points:[{...hit.a},p]};stage.setPointerCapture?.(e.pointerId);draftG.innerHTML=`<path d="${pathD(drawingPath.points)}" fill="none" stroke="${hit.o.color}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity=".72"/>`;renderObjects();syncSelectedControls();return}const node=e.target.closest?.('.obj');if(!node){selectedId=null;renderObjects();syncSelectedControls();return}const o=getObj(node.dataset.id);if(!o)return;if(actionMode){handleActionPick(o);return}selectedId=o.id;if(o.type==='ball'&&project.ballOwnerStart){setStatus('Bollen sitter hos bollhållaren. Markera spelaren och välj Släpp boll för att flytta bollen fritt.');renderObjects();syncSelectedControls();return}if(o.type==='goalkeeper'&&o.followBall!==false){setStatus('Målvakten följer bollen automatiskt. Stäng av Följ boll under Val för manuell flytt.');renderObjects();syncSelectedControls();return}pushUndo();const q=getSvgPoint(e);dragging={id:o.id,dx:o.x-q.x,dy:o.y-q.y,startX:o.x,startY:o.y};stage.setPointerCapture?.(e.pointerId);renderObjects();syncSelectedControls()})
-stage.addEventListener('pointermove',e=>{if(drawingPath){e.preventDefault();const p=clampPoint(getSvgPoint(e)),q=drawingPath.points.at(-1);if(Math.hypot(p.x-q.x,p.y-q.y)>4){drawingPath.points.push(p);const o=getObj(drawingPath.playerId);draftG.innerHTML=`<path d="${pathD(drawingPath.points)}" fill="none" stroke="${o?.color||'#1769e8'}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity=".72"/>`}return}if(!dragging)return;const o=getObj(dragging.id);if(!o)return;const p=getSvgPoint(e),b=boundsFor(o),x=Math.max(b.minX,Math.min(b.maxX,p.x+dragging.dx)),y=Math.max(b.minY,Math.min(b.maxY,p.y+dragging.dy)),dx=x-o.x,dy=y-o.y;o.x=x;o.y=y;if(o.type==='player')translatePlayerTrack(o.id,dx,dy);renderObjects();renderPaths();renderActions()})
+stage.addEventListener('pointerdown',e=>{if(playing)return;const p=clampPoint(getSvgPoint(e));if(pathMode){const hit=nearestPathAnchor(p);if(!hit){setStatus('Börja genom att lägga fingret på spelaren eller spelarens tonade slutmarkering.',true);return}e.preventDefault();selectedId=hit.o.id;const start=nextTrackStart(hit.o.id);drawingPath={playerId:hit.o.id,start,speed:defaultPathSpeed,points:[{...hit.a},p]};stage.setPointerCapture?.(e.pointerId);draftG.innerHTML=`<path d="${pathD(drawingPath.points)}" fill="none" stroke="${hit.o.color}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity=".68"/>`;renderObjects();syncSelectedControls();return}const node=e.target.closest?.('.obj');if(!node){selectedId=null;renderObjects();syncSelectedControls();return}const o=getObj(node.dataset.id);if(!o)return;if(actionMode){handleActionPick(o);return}selectedId=o.id;if(o.type==='ball'&&project.ballOwnerStart){setStatus('Bollen sitter hos bollhållaren. Markera spelaren och välj Släpp boll för att flytta bollen fritt.');renderObjects();syncSelectedControls();return}if(o.type==='goalkeeper'&&o.followBall!==false){setStatus('Målvakten följer bollen automatiskt. Stäng av Följ boll under Val för manuell flytt.');renderObjects();syncSelectedControls();return}pushUndo();const q=getSvgPoint(e);dragging={id:o.id,dx:o.x-q.x,dy:o.y-q.y,startX:o.x,startY:o.y};stage.setPointerCapture?.(e.pointerId);renderObjects();syncSelectedControls()})
+stage.addEventListener('pointermove',e=>{if(drawingPath){e.preventDefault();const p=clampPoint(getSvgPoint(e)),q=drawingPath.points.at(-1);if(Math.hypot(p.x-q.x,p.y-q.y)>4){drawingPath.points.push(p);const o=getObj(drawingPath.playerId);draftG.innerHTML=`<path d="${pathD(drawingPath.points)}" fill="none" stroke="${o?.color||'#1769e8'}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity=".68"/>`}return}if(!dragging)return;const o=getObj(dragging.id);if(!o)return;const p=getSvgPoint(e),b=boundsFor(o),x=Math.max(b.minX,Math.min(b.maxX,p.x+dragging.dx)),y=Math.max(b.minY,Math.min(b.maxY,p.y+dragging.dy)),dx=x-o.x,dy=y-o.y;o.x=x;o.y=y;if(o.type==='player')translatePlayerTrack(o.id,dx,dy);renderObjects();renderPaths();renderActions()})
 stage.addEventListener('pointerup',()=>{if(drawingPath){finishDrawPath();return}if(dragging){const o=getObj(dragging.id);if(o?.type==='goalkeeper')o.goalSide=o.y<550?'top':'bottom';dragging=null;render()}});stage.addEventListener('pointercancel',()=>{drawingPath=null;dragging=null;draftG.innerHTML='';if(pathMode)setStatus('Ritningen avbröts. Dra på nytt.',true)})
 
+function renderPlaybackGuides(){
+  if($('showPaths').checked){renderPaths(false);renderActions()}else{pathG.innerHTML='';ghostG.innerHTML='';actionG.innerHTML=''}
+}
 function stopPlayback(reset=false){if(playing||paused){playToken++;playing=false;paused=false}$('play').textContent='▶';if(reset){$('timeLabel').textContent=`0,0 / ${totalDuration().toFixed(1)} s`;$('progressFill').style.width='0%';render()}}
-async function play(){if(paused){paused=false;setStatus('Fortsätter…');return}if(totalDuration()<=.41){setStatus('Rita minst en åkväg eller lägg till en passning/skott först.');return}stopPlayback();cancelModes();playing=true;selectedId=null;const token=++playToken,speed=Math.max(.05,+$('speed').value||.4),baseTotal=totalDuration(),realTotal=baseTotal/speed;let elapsed=0,last=performance.now();do{elapsed=0;last=performance.now();while(elapsed<realTotal){if(token!==playToken)return;await new Promise(r=>requestAnimationFrame(r));const now=performance.now();if(paused){last=now;continue}elapsed+=(now-last)/1000;last=now;const t=Math.min(baseTotal,elapsed*speed),obs=objectsAt(t);renderObjects(obs);if(!$('showPaths').checked){pathG.innerHTML='';ghostG.innerHTML=''}else renderPaths();renderActions();$('timeLabel').textContent=`${t.toFixed(1)} / ${baseTotal.toFixed(1)} s`;$('progressFill').style.width=Math.min(100,(t/baseTotal)*100)+'%'}if(!$('loop').checked)break}while(token===playToken);if(token===playToken){playing=false;paused=false;$('play').textContent='▶';$('progressFill').style.width='100%';render();setStatus('Övningen klar.')}}
+async function play(){
+  if(paused){paused=false;setStatus('Fortsätter…');return}
+  if(totalDuration()<=.41){setStatus('Rita minst en åkväg eller lägg till en passning/skott först.');return}
+  normalizeActionTimeline();stopPlayback();cancelModes();playing=true;selectedId=null;
+  const token=++playToken,speed=Math.max(.05,+$('speed').value||.4),baseTotal=totalDuration(),realTotal=baseTotal/speed;
+  let elapsed=0,last=performance.now();
+  do{
+    elapsed=0;last=performance.now();renderPlaybackGuides();
+    while(elapsed<realTotal){
+      if(token!==playToken)return;
+      await new Promise(r=>requestAnimationFrame(r));
+      const now=performance.now();if(paused){last=now;continue}
+      elapsed+=(now-last)/1000;last=now;
+      const t=Math.min(baseTotal,elapsed*speed),obs=objectsAt(t);renderObjects(obs);renderPlaybackGuides();
+      $('timeLabel').textContent=`${t.toFixed(1)} / ${baseTotal.toFixed(1)} s`;$('progressFill').style.width=Math.min(100,(t/baseTotal)*100)+'%';
+    }
+    if(!$('loop').checked)break;
+  }while(token===playToken);
+  if(token===playToken){playing=false;paused=false;$('play').textContent='▶';$('progressFill').style.width='100%';render();setStatus('Övningen klar.')}
+}
 function pause(){if(!playing&&!paused)return;paused=!paused;setStatus(paused?'Pausad.':'Fortsätter…',paused)}
 
 function ensureBall(){let b=firstBall();if(!b){const c=visibleCenter();b={id:nextId(),type:'ball',x:c.x+25,y:c.y,r:10,color:'#df1f2d',label:''};project.objects.push(b)}return b}
 function setBallOwner(id){pushUndo();ensureBall();project.ballOwnerStart=id||null;render()}
 function setSelectedColor(color){const o=getObj(selectedId);if(!o)return;pushUndo();o.color=color;render()}
 function swatchClick(e){const b=e.target.closest('[data-color]');if(b)setSelectedColor(b.dataset.color)}
-function deleteSelected(){const id=selectedId;if(!id)return;pushUndo();project.objects=project.objects.filter(o=>o.id!==id);delete project.tracks[id];project.actions=project.actions.filter(a=>a.from!==id&&a.to!==id);if(project.ballOwnerStart===id)project.ballOwnerStart=null;selectedId=null;render()}
+function deleteSelected(){const id=selectedId;if(!id)return;pushUndo();project.objects=project.objects.filter(o=>o.id!==id);delete project.tracks[id];project.actions=project.actions.filter(a=>a.from!==id&&a.to!==id);normalizeActionTimeline();if(project.ballOwnerStart===id)project.ballOwnerStart=null;selectedId=null;render()}
 function duplicateSelected(){const o=getObj(selectedId);if(!o)return;pushUndo();const n={...clone(o),id:nextId(),x:o.x+32,y:o.y+32};project.objects.push(n);selectedId=n.id;render()}
-function deleteLastPath(){const o=getObj(selectedId);if(!o||o.type!=='player'||!playerTracks(o.id).length){setStatus('Markera en spelare som har en åkväg.');return}pushUndo();playerTracks(o.id).pop();const end=trackEndTime(o.id);project.actions=project.actions.filter(a=>!(a.from===o.id&&a.start>end+.001));render();setStatus('Spelarens sista delbana togs bort.')}
+function deleteLastPath(){const o=getObj(selectedId);if(!o||o.type!=='player'||!playerTracks(o.id).length){setStatus('Markera en spelare som har en åkväg.');return}pushUndo();playerTracks(o.id).pop();const end=trackEndTime(o.id);project.actions=project.actions.filter(a=>!(a.from===o.id&&a.start>end+.001));normalizeActionTimeline();render();setStatus('Spelarens sista delbana togs bort.')}
 
-function saveLocal(){project.name=$('projectName').value.trim()||'Ny bandyövning';project.note=$('projectNote').value;localStorage.setItem('bandyEditor:v6:last',JSON.stringify(project));localStorage.setItem('bandyEditor:last',JSON.stringify(project));setStatus('Övningen sparad i denna webbläsare.')}
-function convertV5(p){if(p.version===6)return p;const seqs=p.sequences||p.steps||[],objects=clone(seqs[0]?.objects||[]),tracks={},actions=[];let offset=0,owner=seqs[0]?.ballOwner||null;for(const s of seqs){const seqDur=(()=>{let d=.35;for(const [id,pts] of Object.entries(s.paths||{})){const m=s.pathMeta?.[id]||{speed:1,delay:0};d=Math.max(d,(+m.delay||0)+polyLength(pts)/(105*Math.max(.25,+m.speed||1)))}return d})();for(const [id,pts] of Object.entries(s.paths||{})){const m=s.pathMeta?.[id]||{speed:1,delay:0};(tracks[id]||(tracks[id]=[])).push({id:nextId('s'),points:clone(pts),speed:+m.speed||1,start:offset+(+m.delay||0)})}for(const a of s.actions||[]){const start=offset+(a.at??.7)*seqDur,from=a.from,to=a.to,fp=(s.objects||[]).find(o=>o.id===from),tp=(s.objects||[]).find(o=>o.id===to),dist=fp&&tp?Math.hypot(tp.x-fp.x,tp.y-fp.y):150,duration=a.type==='pass'?Math.max(.28,Math.min(1.2,dist/PASS_SPEED)):.45;actions.push({id:nextId('a'),type:a.type,from,to,start,duration})}offset+=seqDur}return{version:6,name:p.name||'Ny bandyövning',note:p.note||'',rinkMode:p.rinkMode||'full',orientation:p.orientation||'up',objects,tracks,actions,ballOwnerStart:owner}}
-function rebuildProject(){if(project.version!==6)project=convertV5(project);project.version=6;project.objects=project.objects||[];project.tracks=project.tracks||{};project.actions=project.actions||[];project.rinkMode=project.rinkMode||'full';project.orientation=project.orientation||'up';project.name=project.name||'Ny bandyövning';project.note=project.note||'';const ids=[...project.objects.map(o=>parseInt(String(o.id).replace(/\D/g,''))||0),...project.actions.map(a=>parseInt(String(a.id).replace(/\D/g,''))||0),...Object.values(project.tracks).flat().map(s=>parseInt(String(s.id).replace(/\D/g,''))||0)];idCounter=1+Math.max(0,...ids)}
-function openLocal(){const raw=localStorage.getItem('bandyEditor:v6:last')||localStorage.getItem('bandyEditor:v5:last')||localStorage.getItem('bandyEditor:last');if(!raw){setStatus('Ingen sparad övning hittades.');return}try{project=JSON.parse(raw);rebuildProject();selectedId=null;undoStack=[];render();setStatus(`Öppnade ${project.name||'övningen'}.`)}catch(e){console.error(e);setStatus('Den sparade övningen kunde inte läsas.')}}
+function saveLocal(){project.name=$('projectName').value.trim()||'Ny bandyövning';project.note=$('projectNote').value;localStorage.setItem('bandyEditor:v7:last',JSON.stringify(project));localStorage.setItem('bandyEditor:last',JSON.stringify(project));setStatus('Övningen sparad i denna webbläsare.')}
+function convertV5(p){if(p.version===6)return p;const seqs=p.sequences||p.steps||[],objects=clone(seqs[0]?.objects||[]),tracks={},actions=[];let offset=0,owner=seqs[0]?.ballOwner||null;for(const s of seqs){const seqDur=(()=>{let d=.35;for(const [id,pts] of Object.entries(s.paths||{})){const m=s.pathMeta?.[id]||{speed:1,delay:0};d=Math.max(d,(+m.delay||0)+polyLength(pts)/(105*Math.max(.25,+m.speed||1)))}return d})();for(const [id,pts] of Object.entries(s.paths||{})){const m=s.pathMeta?.[id]||{speed:1,delay:0};(tracks[id]||(tracks[id]=[])).push({id:nextId('s'),points:clone(pts),speed:+m.speed||1,start:offset+(+m.delay||0)})}for(const a of s.actions||[]){const start=offset+(a.at??.7)*seqDur,from=a.from,to=a.to,fp=(s.objects||[]).find(o=>o.id===from),tp=(s.objects||[]).find(o=>o.id===to),dist=fp&&tp?Math.hypot(tp.x-fp.x,tp.y-fp.y):150,duration=a.type==='pass'?Math.max(.28,Math.min(1.2,dist/PASS_SPEED)):.45;actions.push({id:nextId('a'),type:a.type,from,to,start,duration})}offset+=seqDur}return{version:7,name:p.name||'Ny bandyövning',note:p.note||'',rinkMode:p.rinkMode||'full',orientation:p.orientation||'up',objects,tracks,actions,ballOwnerStart:owner}}
+function rebuildProject(){
+  if(project.version!==7){
+    if(project.version===6){project={...clone(project),version:7}}
+    else project=convertV5(project);
+  }
+  project.version=7;project.objects=project.objects||[];project.tracks=project.tracks||{};project.actions=project.actions||[];project.rinkMode=project.rinkMode||'full';project.orientation=project.orientation||'up';project.name=project.name||'Ny bandyövning';project.note=project.note||'';
+  project.actions.forEach((a,i)=>{if(a.order==null)a.order=i});normalizeActionTimeline();
+  const ids=[...project.objects.map(o=>parseInt(String(o.id).replace(/\D/g,''))||0),...project.actions.map(a=>parseInt(String(a.id).replace(/\D/g,''))||0),...Object.values(project.tracks).flat().map(s=>parseInt(String(s.id).replace(/\D/g,''))||0)];idCounter=1+Math.max(0,...ids)
+}
+function openLocal(){const raw=localStorage.getItem('bandyEditor:v7:last')||localStorage.getItem('bandyEditor:v6:last')||localStorage.getItem('bandyEditor:v5:last')||localStorage.getItem('bandyEditor:last');if(!raw){setStatus('Ingen sparad övning hittades.');return}try{project=JSON.parse(raw);rebuildProject();selectedId=null;undoStack=[];render();setStatus(`Öppnade ${project.name||'övningen'}.`)}catch(e){console.error(e);setStatus('Den sparade övningen kunde inte läsas.')}}
 function exportJson(){project.name=$('projectName').value.trim()||'Ny bandyövning';project.note=$('projectNote').value;const blob=new Blob([JSON.stringify(project,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(project.name.replace(/[^a-z0-9åäö_-]+/gi,'_')||'bandyovning')+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-function newProject(){if(!confirm('Skapa en ny tom övning?'))return;stopPlayback();project={version:6,name:'Ny bandyövning',note:'',rinkMode:$('rinkMode').value,orientation:$('orientation').value,objects:[],tracks:{},actions:[],ballOwnerStart:null};selectedId=null;idCounter=1;undoStack=[];seedProject();render();setStatus('Ny övning skapad.')}
+function newProject(){if(!confirm('Skapa en ny tom övning?'))return;stopPlayback();project={version:7,name:'Ny bandyövning',note:'',rinkMode:$('rinkMode').value,orientation:$('orientation').value,objects:[],tracks:{},actions:[],ballOwnerStart:null};selectedId=null;idCounter=1;undoStack=[];seedProject();render();setStatus('Ny övning skapad.')}
 
 for(const b of document.querySelectorAll('[data-add]'))b.addEventListener('click',()=>addObject(b.dataset.add));$('quickCoach').onclick=()=>addObject('player','T','#64748b');
 $('pathMode').onclick=()=>pathMode?cancelModes():beginPathMode();$('pathModeDesktop').onclick=()=>pathMode?cancelModes():beginPathMode();$('mobilePath').onclick=()=>pathMode?cancelModes():beginPathMode();$('redrawPath').onclick=()=>beginPathMode(true);$('deleteLastPath').onclick=deleteLastPath;
 $('passMode').onclick=()=>setActionMode('pass');$('passModeDesktop').onclick=()=>setActionMode('pass');$('mobilePass').onclick=()=>setActionMode('pass');$('shotMode').onclick=()=>setActionMode('shot');$('shotModeDesktop').onclick=()=>setActionMode('shot');$('mobileShot').onclick=()=>setActionMode('shot');
-$('actionList').addEventListener('click',e=>{const b=e.target.closest('[data-remove-action]');if(!b)return;pushUndo();project.actions.splice(+b.dataset.removeAction,1);render()});
+$('actionList').addEventListener('click',e=>{const b=e.target.closest('[data-remove-action]');if(!b)return;pushUndo();project.actions.splice(+b.dataset.removeAction,1);normalizeActionTimeline();render()});
 $('objLabel').addEventListener('input',e=>{const o=getObj(selectedId);if(o){o.label=e.target.value;renderPaths();renderObjects();renderFlow();renderActionsList()}});$('objSize').addEventListener('change',e=>{const o=getObj(selectedId);if(o){pushUndo();o.r=+e.target.value;render()}});$('swatches').addEventListener('click',swatchClick);$('mobileSwatches').addEventListener('click',swatchClick);$('teamA').onclick=()=>setSelectedColor('#1769e8');$('teamB').onclick=()=>setSelectedColor('#e31818');
 $('giveBall').onclick=()=>{const o=getObj(selectedId);if(o?.type==='player'){setBallOwner(o.id);setStatus(`${o.label||'Spelaren'} har bollen från start.`)}};$('releaseBall').onclick=()=>{setBallOwner(null);setStatus('Bollen är fri vid start.')};$('goalieFollow').onchange=e=>{const o=getObj(selectedId);if(o?.type==='goalkeeper'){pushUndo();o.followBall=e.target.checked;render()}};$('duplicateObj').onclick=duplicateSelected;$('deleteObj').onclick=deleteSelected;
 $('pathSpeed').onchange=e=>{defaultPathSpeed=+e.target.value||1;const o=getObj(selectedId),last=o?.type==='player'?playerTracks(o.id).at(-1):null;if(last){pushUndo();last.speed=defaultPathSpeed;render()}};$('pathDelay').onchange=e=>{defaultPathDelay=Math.max(0,+e.target.value||0);syncSelectedControls()};
-$('projectName').addEventListener('input',e=>project.name=e.target.value);$('projectNote').addEventListener('input',e=>project.note=e.target.value);$('rinkMode').onchange=e=>{project.rinkMode=e.target.value;render()};$('orientation').onchange=e=>{project.orientation=e.target.value;render()};$('showPaths').onchange=render;$('play').onclick=play;$('pause').onclick=pause;$('restart').onclick=()=>stopPlayback(true);$('saveProject').onclick=saveLocal;$('openProject').onclick=openLocal;$('exportJson').onclick=exportJson;$('newProject').onclick=newProject;$('undo').onclick=undo;
+$('projectName').addEventListener('input',e=>project.name=e.target.value);$('projectNote').addEventListener('input',e=>project.note=e.target.value);$('rinkMode').onchange=e=>{project.rinkMode=e.target.value;render()};$('orientation').onchange=e=>{project.orientation=e.target.value;render()};$('showPaths').onchange=()=>{if(playing)renderPlaybackGuides()};$('play').onclick=play;$('pause').onclick=pause;$('restart').onclick=()=>stopPlayback(true);$('saveProject').onclick=saveLocal;$('openProject').onclick=openLocal;$('exportJson').onclick=exportJson;$('newProject').onclick=newProject;$('undo').onclick=undo;
 $('importJson').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;try{project=JSON.parse(await f.text());rebuildProject();selectedId=null;undoStack=[];render();setStatus('Projekt importerat.')}catch(err){console.error(err);setStatus('Kunde inte läsa projektfilen.')}e.target.value=''});
 $('flowItems').addEventListener('click',e=>{const b=e.target.closest('.flowItem');if(!b)return;if(b.dataset.flowId){selectedId=b.dataset.flowId;renderObjects();syncSelectedControls()}if(b.dataset.actionId){const a=project.actions.find(x=>x.id===b.dataset.actionId);if(a){selectedId=a.from;renderObjects();syncSelectedControls();setStatus(a.type==='pass'?'Passningen är markerad i övningsflödet.':'Skottet är markerat i övningsflödet.')}}});
 function toggleProps(){properties.classList.toggle('open')}$('toggleProps').onclick=toggleProps;$('mobileProps').onclick=toggleProps;window.addEventListener('keydown',e=>{if((e.key==='Delete'||e.key==='Backspace')&&!/INPUT|TEXTAREA/.test(document.activeElement?.tagName))deleteSelected();if(e.key===' '&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)){e.preventDefault();play()}if(e.key==='Escape')cancelModes();if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo()}});
