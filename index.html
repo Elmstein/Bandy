@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f8fafc">
-<title>Bandyövningar v0.8 – flytande passningar och tom startplan</title>
+<title>Bandyövningar v0.9 – mobil-first taktiktavla</title>
 <style>
 :root{
   --bg:#eef3f8;--panel:#fff;--panel2:#f8fafc;--line:#d7e0ea;--text:#0f172a;--muted:#64748b;
@@ -34,18 +34,74 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
   .app{grid-template-rows:auto minmax(0,1fr) auto auto}.topbar{padding:8px;display:grid;grid-template-columns:1fr auto}.brand{min-width:0}.brand h1{font-size:15px}.topControls{grid-column:1/-1;grid-row:2;justify-content:stretch}.topControls select{flex:1}.fileControls button:not(.primary),.fileControls .btnLike{display:none}.workspace{display:block;min-height:0}.palette{display:none}.properties{position:fixed;left:8px;right:8px;bottom:136px;z-index:20;border:1px solid var(--line);border-radius:15px;box-shadow:0 20px 50px rgba(15,23,42,.22);max-height:52vh;display:none}.properties.open{display:block}.stageArea{padding:7px;height:calc(100vh - 315px);min-height:315px}.rinkCard{max-height:100%;border-radius:12px}.flowPanel{padding:7px;display:block}.flowHeader{margin-bottom:5px}.transport{margin-top:6px;justify-content:center}.flowItem{min-width:96px}.flowHint{display:none}.mobileQuickColors{display:none;align-items:center;gap:7px;padding:6px 8px;background:#fff;border-top:1px solid var(--line);overflow-x:auto}.mobileQuickColors.show{display:flex}.mobileQuickColors .miniLabel{font-size:10px;font-weight:800;color:var(--muted);white-space:nowrap}.mobileQuickColors .swatch{flex:0 0 31px;width:31px;height:31px}.mobilePalette{display:flex;gap:5px;overflow-x:auto;padding:7px 8px max(7px,env(safe-area-inset-bottom));background:#fff;border-top:1px solid var(--line)}.mobilePalette button{flex:0 0 58px;padding:7px 2px;font-size:9px;display:grid;place-items:center;gap:3px}.mobilePalette .toolIcon{width:24px;height:24px;flex-basis:24px}.mobilePalette .playerIcon{font-size:11px}.mobilePalette .textIcon{font-size:20px}.mobilePalette .pathIcon,.mobilePalette .passIcon,.mobilePalette .shotIcon{font-size:20px}.mobilePalette .coneIcon{transform:scale(.70)}.mobilePalette .ballIcon{width:12px;height:12px}.stageStatus{left:12px;bottom:12px;max-width:calc(100% - 24px)}
 }
 @media(max-width:410px){.brandMark{display:none}.fileControls .primary{padding:7px 8px}.stageArea{height:calc(100vh - 325px)}.transport{gap:5px}.transport button{padding:7px}.progressTrack{min-width:65px}.speed{width:72px}.playView{width:144px}}
+
+/* v0.9 – mobile-first canvas, fit-to-screen och presentation */
+.canvasControls{position:absolute;right:20px;top:18px;z-index:8;display:flex;gap:6px;padding:5px;border:1px solid rgba(148,163,184,.45);background:rgba(255,255,255,.9);backdrop-filter:blur(8px);border-radius:12px;box-shadow:0 5px 18px rgba(15,23,42,.10)}
+.canvasControls button{width:39px;height:39px;padding:0;display:grid;place-items:center;font-size:17px;background:#fff}
+.presentationBar{display:none;position:absolute;left:50%;bottom:max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:70;gap:7px;padding:7px;border-radius:14px;background:rgba(15,23,42,.84);backdrop-filter:blur(10px);box-shadow:0 8px 28px rgba(0,0,0,.2)}
+.presentationBar button{min-width:45px;height:43px;padding:0;border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.13);color:#fff}
+.presentationBar button.primary{background:var(--blue);border-color:var(--blue)}
+.mobileToolsToggle{display:none!important}
+.app.presentation{height:var(--app-height,100dvh);min-height:0;overflow:hidden;grid-template-rows:minmax(0,1fr)}
+.app.presentation .topbar,.app.presentation .flowPanel,.app.presentation .mobileQuickColors,.app.presentation .mobilePalette{display:none!important}
+.app.presentation .workspace{display:grid;grid-template-columns:1fr;min-height:0}
+.app.presentation .workspace>.palette,.app.presentation .workspace>.properties{display:none!important}
+.app.presentation .stageArea{grid-column:1;min-height:0;height:auto;padding:8px;background:#0f172a}
+.app.presentation .rinkCard{border-radius:10px;box-shadow:none}
+.app.presentation .canvasControls{display:none}
+.app.presentation .presentationBar{display:flex}
+.app.presentation .stageStatus{display:none}.app.presentation #pathLayer,.app.presentation #actionLayer,.app.presentation #ghostLayer,.app.presentation #draftLayer{display:none}
+@media(max-width:760px){
+  html,body{height:100%;overflow:hidden}
+  body{position:fixed;inset:0;width:100%;}
+  .app{height:var(--app-height,100dvh);min-height:0;overflow:hidden;grid-template-rows:auto minmax(0,1fr) auto auto auto}
+  .topbar{flex:0 0 auto;padding:6px 8px;gap:5px}
+  .brand{height:35px}.brandMark{width:31px;height:31px;border-radius:9px}.brand h1{font-size:14px}.brand small{display:block;font-size:9px;margin-top:1px}
+  .fileControls{gap:4px}.fileControls .primary{padding:7px 9px;font-size:12px}.fileControls #fitTop,.fileControls #presentTop{display:inline-grid!important;width:34px;height:34px;padding:0;place-items:center}
+  .topControls{gap:5px}.topControls select{height:36px;padding:6px 8px;font-size:13px}
+  .workspace{height:auto;min-height:0;overflow:hidden}
+  .stageArea{height:auto!important;min-height:0!important;padding:5px;overflow:hidden;align-items:center}
+  .rinkCard{height:auto!important;max-height:none!important;max-width:none!important;width:auto;flex:0 0 auto;border-radius:10px}
+  .canvasControls{right:10px;top:9px;padding:3px;gap:3px;border-radius:10px}
+  .canvasControls button{width:34px;height:34px;font-size:15px;border-radius:8px}
+  .flowPanel{flex:0 0 auto;padding:5px 6px 4px;max-height:121px;overflow:hidden}
+  .flowPanel.collapsed .flowItems{display:none}
+  .flowPanel.collapsed .flowHeader{margin-bottom:0}
+  .flowPanel.collapsed{max-height:70px}
+  .flowHeader{min-height:24px}.flowHeader b{font-size:11px}.flowHeader .mini{padding:4px 6px;font-size:10px}
+  .flowItems{max-height:42px}.flowItem{min-width:88px;padding:5px 6px}
+  .transport{margin-top:3px;gap:4px;flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;padding-bottom:1px}
+  .transport button{min-width:37px;height:37px;padding:5px}.timeLabel{min-width:50px;font-size:10px}.progressTrack{min-width:54px}.speed{width:70px;padding:6px;font-size:11px}.playView{width:126px;padding:6px;font-size:10px}.checkLabel{font-size:10px}
+  .mobileQuickColors{flex:0 0 auto;padding:4px 6px;min-height:0;max-height:43px}
+  .mobileQuickColors .swatch{width:28px;height:28px;flex-basis:28px}
+  .mobilePalette{flex:0 0 auto;padding:5px 6px max(5px,env(safe-area-inset-bottom));gap:4px;min-height:51px;max-height:64px}
+  .mobilePalette button{flex:0 0 52px;min-height:43px;padding:4px 2px;font-size:8px;border-radius:9px}
+  .mobileToolsToggle{display:grid!important;position:sticky;left:0;z-index:2;background:#f8fafc!important}
+  .mobilePalette.tools-collapsed button:not(.mobileToolsToggle){display:none}
+  .mobilePalette.tools-collapsed{overflow:hidden;justify-content:flex-start;max-height:53px}
+  .properties{left:0;right:0;bottom:0;z-index:60;border-radius:18px 18px 0 0;max-height:min(68%,560px);padding:12px 14px max(14px,env(safe-area-inset-bottom));box-shadow:0 -12px 42px rgba(15,23,42,.22);border-left:0;border-right:0;border-bottom:0}
+  .properties:before{content:"";display:block;width:42px;height:4px;border-radius:99px;background:#cbd5e1;margin:-4px auto 9px}
+  .stageStatus{font-size:10px;padding:5px 8px;bottom:8px}
+  .app.presentation .stageArea{padding:4px}
+  .app.presentation .rinkCard{border-radius:8px}
+}
+@media(max-width:390px){
+  .brand small{display:none}.brandMark{display:none}.topbar{grid-template-columns:minmax(0,1fr) auto}.topControls select{font-size:12px}.fileControls .primary{font-size:11px;padding:6px 8px}
+  .playView{width:116px}.checkLabel span{display:none}
+}
+
 </style>
 </head>
 <body>
 <div class="app">
 <header class="topbar">
-  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v0.8 · flytande passningar + tom startplan</small></div></div>
+  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v0.9 · mobil-first · fit-to-screen</small></div></div>
   <div class="topControls">
     <select id="rinkMode" aria-label="Planvy"><option value="full">Helplan</option><option value="half">Halvplan</option></select>
     <select id="orientation" aria-label="Anfallsriktning"><option value="up">Anfall uppåt</option><option value="down">Anfall nedåt</option></select>
   </div>
   <div class="fileControls">
-    <button id="newProject">Ny</button><button id="openProject">Öppna</button><button id="saveProject" class="primary">Spara</button>
+    <button id="newProject">Ny</button><button id="openProject">Öppna</button><button id="fitTop" class="icon" title="Passa in plan">⌗</button><button id="presentTop" class="icon" title="Presentationsläge">⛶</button><button id="saveProject" class="primary">Spara</button>
     <label class="btnLike" title="Importera JSON"><input id="importJson" type="file" accept=".json,application/json" hidden>Importera</label><button id="exportJson">Exportera</button>
   </div>
 </header>
@@ -85,6 +141,8 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
         <g id="rink"></g><g id="pathLayer"></g><g id="actionLayer"></g><g id="draftLayer"></g><g id="ghostLayer"></g><g id="objects"></g>
       </svg>
     </div>
+    <div class="canvasControls" aria-label="Vyverktyg"><button id="zoomOut" title="Zooma ut" aria-label="Zooma ut">−</button><button id="fitView" title="Passa in hela planen" aria-label="Passa in plan">⌗</button><button id="zoomIn" title="Zooma in" aria-label="Zooma in">＋</button><button id="presentMode" title="Presentationsläge" aria-label="Presentationsläge">⛶</button></div>
+    <div class="presentationBar" aria-label="Presentationskontroller"><button id="presentRestart" title="Starta om">↺</button><button id="presentPlay" class="primary" title="Spela">▶</button><button id="presentPause" title="Paus">Ⅱ</button><button id="exitPresent" title="Avsluta presentation">✕</button></div>
     <div id="stageStatus" class="stageStatus">Rita som på en taktiktavla: dra från en spelare. Rita igen från slutmarkeringen för att bygga vidare.</div>
   </section>
 
@@ -116,13 +174,13 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
 </main>
 
 <footer class="flowPanel">
-  <div class="flowWrap"><div class="flowHeader"><b>Övningsflöde</b><span class="flowHint">Skapas automatiskt av det du ritar – inga faser behöver sparas.</span><button id="undo" class="mini">↶ Ångra</button></div><div id="flowItems" class="flowItems"></div></div>
+  <div class="flowWrap"><div class="flowHeader"><b>Övningsflöde</b><span class="flowHint">Skapas automatiskt av det du ritar – inga faser behöver sparas.</span><span class="row"><button id="toggleFlow" class="mini" title="Visa/dölj övningsflöde">▴ Flöde</button><button id="undo" class="mini">↶ Ångra</button></span></div><div id="flowItems" class="flowItems"></div></div>
   <div class="transport"><button id="restart" class="icon" title="Starta om">↺</button><button id="play" class="primary icon" title="Spela">▶</button><button id="pause" class="icon" title="Paus">Ⅱ</button><span id="timeLabel" class="timeLabel">0,0 / 0,0 s</span><div class="progressTrack" aria-hidden="true"><div id="progressFill" class="progressFill"></div></div><select id="speed" class="speed" title="Hastighet"><option value="0.25">0,25×</option><option value="0.30">0,30×</option><option value="0.35">0,35×</option><option value="0.40" selected>0,40×</option><option value="0.45">0,45×</option><option value="0.50">0,50×</option><option value="0.60">0,60×</option><option value="0.75">0,75×</option><option value="1">1×</option></select><select id="playView" class="playView" title="Visning under uppspelning"><option value="clean" selected>Ren Play – dölj linjer</option><option value="lines">Play – visa linjer</option></select><label class="checkLabel"><input id="loop" type="checkbox"><span>Loop</span></label><button id="toggleProps" class="icon" title="Egenskaper">⚙</button></div>
 </footer>
 
 <div id="mobileQuickColors" class="mobileQuickColors"><button id="quickBallOwnerMobile" class="mini">🔴 Fäst boll</button><span class="miniLabel">Spelarfärg</span><div id="mobileSwatches" class="swatches"></div></div>
-<nav class="mobilePalette" aria-label="Objekt och ritverktyg">
-  <button data-add="player"><span class="toolIcon playerIcon">1</span><span>Spelare</span></button><button data-add="goalkeeper"><span class="toolIcon goalieIcon">MV</span><span>MV</span></button><button data-add="cone"><span class="toolIcon"><i class="coneIcon"></i></span><span>Kon</span></button><button data-add="ball"><span class="toolIcon"><i class="ballIcon"></i></span><span>Boll</span></button><button id="mobilePath"><span class="toolIcon pathIcon">〰</span><span>Rita</span></button><button id="mobilePass"><span class="toolIcon passIcon">⇢</span><span>Pass</span></button><button id="mobileShot"><span class="toolIcon shotIcon">➜</span><span>Skott</span></button><button id="mobileProps"><span class="toolIcon" style="font-size:22px">⚙</span><span>Val</span></button>
+<nav id="mobilePalette" class="mobilePalette" aria-label="Objekt och ritverktyg">
+  <button id="mobileToolsToggle" class="mobileToolsToggle" title="Fäll ihop verktyg"><span class="toolIcon">⌄</span><span>Verktyg</span></button><button data-add="player"><span class="toolIcon playerIcon">1</span><span>Spelare</span></button><button data-add="goalkeeper"><span class="toolIcon goalieIcon">MV</span><span>MV</span></button><button data-add="cone"><span class="toolIcon"><i class="coneIcon"></i></span><span>Kon</span></button><button data-add="ball"><span class="toolIcon"><i class="ballIcon"></i></span><span>Boll</span></button><button id="mobilePath"><span class="toolIcon pathIcon">〰</span><span>Rita</span></button><button id="mobilePass"><span class="toolIcon passIcon">⇢</span><span>Pass</span></button><button id="mobileShot"><span class="toolIcon shotIcon">➜</span><span>Skott</span></button><button id="mobileProps"><span class="toolIcon" style="font-size:22px">⚙</span><span>Val</span></button>
 </nav>
 </div>
 <script>
@@ -134,7 +192,24 @@ const colors=['#1769e8','#e31818','#159447','#f2b705','#ff7a00','#7c3aed','#06b6
 const defaults={player:{r:22,color:'#1769e8',label:'1'},goalkeeper:{r:23,color:'#64748b',label:'MV'},ball:{r:10,color:'#df1f2d',label:''},cone:{r:20,color:'#ff7a00',label:''},text:{r:20,color:'#111827',label:'Text'}};
 const BASE_TRAVEL_SPEED=86,PASS_SPEED=330,SHOT_SPEED=430;
 let idCounter=1,selectedId=null,dragging=null,pathMode=false,drawingPath=null,actionMode=null,actionFirst=null,playing=false,paused=false,playToken=0,defaultPathSpeed=1,defaultPathDelay=0,undoStack=[];
-let project={version:8,name:'Ny bandyövning',note:'',rinkMode:'full',orientation:'up',objects:[],tracks:{},actions:[],ballOwnerStart:null};
+let project={version:9,name:'Ny bandyövning',note:'',rinkMode:'full',orientation:'up',objects:[],tracks:{},actions:[],ballOwnerStart:null};
+let camera={zoom:1,cx:350,cy:550},lastViewKey='',presentation=false;
+const touchPoints=new Map();let cameraGesture=null;
+function baseView(){return project.rinkMode==='full'?{x:0,y:0,w:700,h:1100}:(project.orientation==='up'?{x:0,y:0,w:700,h:550}:{x:0,y:550,w:700,h:550})}
+function resetCamera(){const b=baseView();camera={zoom:1,cx:b.x+b.w/2,cy:b.y+b.h/2};applyCamera()}
+function clampCamera(){const b=baseView(),w=b.w/camera.zoom,h=b.h/camera.zoom;camera.cx=Math.max(b.x+w/2,Math.min(b.x+b.w-w/2,camera.cx));camera.cy=Math.max(b.y+h/2,Math.min(b.y+b.h-h/2,camera.cy))}
+function applyCamera(){const b=baseView();camera.zoom=Math.max(1,Math.min(4,camera.zoom));clampCamera();const w=b.w/camera.zoom,h=b.h/camera.zoom;stage.setAttribute('viewBox',`${(camera.cx-w/2).toFixed(2)} ${(camera.cy-h/2).toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)}`)}
+function zoomBy(factor){const b=baseView();camera.zoom=Math.max(1,Math.min(4,camera.zoom*factor));clampCamera();applyCamera();setStatus(camera.zoom===1?'Hela planen visas.':`Zoom ${camera.zoom.toFixed(2)}×. Nyp med två fingrar eller använd +/−.`)}
+function fitRinkCard(){
+  const area=document.querySelector('.stageArea');if(!area)return;const r=area.getBoundingClientRect();if(r.width<20||r.height<20)return;
+  const b=baseView(),ratio=b.w/b.h,pad=10,wAvail=Math.max(50,r.width-pad),hAvail=Math.max(50,r.height-pad);let w=Math.min(wAvail,hAvail*ratio),h=w/ratio;if(h>hAvail){h=hAvail;w=h*ratio}
+  rinkCard.style.width=`${Math.floor(w)}px`;rinkCard.style.height=`${Math.floor(h)}px`;
+}
+function updateAppHeight(){const h=window.visualViewport?.height||window.innerHeight;document.documentElement.style.setProperty('--app-height',`${Math.round(h)}px`);requestAnimationFrame(fitRinkCard)}
+function fitEverything(){resetCamera();requestAnimationFrame(fitRinkCard)}
+function enterPresentation(){presentation=true;document.querySelector('.app').classList.add('presentation');$('playView').value='clean';properties.classList.remove('open');requestAnimationFrame(()=>{fitEverything();renderPlaybackGuides()})}
+function exitPresentationMode(){presentation=false;document.querySelector('.app').classList.remove('presentation');render();requestAnimationFrame(fitEverything)}
+
 
 function nextId(prefix='o'){return prefix+(idCounter++)}function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
 function setStatus(msg,sticky=false){statusEl.textContent=msg;statusEl.classList.remove('hide');clearTimeout(setStatus.t);if(!sticky)setStatus.t=setTimeout(()=>statusEl.classList.add('hide'),2800)}
@@ -196,7 +271,7 @@ function objectsAt(t){const out=clone(project.objects);for(const o of out)if(o.t
 function applyGoalkeeperTracking(objects){const ball=firstBall(objects);if(!ball)return;for(const g of objects.filter(o=>o.type==='goalkeeper'&&o.followBall!==false)){const side=g.goalSide||((g.y||550)<550?'top':'bottom');g.goalSide=side;g.x=Math.max(292,Math.min(408,350+(ball.x-350)*.38));g.y=side==='top'?58:1042}}
 
 function rinkMarkup(){const R='#e31818';return `<rect x="18" y="18" width="664" height="1064" rx="4" fill="#fff" stroke="${R}" stroke-width="4"/><line x1="18" y1="550" x2="682" y2="550" stroke="${R}" stroke-width="4"/><circle cx="350" cy="550" r="56" fill="none" stroke="${R}" stroke-width="4"/><circle cx="350" cy="550" r="5" fill="${R}"/><path d="M95 18 A255 255 0 0 0 605 18" fill="none" stroke="${R}" stroke-width="4"/><path d="M95 1082 A255 255 0 0 1 605 1082" fill="none" stroke="${R}" stroke-width="4"/><circle cx="255" cy="188" r="58" fill="none" stroke="${R}" stroke-width="4"/><circle cx="445" cy="188" r="58" fill="none" stroke="${R}" stroke-width="4"/><circle cx="255" cy="912" r="58" fill="none" stroke="${R}" stroke-width="4"/><circle cx="445" cy="912" r="58" fill="none" stroke="${R}" stroke-width="4"/><circle cx="255" cy="188" r="5" fill="${R}"/><circle cx="445" cy="188" r="5" fill="${R}"/><circle cx="350" cy="130" r="5" fill="${R}"/><circle cx="255" cy="912" r="5" fill="${R}"/><circle cx="445" cy="912" r="5" fill="${R}"/><circle cx="350" cy="970" r="5" fill="${R}"/><line x1="18" y1="104" x2="86" y2="104" stroke="${R}" stroke-width="4" stroke-dasharray="10 8"/><line x1="614" y1="104" x2="682" y2="104" stroke="${R}" stroke-width="4" stroke-dasharray="10 8"/><line x1="18" y1="996" x2="86" y2="996" stroke="${R}" stroke-width="4" stroke-dasharray="10 8"/><line x1="614" y1="996" x2="682" y2="996" stroke="${R}" stroke-width="4" stroke-dasharray="10 8"/><g stroke="${R}" fill="none" stroke-width="4"><rect x="315" y="0" width="70" height="28"/><line x1="326" y1="2" x2="326" y2="26"/><line x1="338" y1="2" x2="338" y2="26"/><line x1="350" y1="2" x2="350" y2="26"/><line x1="362" y1="2" x2="362" y2="26"/><line x1="374" y1="2" x2="374" y2="26"/><line x1="316" y1="10" x2="384" y2="10"/><line x1="316" y1="19" x2="384" y2="19"/></g><g transform="translate(0 1072)" stroke="${R}" fill="none" stroke-width="4"><rect x="315" y="0" width="70" height="28"/><line x1="326" y1="2" x2="326" y2="26"/><line x1="338" y1="2" x2="338" y2="26"/><line x1="350" y1="2" x2="350" y2="26"/><line x1="362" y1="2" x2="362" y2="26"/><line x1="374" y1="2" x2="374" y2="26"/><line x1="316" y1="10" x2="384" y2="10"/><line x1="316" y1="19" x2="384" y2="19"/></g>`}
-function setView(){if(project.rinkMode==='full'){stage.setAttribute('viewBox','0 0 700 1100');rinkCard.classList.remove('half')}else{rinkCard.classList.add('half');stage.setAttribute('viewBox',project.orientation==='up'?'0 0 700 550':'0 550 700 550')}}
+function setView(){const key=project.rinkMode+'|'+project.orientation;if(project.rinkMode==='full')rinkCard.classList.remove('half');else rinkCard.classList.add('half');if(key!==lastViewKey){lastViewKey=key;const b=baseView();camera={zoom:1,cx:b.x+b.w/2,cy:b.y+b.h/2}}applyCamera();requestAnimationFrame(fitRinkCard)}
 function objectMarkup(o,selected=false){const sel=selected?'#0f172a':'#fff',sw=selected?5:2;if(o.type==='cone'){const s=o.r;return `<g class="obj" data-id="${o.id}" transform="translate(${o.x} ${o.y})" filter="url(#objShadow)" style="cursor:grab"><path d="M0 ${-s}L${s*.68} ${s*.72}L${-s*.68} ${s*.72}Z" fill="${o.color}" stroke="${sel}" stroke-width="${sw}"/><rect x="${-s*.9}" y="${s*.58}" width="${s*1.8}" height="${Math.max(5,s*.28)}" rx="3" fill="${o.color}" stroke="${sel}" stroke-width="${sw/1.5}"/>${o.label?`<text y="${s*1.55}" text-anchor="middle" font-size="${Math.max(11,s*.7)}" font-weight="800" fill="#0f172a">${esc(o.label)}</text>`:''}</g>`}if(o.type==='text')return `<g class="obj" data-id="${o.id}" transform="translate(${o.x} ${o.y})" style="cursor:grab"><rect x="-${Math.max(32,(o.label||'').length*8)}" y="-${o.r}" width="${Math.max(64,(o.label||'').length*16)}" height="${o.r*2}" rx="8" fill="${selected?'#e8f1ff':'rgba(255,255,255,.82)'}" stroke="${selected?'#1769e8':'transparent'}"/><text text-anchor="middle" dominant-baseline="central" font-size="${Math.max(14,o.r)}" font-weight="800" fill="${o.color}">${esc(o.label||'Text')}</text></g>`;const hit=o.type==='ball'&&!o._lockedBall?`<circle r="${Math.max(72,o.r+60)}" fill="transparent" pointer-events="all"/>`:'';const halo=o.type==='ball'&&selected?`<circle r="${Math.max(26,o.r+16)}" fill="none" stroke="#1769e8" stroke-width="4" stroke-dasharray="5 4" pointer-events="none"/>`:'';const goalieRing=o.type==='goalkeeper'?`<circle r="${o.r+5}" fill="none" stroke="${selected?'#0f172a':'#fff'}" stroke-width="3" pointer-events="none"/>`:'';const label=o.label?`<text text-anchor="middle" dominant-baseline="central" font-size="${o.type==='ball'?Math.max(8,o.r):Math.max(12,o.r*.8)}" font-weight="800" fill="#fff" pointer-events="none">${esc(o.label)}</text>`:'';return `<g class="obj" data-id="${o.id}" transform="translate(${o.x} ${o.y})" filter="url(#objShadow)" style="cursor:grab">${hit}${halo}${goalieRing}<circle r="${o.r}" fill="${o.color}" stroke="${sel}" stroke-width="${sw}" pointer-events="${o.type==='ball'&&o._lockedBall?'none':'all'}"/>${label}</g>`}
 function pathD(pts){
   if(!pts?.length)return'';
@@ -311,8 +386,22 @@ function addShot(from){
 }
 function handleActionPick(o){if(o.type!=='player'){setStatus('Välj en spelare.');return}if(actionMode==='shot'){addShot(o.id);actionMode=null;syncModeButtons();return}if(actionMode==='pass'){if(!actionFirst){actionFirst=o.id;setStatus('Välj mottagaren.',true)}else if(actionFirst!==o.id){addPass(actionFirst,o.id);actionFirst=null;actionMode=null;syncModeButtons()}}}
 
-stage.addEventListener('pointerdown',e=>{if(playing)return;const p=clampPoint(getSvgPoint(e));if(pathMode){const hit=nearestPathAnchor(p);if(!hit){setStatus('Börja genom att lägga fingret på spelaren eller spelarens tonade slutmarkering.',true);return}e.preventDefault();selectedId=hit.o.id;const start=nextTrackStart(hit.o.id);drawingPath={playerId:hit.o.id,start,speed:defaultPathSpeed,points:[{...hit.a},p]};stage.setPointerCapture?.(e.pointerId);draftG.innerHTML=`<path d="${pathD(drawingPath.points)}" fill="none" stroke="${hit.o.color}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity=".68"/>`;renderObjects();syncSelectedControls();return}const node=e.target.closest?.('.obj');if(!node){selectedId=null;renderObjects();syncSelectedControls();return}const o=getObj(node.dataset.id);if(!o)return;if(actionMode){handleActionPick(o);return}selectedId=o.id;if(o.type==='ball'&&project.ballOwnerStart){setStatus('Bollen sitter hos bollhållaren. Markera spelaren och välj Släpp boll för att flytta bollen fritt.');renderObjects();syncSelectedControls();return}if(o.type==='goalkeeper'&&o.followBall!==false){setStatus('Målvakten följer bollen automatiskt. Stäng av Följ boll under Val för manuell flytt.');renderObjects();syncSelectedControls();return}pushUndo();const q=getSvgPoint(e);dragging={id:o.id,dx:o.x-q.x,dy:o.y-q.y,startX:o.x,startY:o.y};stage.setPointerCapture?.(e.pointerId);renderObjects();syncSelectedControls()})
-stage.addEventListener('pointermove',e=>{if(drawingPath){e.preventDefault();const p=clampPoint(getSvgPoint(e)),q=drawingPath.points.at(-1);if(Math.hypot(p.x-q.x,p.y-q.y)>4){drawingPath.points.push(p);const o=getObj(drawingPath.playerId);draftG.innerHTML=`<path d="${pathD(drawingPath.points)}" fill="none" stroke="${o?.color||'#1769e8'}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity=".68"/>`}return}if(!dragging)return;const o=getObj(dragging.id);if(!o)return;const p=getSvgPoint(e),b=boundsFor(o),x=Math.max(b.minX,Math.min(b.maxX,p.x+dragging.dx)),y=Math.max(b.minY,Math.min(b.maxY,p.y+dragging.dy)),dx=x-o.x,dy=y-o.y;o.x=x;o.y=y;if(o.type==='player')translatePlayerTrack(o.id,dx,dy);renderObjects();renderPaths();renderActions()})
+
+function beginCameraGesture(){
+  if(touchPoints.size<2)return;const pts=[...touchPoints.values()].slice(0,2),dx=pts[1].x-pts[0].x,dy=pts[1].y-pts[0].y;
+  drawingPath=null;dragging=null;draftG.innerHTML='';cameraGesture={startZoom:camera.zoom,startCx:camera.cx,startCy:camera.cy,startDist:Math.max(20,Math.hypot(dx,dy)),startMid:{x:(pts[0].x+pts[1].x)/2,y:(pts[0].y+pts[1].y)/2}};
+}
+function updateCameraGesture(){
+  if(!cameraGesture||touchPoints.size<2)return;const pts=[...touchPoints.values()].slice(0,2),dx=pts[1].x-pts[0].x,dy=pts[1].y-pts[0].y,dist=Math.max(20,Math.hypot(dx,dy)),mid={x:(pts[0].x+pts[1].x)/2,y:(pts[0].y+pts[1].y)/2};
+  const b=baseView(),rect=stage.getBoundingClientRect(),newZoom=Math.max(1,Math.min(4,cameraGesture.startZoom*(dist/cameraGesture.startDist))),viewW=b.w/newZoom,viewH=b.h/newZoom;
+  camera.zoom=newZoom;camera.cx=cameraGesture.startCx-(mid.x-cameraGesture.startMid.x)*(viewW/Math.max(1,rect.width));camera.cy=cameraGesture.startCy-(mid.y-cameraGesture.startMid.y)*(viewH/Math.max(1,rect.height));clampCamera();applyCamera();
+}
+stage.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'){touchPoints.set(e.pointerId,{x:e.clientX,y:e.clientY});if(touchPoints.size>=2){e.preventDefault();beginCameraGesture();stage.setPointerCapture?.(e.pointerId);return}}});
+stage.addEventListener('pointermove',e=>{if(e.pointerType==='touch'&&touchPoints.has(e.pointerId)){touchPoints.set(e.pointerId,{x:e.clientX,y:e.clientY});if(cameraGesture){e.preventDefault();updateCameraGesture()}}});
+function endTouchCamera(e){if(e.pointerType==='touch'){touchPoints.delete(e.pointerId);if(touchPoints.size<2)cameraGesture=null}}
+stage.addEventListener('pointerup',endTouchCamera);stage.addEventListener('pointercancel',endTouchCamera);
+stage.addEventListener('pointerdown',e=>{if(cameraGesture||touchPoints.size>=2)return;if(playing)return;const p=clampPoint(getSvgPoint(e));if(pathMode){const hit=nearestPathAnchor(p);if(!hit){setStatus('Börja genom att lägga fingret på spelaren eller spelarens tonade slutmarkering.',true);return}e.preventDefault();selectedId=hit.o.id;const start=nextTrackStart(hit.o.id);drawingPath={playerId:hit.o.id,start,speed:defaultPathSpeed,points:[{...hit.a},p]};stage.setPointerCapture?.(e.pointerId);draftG.innerHTML=`<path d="${pathD(drawingPath.points)}" fill="none" stroke="${hit.o.color}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity=".68"/>`;renderObjects();syncSelectedControls();return}const node=e.target.closest?.('.obj');if(!node){selectedId=null;renderObjects();syncSelectedControls();return}const o=getObj(node.dataset.id);if(!o)return;if(actionMode){handleActionPick(o);return}selectedId=o.id;if(o.type==='ball'&&project.ballOwnerStart){setStatus('Bollen sitter hos bollhållaren. Markera spelaren och välj Släpp boll för att flytta bollen fritt.');renderObjects();syncSelectedControls();return}if(o.type==='goalkeeper'&&o.followBall!==false){setStatus('Målvakten följer bollen automatiskt. Stäng av Följ boll under Val för manuell flytt.');renderObjects();syncSelectedControls();return}pushUndo();const q=getSvgPoint(e);dragging={id:o.id,dx:o.x-q.x,dy:o.y-q.y,startX:o.x,startY:o.y};stage.setPointerCapture?.(e.pointerId);renderObjects();syncSelectedControls()})
+stage.addEventListener('pointermove',e=>{if(cameraGesture)return;if(drawingPath){e.preventDefault();const p=clampPoint(getSvgPoint(e)),q=drawingPath.points.at(-1);if(Math.hypot(p.x-q.x,p.y-q.y)>4){drawingPath.points.push(p);const o=getObj(drawingPath.playerId);draftG.innerHTML=`<path d="${pathD(drawingPath.points)}" fill="none" stroke="${o?.color||'#1769e8'}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity=".68"/>`}return}if(!dragging)return;const o=getObj(dragging.id);if(!o)return;const p=getSvgPoint(e),b=boundsFor(o),x=Math.max(b.minX,Math.min(b.maxX,p.x+dragging.dx)),y=Math.max(b.minY,Math.min(b.maxY,p.y+dragging.dy)),dx=x-o.x,dy=y-o.y;o.x=x;o.y=y;if(o.type==='player')translatePlayerTrack(o.id,dx,dy);renderObjects();renderPaths();renderActions()})
 stage.addEventListener('pointerup',()=>{if(drawingPath){finishDrawPath();return}if(dragging){const o=getObj(dragging.id);if(o?.type==='goalkeeper')o.goalSide=o.y<550?'top':'bottom';dragging=null;render()}});stage.addEventListener('pointercancel',()=>{drawingPath=null;dragging=null;draftG.innerHTML='';if(pathMode)setStatus('Ritningen avbröts. Dra på nytt.',true)})
 
 function renderPlaybackGuides(){
@@ -351,20 +440,20 @@ function deleteLastPath(){const o=getObj(selectedId);if(!o||o.type!=='player'||!
 
 function toggleBallOnSelected(){const o=getObj(selectedId);if(!o||o.type!=='player'){setStatus('Markera först den spelare som ska ha bollen.');return}if(project.ballOwnerStart===o.id){setBallOwner(null);setStatus('Bollen är nu fri vid start.')}else{setBallOwner(o.id);setStatus(`${o.label||'Spelaren'} har nu bollen och den följer spelaren.`)}syncSelectedControls()}
 
-function saveLocal(){project.name=$('projectName').value.trim()||'Ny bandyövning';project.note=$('projectNote').value;localStorage.setItem('bandyEditor:v8:last',JSON.stringify(project));localStorage.setItem('bandyEditor:last',JSON.stringify(project));setStatus('Övningen sparad i denna webbläsare.')}
-function convertV5(p){if(p.version===6)return p;const seqs=p.sequences||p.steps||[],objects=clone(seqs[0]?.objects||[]),tracks={},actions=[];let offset=0,owner=seqs[0]?.ballOwner||null;for(const s of seqs){const seqDur=(()=>{let d=.35;for(const [id,pts] of Object.entries(s.paths||{})){const m=s.pathMeta?.[id]||{speed:1,delay:0};d=Math.max(d,(+m.delay||0)+polyLength(pts)/(105*Math.max(.25,+m.speed||1)))}return d})();for(const [id,pts] of Object.entries(s.paths||{})){const m=s.pathMeta?.[id]||{speed:1,delay:0};(tracks[id]||(tracks[id]=[])).push({id:nextId('s'),points:clone(pts),speed:+m.speed||1,start:offset+(+m.delay||0)})}for(const a of s.actions||[]){const start=offset+(a.at??.7)*seqDur,from=a.from,to=a.to,fp=(s.objects||[]).find(o=>o.id===from),tp=(s.objects||[]).find(o=>o.id===to),dist=fp&&tp?Math.hypot(tp.x-fp.x,tp.y-fp.y):150,duration=a.type==='pass'?Math.max(.28,Math.min(1.2,dist/PASS_SPEED)):.45;actions.push({id:nextId('a'),type:a.type,from,to,start,duration})}offset+=seqDur}return{version:8,name:p.name||'Ny bandyövning',note:p.note||'',rinkMode:p.rinkMode||'full',orientation:p.orientation||'up',objects,tracks,actions,ballOwnerStart:owner}}
+function saveLocal(){project.name=$('projectName').value.trim()||'Ny bandyövning';project.note=$('projectNote').value;localStorage.setItem('bandyEditor:v9:last',JSON.stringify(project));localStorage.setItem('bandyEditor:last',JSON.stringify(project));setStatus('Övningen sparad i denna webbläsare.')}
+function convertV5(p){if(p.version===6)return p;const seqs=p.sequences||p.steps||[],objects=clone(seqs[0]?.objects||[]),tracks={},actions=[];let offset=0,owner=seqs[0]?.ballOwner||null;for(const s of seqs){const seqDur=(()=>{let d=.35;for(const [id,pts] of Object.entries(s.paths||{})){const m=s.pathMeta?.[id]||{speed:1,delay:0};d=Math.max(d,(+m.delay||0)+polyLength(pts)/(105*Math.max(.25,+m.speed||1)))}return d})();for(const [id,pts] of Object.entries(s.paths||{})){const m=s.pathMeta?.[id]||{speed:1,delay:0};(tracks[id]||(tracks[id]=[])).push({id:nextId('s'),points:clone(pts),speed:+m.speed||1,start:offset+(+m.delay||0)})}for(const a of s.actions||[]){const start=offset+(a.at??.7)*seqDur,from=a.from,to=a.to,fp=(s.objects||[]).find(o=>o.id===from),tp=(s.objects||[]).find(o=>o.id===to),dist=fp&&tp?Math.hypot(tp.x-fp.x,tp.y-fp.y):150,duration=a.type==='pass'?Math.max(.28,Math.min(1.2,dist/PASS_SPEED)):.45;actions.push({id:nextId('a'),type:a.type,from,to,start,duration})}offset+=seqDur}return{version:9,name:p.name||'Ny bandyövning',note:p.note||'',rinkMode:p.rinkMode||'full',orientation:p.orientation||'up',objects,tracks,actions,ballOwnerStart:owner}}
 function rebuildProject(){
-  if(project.version!==8){
-    if(project.version===7||project.version===6){project={...clone(project),version:8}}
+  if(project.version!==9){
+    if(project.version===8||project.version===7||project.version===6){project={...clone(project),version:9}}
     else project=convertV5(project);
   }
-  project.version=8;project.objects=project.objects||[];project.tracks=project.tracks||{};project.actions=project.actions||[];project.rinkMode=project.rinkMode||'full';project.orientation=project.orientation||'up';project.name=project.name||'Ny bandyövning';project.note=project.note||'';
+  project.version=9;project.objects=project.objects||[];project.tracks=project.tracks||{};project.actions=project.actions||[];project.rinkMode=project.rinkMode||'full';project.orientation=project.orientation||'up';project.name=project.name||'Ny bandyövning';project.note=project.note||'';
   project.actions.forEach((a,i)=>{if(a.order==null)a.order=i;if(a.motionFraction==null)a.motionFraction=a.type==='shot'?.88:.78});normalizeActionTimeline();
   const ids=[...project.objects.map(o=>parseInt(String(o.id).replace(/\D/g,''))||0),...project.actions.map(a=>parseInt(String(a.id).replace(/\D/g,''))||0),...Object.values(project.tracks).flat().map(s=>parseInt(String(s.id).replace(/\D/g,''))||0)];idCounter=1+Math.max(0,...ids)
 }
-function openLocal(){const raw=localStorage.getItem('bandyEditor:v8:last')||localStorage.getItem('bandyEditor:v7:last')||localStorage.getItem('bandyEditor:v6:last')||localStorage.getItem('bandyEditor:v5:last')||localStorage.getItem('bandyEditor:last');if(!raw){setStatus('Ingen sparad övning hittades.');return}try{project=JSON.parse(raw);rebuildProject();selectedId=null;undoStack=[];render();setStatus(`Öppnade ${project.name||'övningen'}.`)}catch(e){console.error(e);setStatus('Den sparade övningen kunde inte läsas.')}}
+function openLocal(){const raw=localStorage.getItem('bandyEditor:v9:last')||localStorage.getItem('bandyEditor:v8:last')||localStorage.getItem('bandyEditor:v7:last')||localStorage.getItem('bandyEditor:v6:last')||localStorage.getItem('bandyEditor:v5:last')||localStorage.getItem('bandyEditor:last');if(!raw){setStatus('Ingen sparad övning hittades.');return}try{project=JSON.parse(raw);rebuildProject();selectedId=null;undoStack=[];render();setStatus(`Öppnade ${project.name||'övningen'}.`)}catch(e){console.error(e);setStatus('Den sparade övningen kunde inte läsas.')}}
 function exportJson(){project.name=$('projectName').value.trim()||'Ny bandyövning';project.note=$('projectNote').value;const blob=new Blob([JSON.stringify(project,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(project.name.replace(/[^a-z0-9åäö_-]+/gi,'_')||'bandyovning')+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-function newProject(){if(!confirm('Skapa en ny tom övning?'))return;stopPlayback();project={version:8,name:'Ny bandyövning',note:'',rinkMode:$('rinkMode').value,orientation:$('orientation').value,objects:[],tracks:{},actions:[],ballOwnerStart:null};selectedId=null;idCounter=1;undoStack=[];render();setStatus('Ny tom övning skapad. Lägg till de objekt du vill använda.')}
+function newProject(){if(!confirm('Skapa en ny tom övning?'))return;stopPlayback();project={version:9,name:'Ny bandyövning',note:'',rinkMode:$('rinkMode').value,orientation:$('orientation').value,objects:[],tracks:{},actions:[],ballOwnerStart:null};selectedId=null;idCounter=1;undoStack=[];render();setStatus('Ny tom övning skapad. Lägg till de objekt du vill använda.')}
 
 for(const b of document.querySelectorAll('[data-add]'))b.addEventListener('click',()=>addObject(b.dataset.add));$('quickCoach').onclick=()=>addObject('player','T','#64748b');
 $('pathMode').onclick=()=>pathMode?cancelModes():beginPathMode();$('pathModeDesktop').onclick=()=>pathMode?cancelModes():beginPathMode();$('mobilePath').onclick=()=>pathMode?cancelModes():beginPathMode();$('redrawPath').onclick=()=>beginPathMode(true);$('deleteLastPath').onclick=deleteLastPath;
@@ -373,12 +462,19 @@ $('actionList').addEventListener('click',e=>{const b=e.target.closest('[data-rem
 $('objLabel').addEventListener('input',e=>{const o=getObj(selectedId);if(o){o.label=e.target.value;renderPaths();renderObjects();renderFlow();renderActionsList()}});$('objSize').addEventListener('change',e=>{const o=getObj(selectedId);if(o){pushUndo();o.r=+e.target.value;render()}});$('swatches').addEventListener('click',swatchClick);$('mobileSwatches').addEventListener('click',swatchClick);$('teamA').onclick=()=>setSelectedColor('#1769e8');$('teamB').onclick=()=>setSelectedColor('#e31818');
 $('giveBall').onclick=()=>{const o=getObj(selectedId);if(o?.type==='player'){setBallOwner(o.id);setStatus(`${o.label||'Spelaren'} har bollen och den följer spelaren.`);syncSelectedControls()}};$('releaseBall').onclick=()=>{setBallOwner(null);setStatus('Bollen är fri vid start.');syncSelectedControls()};$('quickBallOwnerDesktop').onclick=toggleBallOnSelected;$('quickBallOwnerMobile').onclick=toggleBallOnSelected;$('goalieFollow').onchange=e=>{const o=getObj(selectedId);if(o?.type==='goalkeeper'){pushUndo();o.followBall=e.target.checked;render()}};$('duplicateObj').onclick=duplicateSelected;$('deleteObj').onclick=deleteSelected;
 $('pathSpeed').onchange=e=>{defaultPathSpeed=+e.target.value||1;const o=getObj(selectedId),last=o?.type==='player'?playerTracks(o.id).at(-1):null;if(last){pushUndo();last.speed=defaultPathSpeed;render()}};$('pathDelay').onchange=e=>{defaultPathDelay=Math.max(0,+e.target.value||0);syncSelectedControls()};
-$('projectName').addEventListener('input',e=>project.name=e.target.value);$('projectNote').addEventListener('input',e=>project.note=e.target.value);$('rinkMode').onchange=e=>{project.rinkMode=e.target.value;render()};$('orientation').onchange=e=>{project.orientation=e.target.value;render()};$('playView').onchange=()=>{if(playing)renderPlaybackGuides();setStatus($('playView').value==='clean'?'Ren Play: ritade linjer döljs under uppspelning.':'Linjer visas under uppspelning.')};$('play').onclick=play;$('pause').onclick=pause;$('restart').onclick=()=>stopPlayback(true);$('saveProject').onclick=saveLocal;$('openProject').onclick=openLocal;$('exportJson').onclick=exportJson;$('newProject').onclick=newProject;$('undo').onclick=undo;
+$('projectName').addEventListener('input',e=>project.name=e.target.value);$('projectNote').addEventListener('input',e=>project.note=e.target.value);$('rinkMode').onchange=e=>{project.rinkMode=e.target.value;lastViewKey='';render();fitEverything()};$('orientation').onchange=e=>{project.orientation=e.target.value;lastViewKey='';render();fitEverything()};$('playView').onchange=()=>{if(playing)renderPlaybackGuides();setStatus($('playView').value==='clean'?'Ren Play: ritade linjer döljs under uppspelning.':'Linjer visas under uppspelning.')};$('play').onclick=play;$('pause').onclick=pause;$('restart').onclick=()=>stopPlayback(true);$('saveProject').onclick=saveLocal;$('openProject').onclick=openLocal;$('exportJson').onclick=exportJson;$('newProject').onclick=newProject;$('undo').onclick=undo;
 $('importJson').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;try{project=JSON.parse(await f.text());rebuildProject();selectedId=null;undoStack=[];render();setStatus('Projekt importerat.')}catch(err){console.error(err);setStatus('Kunde inte läsa projektfilen.')}e.target.value=''});
 $('flowItems').addEventListener('click',e=>{const b=e.target.closest('.flowItem');if(!b)return;if(b.dataset.flowId){selectedId=b.dataset.flowId;renderObjects();syncSelectedControls()}if(b.dataset.actionId){const a=project.actions.find(x=>x.id===b.dataset.actionId);if(a){selectedId=a.from;renderObjects();syncSelectedControls();setStatus(a.type==='pass'?'Passningen är markerad i övningsflödet och sker under spelarens rörelse.':'Skottet är markerat i övningsflödet.')}}});
-function toggleProps(){properties.classList.toggle('open')}$('toggleProps').onclick=toggleProps;$('mobileProps').onclick=toggleProps;window.addEventListener('keydown',e=>{if((e.key==='Delete'||e.key==='Backspace')&&!/INPUT|TEXTAREA/.test(document.activeElement?.tagName))deleteSelected();if(e.key===' '&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)){e.preventDefault();play()}if(e.key==='Escape')cancelModes();if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo()}});
+function toggleProps(){properties.classList.toggle('open')}
+$('toggleProps').onclick=toggleProps;$('mobileProps').onclick=toggleProps;
+for(const id of ['fitView','fitTop'])$(id).onclick=fitEverything;$('zoomIn').onclick=()=>zoomBy(1.25);$('zoomOut').onclick=()=>zoomBy(0.8);
+for(const id of ['presentMode','presentTop'])$(id).onclick=enterPresentation;$('exitPresent').onclick=exitPresentationMode;$('presentPlay').onclick=play;$('presentPause').onclick=pause;$('presentRestart').onclick=()=>stopPlayback(true);
+const flowPanel=document.querySelector('.flowPanel');if(matchMedia('(max-width:760px)').matches){flowPanel.classList.add('collapsed');$('toggleFlow').textContent='▾ Flöde'}$('toggleFlow').onclick=()=>{flowPanel.classList.toggle('collapsed');$('toggleFlow').textContent=flowPanel.classList.contains('collapsed')?'▾ Flöde':'▴ Flöde';requestAnimationFrame(fitRinkCard)};
+const mobilePalette=$('mobilePalette');$('mobileToolsToggle').onclick=()=>{mobilePalette.classList.toggle('tools-collapsed');$('mobileToolsToggle').querySelector('.toolIcon').textContent=mobilePalette.classList.contains('tools-collapsed')?'⌃':'⌄';requestAnimationFrame(fitRinkCard)};
+window.addEventListener('resize',updateAppHeight);window.visualViewport?.addEventListener('resize',updateAppHeight);window.visualViewport?.addEventListener('scroll',updateAppHeight);updateAppHeight();
+window.addEventListener('keydown',e=>{if((e.key==='Delete'||e.key==='Backspace')&&!/INPUT|TEXTAREA/.test(document.activeElement?.tagName))deleteSelected();if(e.key===' '&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)){e.preventDefault();play()}if(e.key==='Escape'){if(presentation)exitPresentationMode();else cancelModes();}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo()}});
 
-render();$('undo').disabled=true;setStatus('Tom plan: lägg till spelare, målvakt, koner och boll från verktygsfältet.');
+render();$('undo').disabled=true;updateAppHeight();setTimeout(fitEverything,30);setStatus('v0.9: hela planen passar skärmen. Nypzoom/tvåfingerspan finns vid behov, och ⛶ öppnar presentationsläge.');
 })();
 </script>
 </body>
