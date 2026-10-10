@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f8fafc">
-<title>Bandyövningar v1.0-alpha.2 – mobilfit, nollställning och pass i aktuella positioner</title>
+<title>Bandyövningar v1.0-alpha.3 – passpunkter längs åkbanor och visuella presets</title>
 <style>
 :root{
   --bg:#eef3f8;--panel:#fff;--panel2:#f8fafc;--line:#d7e0ea;--text:#0f172a;--muted:#64748b;
@@ -118,6 +118,14 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
 }
 
 /* v1.0-alpha.2 – viewportfit, reset och passning från ritade positioner */
+/* v1.0-alpha.3 – passpunkter längs banor och visuella preset-handtag */
+.passPickDot{filter:drop-shadow(0 2px 3px rgba(15,23,42,.18))}
+.presetDraftPath{fill:none;stroke:#7c3aed;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;opacity:.78;vector-effect:non-scaling-stroke}
+.presetHitPath{fill:none;stroke:transparent;stroke-width:26;pointer-events:stroke;cursor:grab}
+.presetHandle{stroke:#fff;stroke-width:3;vector-effect:non-scaling-stroke;filter:drop-shadow(0 2px 4px rgba(15,23,42,.2));cursor:grab}
+.presetHandle.start{fill:#0f766e}.presetHandle.end{fill:#2563eb}.presetHandle.curve{fill:#7c3aed}
+.presetHandleLabel{font-size:13px;font-weight:900;fill:#fff;pointer-events:none;text-anchor:middle;dominant-baseline:central}
+.passGuide{stroke:#169b62;stroke-width:2.5;stroke-dasharray:7 6;fill:none;opacity:.8;vector-effect:non-scaling-stroke;pointer-events:none}
 @media(max-width:760px){
   .app{grid-template-rows:auto minmax(0,1fr) auto auto auto}
   .workspace{height:100%;min-height:0;overflow:hidden}
@@ -133,7 +141,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
 <body>
 <div class="app">
 <header class="topbar">
-  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.2 · mobilfit · passpunkter · presets</small></div></div>
+  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.3 · passpunkter på åkbanor · visuella presets</small></div></div>
   <div class="topControls">
     <select id="rinkMode" aria-label="Planvy"><option value="full">Helplan</option><option value="half">Halvplan</option></select>
     <select id="orientation" aria-label="Anfallsriktning"><option value="up">Anfall uppåt</option><option value="down">Anfall nedåt</option></select>
@@ -180,7 +188,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
           <marker id="arrowGreen" viewBox="0 0 10 10" refX="8.7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#169b62"/></marker>
           <marker id="arrowShot" viewBox="0 0 10 10" refX="8.7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#df1f2d"/></marker>
         </defs>
-        <g id="rink"></g><g id="pathLayer"></g><g id="actionLayer"></g><g id="draftLayer"></g><g id="ghostLayer"></g><g id="objects"></g>
+        <g id="rink"></g><g id="pathLayer"></g><g id="actionLayer"></g><g id="ghostLayer"></g><g id="objects"></g><g id="draftLayer"></g>
       </svg>
     </div>
     <div class="canvasControls" aria-label="Vyverktyg"><button id="zoomOut" title="Zooma ut" aria-label="Zooma ut">−</button><button id="fitView" title="Passa in hela planen" aria-label="Passa in plan">⌗</button><button id="zoomIn" title="Zooma in" aria-label="Zooma in">＋</button><button id="presentMode" title="Presentationsläge" aria-label="Presentationsläge">⛶</button></div>
@@ -218,8 +226,8 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
       <div class="field"><label>Form</label><select id="presetKind"><option value="straight">Rak riktningspil</option><option value="arcLeft">Båge vänster</option><option value="arcRight">Båge höger</option><option value="semiLeft">Halvcirkel vänster</option><option value="semiRight">Halvcirkel höger</option><option value="circle">Hel cirkel</option><option value="s">S-kurva</option><option value="eightV">Åtta (8)</option><option value="infinity">Åtta (∞)</option><option value="uturn">U-sväng</option><option value="zigzag">Slalom / sicksack</option></select></div>
       <div class="motionSettings"><div class="field"><label>Längd</label><input id="presetLength" type="range" min="70" max="360" value="180" step="10"></div><div class="field"><label>Bredd</label><input id="presetWidth" type="range" min="30" max="220" value="90" step="10"></div></div>
       <div class="field"><label>Rotation</label><input id="presetRotation" type="range" min="-180" max="180" value="0" step="5"></div>
-      <div class="row"><button id="applyPreset" class="mini primary">Lägg till preset</button><button id="presetFit" class="mini">Standardstorlek</button></div>
-      <div class="hint" style="margin-top:6px">Presets läggs från spelarens senaste slutpunkt och kan kombineras med frihandsbanor.</div>
+      <div class="row"><button id="applyPreset" class="mini primary">✓ Bekräfta preset</button><button id="cancelPreset" class="mini">× Avbryt</button><button id="presetFit" class="mini">Standardstorlek</button></div>
+      <div class="hint" style="margin-top:6px">Preseten förhandsvisas direkt på planen. Dra det blå slut-handtaget och det lila form-handtaget innan du bekräftar. Starten sitter i spelarens aktuella slutpunkt.</div>
     </div>
     <div class="card">
       <h3>Grupp / station</h3>
@@ -232,7 +240,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
     <div class="card">
       <h3>Passning / skott</h3>
       <div class="modeGrid"><button id="passMode" class="mini">Passning</button><button id="shotMode" class="mini">Skott</button></div>
-      <p id="actionHelp" class="hint" style="margin:8px 0 0">Passningen läggs automatiskt under pågående åkning, nära slutet av passarens senaste åkdel. Spelaren fortsätter åka medan bollen går.</p><div id="actionList" class="actionList"></div>
+      <p id="actionHelp" class="hint" style="margin:8px 0 0">Passning: tryck först på valfri punkt längs passarens åkbana och därefter på en senare punkt längs mottagarens åkbana. Punkterna blir pass- och mottagningspunkt.</p><div id="actionList" class="actionList"></div>
     </div>
     <div class="card"><h3>Övning</h3><div class="field"><label>Namn</label><input id="projectName" type="text" maxlength="60" value="Ny bandyövning"></div><div class="field"><label>Kommentar</label><textarea id="projectNote" placeholder="Kort instruktion till övningen…"></textarea></div></div>
   </aside>
@@ -260,6 +268,7 @@ let idCounter=1,selectedId=null,dragging=null,pathMode=false,drawingPath=null,ac
 let recordMode=false,recording=null,recordRaf=0,groupMode=false,groupSelection=new Set();
 let project={version:10,name:'Ny bandyövning',note:'',rinkMode:'full',orientation:'up',objects:[],tracks:{},actions:[],linkedGroups:[],ballOwnerStart:null};
 let camera={zoom:1,cx:350,cy:550},lastViewKey='',presentation=false;
+let presetDraft=null,presetDragging=null;
 const touchPoints=new Map();let cameraGesture=null;
 function baseView(){return project.rinkMode==='full'?{x:0,y:0,w:700,h:1100}:(project.orientation==='up'?{x:0,y:0,w:700,h:550}:{x:0,y:550,w:700,h:550})}
 function resetCamera(){const b=baseView();camera={zoom:1,cx:b.x+b.w/2,cy:b.y+b.h/2};applyCamera()}
@@ -324,6 +333,13 @@ function normalizeActionTimeline(){
   let cursor=0;
   project.actions.forEach((a,i)=>{
     a.order=i;
+    if(a.anchorMode==='track'&&Number.isFinite(+a.fixedStart)){
+      a.start=Math.max(0,+a.fixedStart);
+      if(Number.isFinite(+a.fixedDuration))a.duration=Math.max(.08,+a.fixedDuration);
+      else a.duration=a.type==='pass'?passDurationAt(a.from,a.to,a.start):shotDurationAt(a.from,a.start);
+      cursor=Math.max(cursor,a.start+a.duration);
+      return;
+    }
     const fraction=a.motionFraction==null?.78:+a.motionFraction;
     if(Number.isFinite(+a.fixedStart)) a.start=Math.max(cursor,+a.fixedStart);
     else a.start=actionStartDuringMotion(a.from,cursor,fraction);
@@ -438,38 +454,81 @@ function addObject(type,label=null,color=null){stopPlayback();if(type==='ball'&&
 function translatePlayerTrack(id,dx,dy){for(const seg of playerTracks(id))for(const p of seg.points){p.x+=dx;p.y+=dy}}
 function boundsFor(o){return{minX:28+o.r,maxX:672-o.r,minY:28+o.r,maxY:1072-o.r}}
 function getSvgPoint(e){const p=stage.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(stage.getScreenCTM().inverse())}function clampPoint(p){return{x:Math.max(20,Math.min(680,p.x)),y:Math.max(20,Math.min(1080,p.y))}}
-function beginPathMode(redraw=false){stopPlayback();if(redraw){const o=getObj(selectedId);if(!o||o.type!=='player'){setStatus('Markera spelaren vars hela åkväg ska ritas om.');return}pushUndo();project.tracks[o.id]=[];project.actions=project.actions.filter(a=>a.from!==o.id&&a.to!==o.id);render()}pathMode=true;actionMode=null;actionFirst=null;syncModeButtons();setStatus('Ritläge: dra från en spelares startpunkt eller tonade slutmarkering. Rita igen för att fortsätta.',true)}
-function cancelModes(){pathMode=false;actionMode=null;actionFirst=null;drawingPath=null;recordMode=false;draftG.innerHTML='';document.querySelector('.app').classList.remove('is-recording');syncModeButtons()}
+function pointSegmentProjection(p,a,b){
+  const dx=b.x-a.x,dy=b.y-a.y,l2=dx*dx+dy*dy||1,u=Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/l2));
+  const q={x:a.x+dx*u,y:a.y+dy*u};return{point:q,u,dist:Math.hypot(p.x-q.x,p.y-q.y),segLen:Math.sqrt(l2)};
+}
+function nearestTrackPoint(p,maxDist=46){
+  let best=null,bestDist=maxDist;
+  for(const o of project.objects.filter(x=>x.type==='player')){
+    for(const seg of playerTracks(o.id)){
+      const pts=seg.points||[];if(pts.length<2)continue;
+      const total=Math.max(.001,polyLength(pts)),dur=segmentDuration(seg);let before=0;
+      for(let i=1;i<pts.length;i++){
+        const pr=pointSegmentProjection(p,pts[i-1],pts[i]);
+        if(pr.dist<bestDist){
+          const along=before+pr.segLen*pr.u,fraction=Math.max(0,Math.min(1,along/total));
+          best={player:o,playerId:o.id,seg,segId:seg.id,point:pr.point,fraction,time:seg.start+dur*fraction,dist:pr.dist};bestDist=pr.dist;
+        }
+        before+=pr.segLen;
+      }
+    }
+    if(!playerTracks(o.id).length){
+      const d=Math.hypot(p.x-o.x,p.y-o.y);if(d<bestDist){best={player:o,playerId:o.id,seg:null,segId:null,point:{x:o.x,y:o.y},fraction:0,time:0,dist:d};bestDist=d}
+    }
+  }
+  return best;
+}
+function renderPassPickDraft(){
+  if(actionMode!=='pass'||!actionFirst||!actionFirst.anchor){if(!presetDraft)draftG.innerHTML='';return}
+  const a=actionFirst.anchor;
+  draftG.innerHTML=`<g class="passPickDot" pointer-events="none"><circle cx="${a.x}" cy="${a.y}" r="13" fill="#169b62" opacity=".22"/><circle cx="${a.x}" cy="${a.y}" r="7" fill="#169b62" stroke="#fff" stroke-width="3"/><text x="${a.x+13}" y="${a.y-12}" fill="#087a4f" font-size="12" font-weight="800">PASS</text></g>`;
+}
+function handleActionTrackPick(hit){
+  if(!hit?.player)return;
+  if(actionMode==='shot'){addShot(hit.playerId,hit.point,hit.time);actionMode=null;actionFirst=null;draftG.innerHTML='';syncModeButtons();return}
+  if(actionMode!=='pass')return;
+  if(!actionFirst){
+    actionFirst={id:hit.playerId,anchor:clone(hit.point),time:hit.time,segId:hit.segId,fraction:hit.fraction};
+    renderPassPickDraft();setStatus(`Passpunkt vald på ${hit.player.label||'spelaren'} vid ${hit.time.toFixed(1)} s. Välj nu en senare punkt på mottagarens åkbana.`,true);return;
+  }
+  if(actionFirst.id===hit.playerId){setStatus('Välj en annan spelares åkbana som mottagare.',true);return}
+  if(hit.time<=actionFirst.time+.06){setStatus('Mottagningspunkten ligger för tidigt i övningen. Välj en punkt längre fram på mottagarens åkbana.',true);return}
+  if(actionFirst.time<lastActionEnd()-.03){setStatus('Den valda passpunkten ligger före föregående bollhändelse. Välj en senare punkt på passarens bana.',true);return}
+  addPassTrack(actionFirst,hit);actionFirst=null;actionMode=null;draftG.innerHTML='';syncModeButtons();
+}
+function addPassTrack(fromHit,toHit){
+  pushUndo();const duration=Math.max(.08,toHit.time-fromHit.time);
+  const a={id:nextId('a'),type:'pass',from:fromHit.id,to:toHit.playerId,start:fromHit.time,duration,fixedStart:fromHit.time,fixedDuration:duration,anchorMode:'track',order:project.actions.length,fromAnchor:clone(fromHit.anchor),toAnchor:clone(toHit.point),fromSegId:fromHit.segId,toSegId:toHit.segId,fromFraction:fromHit.fraction,toFraction:toHit.fraction};
+  project.actions.push(a);normalizeActionTimeline();render();setStatus(`Pass ${getObj(fromHit.id)?.label||''} → ${toHit.player.label||''} förankrad mellan två hållpunkter på åkbanorna.`);
+}
+function beginPathMode(redraw=false){stopPlayback();cancelPresetDraft(false);if(redraw){const o=getObj(selectedId);if(!o||o.type!=='player'){setStatus('Markera spelaren vars hela åkväg ska ritas om.');return}pushUndo();project.tracks[o.id]=[];project.actions=project.actions.filter(a=>a.from!==o.id&&a.to!==o.id);render()}pathMode=true;actionMode=null;actionFirst=null;syncModeButtons();setStatus('Ritläge: dra från en spelares startpunkt eller tonade slutmarkering. Rita igen för att fortsätta.',true)}
+function cancelModes(){pathMode=false;actionMode=null;actionFirst=null;drawingPath=null;recordMode=false;presetDraft=null;presetDragging=null;draftG.innerHTML='';document.querySelector('.app').classList.remove('is-recording');syncModeButtons()}
 function nearestPathAnchor(p){let best=null,dist=Infinity;for(const o of project.objects.filter(o=>o.type==='player')){const a=lastTrackEndPoint(o.id),d=Math.hypot(a.x-p.x,a.y-p.y);if(d<Math.max(52,o.r+28)&&d<dist){best={o,a};dist=d}if(!playerTracks(o.id).length){const ds=Math.hypot(o.x-p.x,o.y-p.y);if(ds<Math.max(52,o.r+28)&&ds<dist){best={o,a:{x:o.x,y:o.y}};dist=ds}}}return best}
 function finishDrawPath(){if(!drawingPath)return;const d=drawingPath;drawingPath=null;draftG.innerHTML='';const pts=smoothPoints(d.points);if(pts.length<2||Math.hypot(pts.at(-1).x-pts[0].x,pts.at(-1).y-pts[0].y)<18){setStatus('Åkvägen blev för kort. Dra på nytt.',true);return}pushUndo();const seg={id:nextId('s'),points:pts,speed:d.speed,start:d.start};playerTracks(d.playerId).push(seg);selectedId=d.playerId;render();pathMode=true;syncModeButtons();setStatus('Banan tillagd. Dra vidare från slutmarkeringen eller rita en annan spelares bana.',true)}
-function setActionMode(mode){stopPlayback();pathMode=false;actionMode=actionMode===mode?null:mode;actionFirst=null;syncModeButtons();setStatus(actionMode==='pass'?'Passning: tryck passare och därefter mottagare.':'Skott: tryck spelaren som ska skjuta.',!!actionMode)}
+function setActionMode(mode){stopPlayback();cancelPresetDraft(false);pathMode=false;actionMode=actionMode===mode?null:mode;actionFirst=null;draftG.innerHTML='';syncModeButtons();setStatus(actionMode==='pass'?'Passning: tryck en hållpunkt på passarens åkbana och därefter en senare hållpunkt på mottagarens åkbana.':'Skott: tryck på spelarens åkbana där skottet ska gå.',!!actionMode)}
 function actionAnchorFor(id,explicit=null){return explicit?clone(explicit):clone(lastTrackEndPoint(id))}
 function addPass(from,to,fromAnchor=null,toAnchor=null){
-  pushUndo();
-  const fa=actionAnchorFor(from,fromAnchor),ta=actionAnchorFor(to,toAnchor);
-  const previousEnd=lastActionEnd(),fromEnd=trackEndTime(from);
-  const start=Math.max(previousEnd,fromEnd);
-  const dist=Math.hypot(ta.x-fa.x,ta.y-fa.y),duration=Math.max(.22,Math.min(1.15,dist/PASS_SPEED));
-  const a={id:nextId('a'),type:'pass',from,to,start,duration,fixedStart:start,motionFraction:1,order:project.actions.length,fromAnchor:fa,toAnchor:ta};
-  project.actions.push(a);normalizeActionTimeline();
-  render();setStatus('Passningen lades mellan de positioner du valde. Tryck på tonade slutmarkeringar för pass från nya positioner.');
+  const fh={id:from,anchor:actionAnchorFor(from,fromAnchor),time:trackEndTime(from),segId:playerTracks(from).at(-1)?.id||null,fraction:1};
+  const th={player:getObj(to),playerId:to,point:actionAnchorFor(to,toAnchor),time:Math.max(trackEndTime(to),fh.time+.35),segId:playerTracks(to).at(-1)?.id||null,fraction:1};
+  addPassTrack(fh,th);
 }
-function addShot(from,fromAnchor=null){
+function addShot(from,fromAnchor=null,timeOverride=null){
   pushUndo();
-  const fa=actionAnchorFor(from,fromAnchor),start=Math.max(lastActionEnd(),trackEndTime(from));
+  const fa=actionAnchorFor(from,fromAnchor),start=timeOverride!=null&&Number.isFinite(+timeOverride)?Math.max(lastActionEnd(),+timeOverride):Math.max(lastActionEnd(),trackEndTime(from));
   const target=project.orientation==='up'?{x:350,y:20}:{x:350,y:1080};
   const duration=Math.max(.20,Math.min(.85,Math.hypot(target.x-fa.x,target.y-fa.y)/SHOT_SPEED));
-  const a={id:nextId('a'),type:'shot',from,start,duration,fixedStart:start,motionFraction:1,order:project.actions.length,fromAnchor:fa,targetAnchor:target};
+  const a={id:nextId('a'),type:'shot',from,start,duration,fixedStart:start,motionFraction:1,order:project.actions.length,fromAnchor:fa,targetAnchor:target,anchorMode:timeOverride!=null&&Number.isFinite(+timeOverride)?'track':undefined,fixedDuration:timeOverride!=null&&Number.isFinite(+timeOverride)?duration:undefined};
   project.actions.push(a);normalizeActionTimeline();
   render();setStatus('Skottet är förankrat i den position du valde.');
 }
-function handleActionPick(o,anchor=null){if(o.type!=='player'){setStatus('Välj en spelare.');return}if(actionMode==='shot'){addShot(o.id,anchor);actionMode=null;syncModeButtons();return}if(actionMode==='pass'){if(!actionFirst){actionFirst={id:o.id,anchor:actionAnchorFor(o.id,anchor)};setStatus('Välj mottagaren – gärna dess tonade slutmarkering om passet ska gå till den nya positionen.',true)}else if(actionFirst.id!==o.id){addPass(actionFirst.id,o.id,actionFirst.anchor,anchor);actionFirst=null;actionMode=null;syncModeButtons()}}}
+function handleActionPick(o,anchor=null){if(o.type!=='player'){setStatus('Välj en spelare eller en punkt på spelarens åkbana.');return}if(actionMode==='shot'){addShot(o.id,anchor);actionMode=null;syncModeButtons();return}if(actionMode==='pass'){const t=playerTracks(o.id).length?trackEndTime(o.id):0;handleActionTrackPick({player:o,playerId:o.id,point:anchor||{x:o.x,y:o.y},time:t,segId:playerTracks(o.id).at(-1)?.id||null,fraction:playerTracks(o.id).length?1:0})}}
 
 
 function syncGroupState(){
   const n=groupSelection.size,el=$('groupState'),linked=(project.linkedGroups||[]).filter(g=>(g.members||[]).some(id=>groupSelection.has(id)));if(el)el.innerHTML=n?`<strong>${n} objekt markerade.</strong><br>Dra gruppen, duplicera/spegelvänd eller skapa Gummiband.${linked.length?'<br><span class="linkBadge">🔗 Synklänk aktiv</span>':''}`:'<strong>Ingen grupp vald.</strong><br>Aktivera gruppmarkering och tryck på objekt som hör ihop.';
 }
-function toggleGroupMode(){stopPlayback();groupMode=!groupMode;pathMode=false;actionMode=null;recordMode=false;document.querySelector('.app').classList.remove('is-recording');syncModeButtons();setStatus(groupMode?'Gruppmarkering: tryck objekt för att lägga till. Dra ett redan markerat objekt för att flytta hela gruppen.':'Gruppmarkering avslutad.',groupMode)}
+function toggleGroupMode(){stopPlayback();cancelPresetDraft(false);groupMode=!groupMode;pathMode=false;actionMode=null;recordMode=false;document.querySelector('.app').classList.remove('is-recording');syncModeButtons();setStatus(groupMode?'Gruppmarkering: tryck objekt för att lägga till. Dra ett redan markerat objekt för att flytta hela gruppen.':'Gruppmarkering avslutad.',groupMode)}
 function clearGroupSelection(){groupSelection.clear();renderObjects();syncModeButtons();setStatus('Gruppmarkeringen rensades.')}
 function selectedIds(){return groupSelection.size?[...groupSelection]:(selectedId?[selectedId]:[])}
 function duplicateSelection(){const ids=selectedIds();if(!ids.length){setStatus('Markera ett objekt eller en grupp först.');return}pushUndo();const map=new Map(),dx=28,dy=28;for(const id of ids){const o=getObj(id);if(!o||o.type==='ball')continue;const n={...clone(o),id:nextId(),x:o.x+dx,y:o.y+dy};project.objects.push(n);map.set(id,n.id);if(o.type==='player'&&project.tracks[id])project.tracks[n.id]=clone(project.tracks[id]).map(seg=>({...seg,id:nextId('s'),points:seg.points.map(p=>({x:p.x+dx,y:p.y+dy})),samples:seg.samples?.map(q=>({...q,x:q.x+dx,y:q.y+dy}))}))}
@@ -492,11 +551,25 @@ function unlinkRubberBand(){
   pushUndo();const before=(project.linkedGroups||[]).length;project.linkedGroups=(project.linkedGroups||[]).filter(g=>![g.leader,...(g.members||[])].some(id=>ids.has(id)));render();setStatus(before!==project.linkedGroups.length?'Gummibandet togs bort.':'Ingen länk hittades för markeringen.')
 }
 function presetLocal(kind,L,W){const pts=[],N=56;for(let i=0;i<=N;i++){const t=i/N;let x=0,y=-L*t;if(kind==='arcLeft')x=-(W/2)*(1-Math.cos(Math.PI*t/2));else if(kind==='arcRight')x=(W/2)*(1-Math.cos(Math.PI*t/2));else if(kind==='semiLeft'){x=-(W/2)*Math.sin(Math.PI*t);y=-(L/2)*(1-Math.cos(Math.PI*t))}else if(kind==='semiRight'){x=(W/2)*Math.sin(Math.PI*t);y=-(L/2)*(1-Math.cos(Math.PI*t))}else if(kind==='circle'){const r=Math.max(20,W/2);x=r*Math.sin(2*Math.PI*t);y=-r*(1-Math.cos(2*Math.PI*t))}else if(kind==='s')x=(W/2)*Math.sin(2*Math.PI*t);else if(kind==='eightV'){x=(W/2)*Math.sin(4*Math.PI*t);y=-(L/2)*Math.sin(2*Math.PI*t)}else if(kind==='infinity'){x=(L/2)*Math.sin(2*Math.PI*t);y=-(W/2)*Math.sin(4*Math.PI*t)}else if(kind==='uturn'){x=(W/2)*(1-Math.cos(Math.PI*t));y=-(L*.55)*Math.sin(Math.PI*t)}else if(kind==='zigzag')x=(W/2)*Math.sin(6*Math.PI*t);pts.push({x,y})}return pts}
-function addPreset(){const o=getObj(selectedId);if(!o||o.type!=='player'){setStatus('Markera en spelare innan du lägger till en preset.');return}stopPlayback();pushUndo();const start=lastTrackEndPoint(o.id),kind=$('presetKind').value,L=+$('presetLength').value||180,W=+$('presetWidth').value||90,rot=(+$('presetRotation').value||0)+(project.orientation==='up'?0:180);const pts=presetLocal(kind,L,W).map(q=>{const r=rotatePoint(q.x,q.y,rot);return clampPoint({x:start.x+r.x,y:start.y+r.y})});const seg={id:nextId('s'),points:smoothPoints(pts),speed:defaultPathSpeed,start:nextTrackStart(o.id),preset:kind};playerTracks(o.id).push(seg);render();setStatus('Preset tillagd. Du kan fortsätta med frihand, REC eller ytterligare en preset.')}
+function presetPointsFromDraft(d=presetDraft){
+  if(!d)return[];return presetLocal(d.kind,d.L,d.W).map(q=>{const r=rotatePoint(q.x,q.y,d.rot);return clampPoint({x:d.start.x+r.x,y:d.start.y+r.y})});
+}
+function renderPresetDraft(){
+  if(!presetDraft)return;const pts=presetPointsFromDraft(),end=pts.at(-1),mid=pts[Math.floor(pts.length/2)]||end;
+  draftG.innerHTML=`<g class="presetDraft"><path class="presetHitPath" d="${pathD(pts)}" pointer-events="none"/><path class="presetDraftPath" d="${pathD(pts)}"/>${arrowHeadMarkup(pts,'#7c3aed',10,2.5,.95)}<circle class="presetHandle start" cx="${presetDraft.start.x}" cy="${presetDraft.start.y}" r="8" pointer-events="none"/><circle class="presetHandle end" data-preset-handle="end" cx="${end.x}" cy="${end.y}" r="11"/><text class="presetHandleLabel" x="${end.x}" y="${end.y}">↗</text><circle class="presetHandle curve" data-preset-handle="curve" cx="${mid.x}" cy="${mid.y}" r="10"/><text class="presetHandleLabel" x="${mid.x}" y="${mid.y}">↔</text></g>`;
+}
+function createPresetDraft(){
+  const o=getObj(selectedId);if(!o||o.type!=='player'){presetDraft=null;draftG.innerHTML='';return false}
+  const baseRot=(project.orientation==='up'?0:180),start=lastTrackEndPoint(o.id);
+  presetDraft={playerId:o.id,start:clone(start),kind:$('presetKind').value,L:+$('presetLength').value||180,W:+$('presetWidth').value||90,rot:(+$('presetRotation').value||0)+baseRot};renderPresetDraft();return true;
+}
+function syncPresetDraftFromControls(){if(!presetDraft)return;const baseRot=(project.orientation==='up'?0:180);presetDraft.kind=$('presetKind').value;presetDraft.L=+$('presetLength').value||180;presetDraft.W=+$('presetWidth').value||90;presetDraft.rot=(+$('presetRotation').value||0)+baseRot;renderPresetDraft()}
+function cancelPresetDraft(showMsg=true){presetDraft=null;presetDragging=null;if(!actionFirst&&!drawingPath)draftG.innerHTML='';if(showMsg)setStatus('Preset avbruten.')}
+function addPreset(){const o=getObj(selectedId);if(!o||o.type!=='player'){setStatus('Markera en spelare innan du lägger till en preset.');return}stopPlayback();if(!presetDraft||presetDraft.playerId!==o.id)createPresetDraft();if(!presetDraft)return;pushUndo();const pts=smoothPoints(presetPointsFromDraft());const seg={id:nextId('s'),points:pts,speed:defaultPathSpeed,start:nextTrackStart(o.id),preset:presetDraft.kind};playerTracks(o.id).push(seg);presetDraft=null;presetDragging=null;draftG.innerHTML='';render();setStatus('Preset bekräftad. Fortsätt med frihand, REC eller ytterligare en preset.')}
 function openProperties(){properties.classList.add('open');$('propertyBackdrop')?.classList.add('open')}
 function closeProperties(){properties.classList.remove('open');$('propertyBackdrop')?.classList.remove('open');properties.style.transform=''}
-function openPresetPanel(){openProperties();const o=getObj(selectedId);if(!o||o.type!=='player')setStatus('Markera först spelaren som ska få preset.');else setStatus('Välj form och tryck Lägg till preset.');setTimeout(()=>$('presetCard')?.scrollIntoView({block:'nearest',behavior:'smooth'}),20)}
-function beginRecordMode(){stopPlayback();const o=getObj(selectedId);if(!o||o.type!=='player'){setStatus('Markera spelaren du vill spela in först.');return}pathMode=false;actionMode=null;groupMode=false;recordMode=!recordMode;document.querySelector('.app').classList.toggle('is-recording',recordMode);syncModeButtons();setStatus(recordMode?'● REC redo. Dra den markerade spelaren. Övriga inspelade spelare spelas samtidigt som referens.':'REC avbruten.',recordMode)}
+function openPresetPanel(){stopPlayback();pathMode=false;actionMode=null;actionFirst=null;recordMode=false;groupMode=false;syncModeButtons();openProperties();const o=getObj(selectedId);if(!o||o.type!=='player'){cancelPresetDraft(false);setStatus('Markera först spelaren som ska få preset.');}else{if(!presetDraft||presetDraft.playerId!==o.id)createPresetDraft();else renderPresetDraft();setStatus('Preset visas på planen. Dra blått slut-handtag eller lila form-handtag och tryck ✓ Bekräfta.',true)}setTimeout(()=>$('presetCard')?.scrollIntoView({block:'nearest',behavior:'smooth'}),20)}
+function beginRecordMode(){stopPlayback();cancelPresetDraft(false);const o=getObj(selectedId);if(!o||o.type!=='player'){setStatus('Markera spelaren du vill spela in först.');return}pathMode=false;actionMode=null;groupMode=false;recordMode=!recordMode;document.querySelector('.app').classList.toggle('is-recording',recordMode);syncModeButtons();setStatus(recordMode?'● REC redo. Dra den markerade spelaren. Övriga inspelade spelare spelas samtidigt som referens.':'REC avbruten.',recordMode)}
 function smoothRecordedSamples(samples){if(samples.length<3)return samples;const out=[samples[0]];for(let i=1;i<samples.length-1;i++){const a=samples[i-1],b=samples[i],c=samples[i+1];out.push({x:(a.x+2*b.x+c.x)/4,y:(a.y+2*b.y+c.y)/4,t:b.t})}out.push(samples.at(-1));return out}
 function recordFrame(now){if(!recording)return;const t=Math.max(0,(now-recording.startPerf)/1000),obs=objectsAt(t),po=obs.find(o=>o.id===recording.playerId);if(po){po.x=recording.current.x;po.y=recording.current.y;applyLinkedGroups(obs,t);ballStateAt(t,obs);applyGoalkeeperTracking(obs)}renderObjects(obs);if($('playView').value==='lines'){renderPaths(false);renderActions()}recordRaf=requestAnimationFrame(recordFrame)}
 function startRecordingDrag(o,e){if(playerTracks(o.id).length&&!confirm('REC ersätter den markerade spelarens tidigare åkväg. Övriga spelares rörelser behålls för overdub. Fortsätta?'))return;pushUndo();project.tracks[o.id]=[];const p=clampPoint(getSvgPoint(e));recording={playerId:o.id,pointerId:e.pointerId,startPerf:performance.now(),samples:[{x:o.x,y:o.y,t:0}],current:{x:p.x,y:p.y}};stage.setPointerCapture?.(e.pointerId);cancelAnimationFrame(recordRaf);recordRaf=requestAnimationFrame(recordFrame);setStatus('● Spelar in. Dra spelaren i önskat tempo; andra spelare spelas som overdub.',true)}
@@ -516,9 +589,9 @@ stage.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'){touchPoints
 stage.addEventListener('pointermove',e=>{if(e.pointerType==='touch'&&touchPoints.has(e.pointerId)){touchPoints.set(e.pointerId,{x:e.clientX,y:e.clientY});if(cameraGesture){e.preventDefault();updateCameraGesture()}}});
 function endTouchCamera(e){if(e.pointerType==='touch'){touchPoints.delete(e.pointerId);if(touchPoints.size<2)cameraGesture=null}}
 stage.addEventListener('pointerup',endTouchCamera);stage.addEventListener('pointercancel',endTouchCamera);
-stage.addEventListener('pointerdown',e=>{if(cameraGesture||touchPoints.size>=2)return;if(playing)return;const p=clampPoint(getSvgPoint(e));const node0=e.target.closest?.('.obj');const obj0=node0?getObj(node0.dataset.id):null;if(recordMode){if(!obj0||obj0.type!=='player'||obj0.id!==selectedId){setStatus('REC: dra den markerade spelaren.',true);return}e.preventDefault();startRecordingDrag(obj0,e);return}if(groupMode&&obj0){e.preventDefault();if(!groupSelection.has(obj0.id)){groupSelection.add(obj0.id);selectedId=obj0.id;renderObjects();syncModeButtons();setStatus(`${groupSelection.size} objekt markerade.`,true);return}pushUndo();const q=getSvgPoint(e);dragging={group:true,anchorId:obj0.id,start:{x:q.x,y:q.y},lastDx:0,lastDy:0,moved:false};stage.setPointerCapture?.(e.pointerId);return}if(pathMode){const hit=nearestPathAnchor(p);if(!hit){setStatus('Börja genom att lägga fingret på spelaren eller spelarens tonade slutmarkering.',true);return}e.preventDefault();selectedId=hit.o.id;const start=nextTrackStart(hit.o.id);drawingPath={playerId:hit.o.id,start,speed:defaultPathSpeed,points:[{...hit.a},p]};stage.setPointerCapture?.(e.pointerId);draftG.innerHTML=`<path d="${pathD(drawingPath.points)}" fill="none" stroke="${hit.o.color}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity=".68"/>`;renderObjects();syncSelectedControls();return}const endpoint=e.target.closest?.('.endpoint');if(actionMode&&endpoint){const o=getObj(endpoint.dataset.endpointId);if(o){const a=lastTrackEndPoint(o.id);handleActionPick(o,a);return}}const node=e.target.closest?.('.obj');if(!node){selectedId=null;renderObjects();syncSelectedControls();return}const o=getObj(node.dataset.id);if(!o)return;if(actionMode){handleActionPick(o,{x:o.x,y:o.y});return}selectedId=o.id;if(o.type==='ball'&&project.ballOwnerStart){setStatus('Bollen sitter hos bollhållaren. Markera spelaren och välj Släpp boll för att flytta bollen fritt.');renderObjects();syncSelectedControls();return}if(o.type==='goalkeeper'&&o.followBall!==false){setStatus('Målvakten följer bollen automatiskt. Stäng av Följ boll under Val för manuell flytt.');renderObjects();syncSelectedControls();return}pushUndo();const q=getSvgPoint(e);dragging={id:o.id,dx:o.x-q.x,dy:o.y-q.y,startX:o.x,startY:o.y};stage.setPointerCapture?.(e.pointerId);renderObjects();syncSelectedControls()})
-stage.addEventListener('pointermove',e=>{if(cameraGesture)return;if(recording&&e.pointerId===recording.pointerId){e.preventDefault();const p=clampPoint(getSvgPoint(e)),last=recording.samples.at(-1),t=Math.round(performance.now()-recording.startPerf);recording.current={x:p.x,y:p.y};if(Math.hypot(p.x-last.x,p.y-last.y)>2.5||t-last.t>35)recording.samples.push({x:p.x,y:p.y,t});return}if(drawingPath){e.preventDefault();const p=clampPoint(getSvgPoint(e)),q=drawingPath.points.at(-1);if(Math.hypot(p.x-q.x,p.y-q.y)>4){drawingPath.points.push(p);const o=getObj(drawingPath.playerId);draftG.innerHTML=`<path d="${pathD(drawingPath.points)}" fill="none" stroke="${o?.color||'#1769e8'}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity=".68"/>`}return}if(!dragging)return;if(dragging.group){const q=getSvgPoint(e),dx=q.x-dragging.start.x,dy=q.y-dragging.start.y,ix=dx-dragging.lastDx,iy=dy-dragging.lastDy;if(Math.hypot(dx,dy)>3)dragging.moved=true;for(const id of groupSelection){const go=getObj(id);if(!go)continue;const b=boundsFor(go);go.x=Math.max(b.minX,Math.min(b.maxX,go.x+ix));go.y=Math.max(b.minY,Math.min(b.maxY,go.y+iy));if(go.type==='player')translatePlayerTrack(id,ix,iy)}dragging.lastDx=dx;dragging.lastDy=dy;renderObjects();renderPaths();renderActions();return}const o=getObj(dragging.id);if(!o)return;const p=getSvgPoint(e),b=boundsFor(o),x=Math.max(b.minX,Math.min(b.maxX,p.x+dragging.dx)),y=Math.max(b.minY,Math.min(b.maxY,p.y+dragging.dy)),dx=x-o.x,dy=y-o.y;o.x=x;o.y=y;if(o.type==='player')translatePlayerTrack(o.id,dx,dy);renderObjects();renderPaths();renderActions()})
-stage.addEventListener('pointerup',e=>{if(recording&&e.pointerId===recording.pointerId){const p=clampPoint(getSvgPoint(e)),t=Math.round(performance.now()-recording.startPerf);recording.samples.push({x:p.x,y:p.y,t});finishRecording();return}if(drawingPath){finishDrawPath();return}if(dragging){if(dragging.group&&!dragging.moved){groupSelection.delete(dragging.anchorId);dragging=null;renderObjects();syncModeButtons();return}const o=getObj(dragging.id);if(o?.type==='goalkeeper')o.goalSide=o.y<550?'top':'bottom';dragging=null;render()}});stage.addEventListener('pointercancel',()=>{if(recording){cancelAnimationFrame(recordRaf);recording=null;recordMode=false;document.querySelector('.app').classList.remove('is-recording')}drawingPath=null;dragging=null;draftG.innerHTML='';syncModeButtons();if(pathMode)setStatus('Ritningen avbröts. Dra på nytt.',true)})
+stage.addEventListener('pointerdown',e=>{if(cameraGesture||touchPoints.size>=2)return;if(playing)return;const p=clampPoint(getSvgPoint(e));const node0=e.target.closest?.('.obj');const obj0=node0?getObj(node0.dataset.id):null;const presetHandle=e.target.closest?.('[data-preset-handle]');if(presetDraft&&presetHandle){e.preventDefault();presetDragging={handle:presetHandle.dataset.presetHandle,pointerId:e.pointerId,start:p,orig:clone(presetDraft)};stage.setPointerCapture?.(e.pointerId);return}if(actionMode){const hit=nearestTrackPoint(p,48);if(hit){e.preventDefault();handleActionTrackPick(hit);return}}if(recordMode){if(!obj0||obj0.type!=='player'||obj0.id!==selectedId){setStatus('REC: dra den markerade spelaren.',true);return}e.preventDefault();startRecordingDrag(obj0,e);return}if(groupMode&&obj0){e.preventDefault();if(!groupSelection.has(obj0.id)){groupSelection.add(obj0.id);selectedId=obj0.id;renderObjects();syncModeButtons();setStatus(`${groupSelection.size} objekt markerade.`,true);return}pushUndo();const q=getSvgPoint(e);dragging={group:true,anchorId:obj0.id,start:{x:q.x,y:q.y},lastDx:0,lastDy:0,moved:false};stage.setPointerCapture?.(e.pointerId);return}if(pathMode){const hit=nearestPathAnchor(p);if(!hit){setStatus('Börja genom att lägga fingret på spelaren eller spelarens tonade slutmarkering.',true);return}e.preventDefault();selectedId=hit.o.id;const start=nextTrackStart(hit.o.id);drawingPath={playerId:hit.o.id,start,speed:defaultPathSpeed,points:[{...hit.a},p]};stage.setPointerCapture?.(e.pointerId);draftG.innerHTML=`<path d="${pathD(drawingPath.points)}" fill="none" stroke="${hit.o.color}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity=".68"/>`;renderObjects();syncSelectedControls();return}const endpoint=e.target.closest?.('.endpoint');if(actionMode&&endpoint){const o=getObj(endpoint.dataset.endpointId);if(o){const a=lastTrackEndPoint(o.id);handleActionPick(o,a);return}}const node=e.target.closest?.('.obj');if(!node){selectedId=null;renderObjects();syncSelectedControls();return}const o=getObj(node.dataset.id);if(!o)return;if(actionMode){handleActionPick(o,{x:o.x,y:o.y});return}selectedId=o.id;if(o.type==='ball'&&project.ballOwnerStart){setStatus('Bollen sitter hos bollhållaren. Markera spelaren och välj Släpp boll för att flytta bollen fritt.');renderObjects();syncSelectedControls();return}if(o.type==='goalkeeper'&&o.followBall!==false){setStatus('Målvakten följer bollen automatiskt. Stäng av Följ boll under Val för manuell flytt.');renderObjects();syncSelectedControls();return}pushUndo();const q=getSvgPoint(e);dragging={id:o.id,dx:o.x-q.x,dy:o.y-q.y,startX:o.x,startY:o.y};stage.setPointerCapture?.(e.pointerId);renderObjects();syncSelectedControls()})
+stage.addEventListener('pointermove',e=>{if(cameraGesture)return;if(presetDragging&&e.pointerId===presetDragging.pointerId&&presetDraft){e.preventDefault();const p=clampPoint(getSvgPoint(e)),d=presetDraft;if(presetDragging.handle==='end'){const dx=p.x-d.start.x,dy=p.y-d.start.y;d.L=Math.max(70,Math.min(360,Math.hypot(dx,dy)));d.rot=Math.atan2(dy,dx)*180/Math.PI+90;const baseRot=(project.orientation==='up'?0:180);$('presetLength').value=Math.round(d.L/10)*10;$('presetRotation').value=Math.max(-180,Math.min(180,Math.round((d.rot-baseRot)/5)*5));}else if(presetDragging.handle==='curve'){const ex=Math.sin(d.rot*Math.PI/180),ey=-Math.cos(d.rot*Math.PI/180),mx=d.start.x+ex*d.L*.5,my=d.start.y+ey*d.L*.5,nx=-ey,ny=ex;const perp=Math.abs((p.x-mx)*nx+(p.y-my)*ny);d.W=Math.max(30,Math.min(220,perp*2));$('presetWidth').value=Math.round(d.W/10)*10;}renderPresetDraft();return}if(recording&&e.pointerId===recording.pointerId){e.preventDefault();const p=clampPoint(getSvgPoint(e)),last=recording.samples.at(-1),t=Math.round(performance.now()-recording.startPerf);recording.current={x:p.x,y:p.y};if(Math.hypot(p.x-last.x,p.y-last.y)>2.5||t-last.t>35)recording.samples.push({x:p.x,y:p.y,t});return}if(drawingPath){e.preventDefault();const p=clampPoint(getSvgPoint(e)),q=drawingPath.points.at(-1);if(Math.hypot(p.x-q.x,p.y-q.y)>4){drawingPath.points.push(p);const o=getObj(drawingPath.playerId);draftG.innerHTML=`<path d="${pathD(drawingPath.points)}" fill="none" stroke="${o?.color||'#1769e8'}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity=".68"/>`}return}if(!dragging)return;if(dragging.group){const q=getSvgPoint(e),dx=q.x-dragging.start.x,dy=q.y-dragging.start.y,ix=dx-dragging.lastDx,iy=dy-dragging.lastDy;if(Math.hypot(dx,dy)>3)dragging.moved=true;for(const id of groupSelection){const go=getObj(id);if(!go)continue;const b=boundsFor(go);go.x=Math.max(b.minX,Math.min(b.maxX,go.x+ix));go.y=Math.max(b.minY,Math.min(b.maxY,go.y+iy));if(go.type==='player')translatePlayerTrack(id,ix,iy)}dragging.lastDx=dx;dragging.lastDy=dy;renderObjects();renderPaths();renderActions();return}const o=getObj(dragging.id);if(!o)return;const p=getSvgPoint(e),b=boundsFor(o),x=Math.max(b.minX,Math.min(b.maxX,p.x+dragging.dx)),y=Math.max(b.minY,Math.min(b.maxY,p.y+dragging.dy)),dx=x-o.x,dy=y-o.y;o.x=x;o.y=y;if(o.type==='player')translatePlayerTrack(o.id,dx,dy);renderObjects();renderPaths();renderActions()})
+stage.addEventListener('pointerup',e=>{if(presetDragging&&e.pointerId===presetDragging.pointerId){presetDragging=null;renderPresetDraft();return}if(recording&&e.pointerId===recording.pointerId){const p=clampPoint(getSvgPoint(e)),t=Math.round(performance.now()-recording.startPerf);recording.samples.push({x:p.x,y:p.y,t});finishRecording();return}if(drawingPath){finishDrawPath();return}if(dragging){if(dragging.group&&!dragging.moved){groupSelection.delete(dragging.anchorId);dragging=null;renderObjects();syncModeButtons();return}const o=getObj(dragging.id);if(o?.type==='goalkeeper')o.goalSide=o.y<550?'top':'bottom';dragging=null;render()}});stage.addEventListener('pointercancel',()=>{presetDragging=null;if(recording){cancelAnimationFrame(recordRaf);recording=null;recordMode=false;document.querySelector('.app').classList.remove('is-recording')}drawingPath=null;dragging=null;draftG.innerHTML='';syncModeButtons();if(pathMode)setStatus('Ritningen avbröts. Dra på nytt.',true)})
 
 function renderPlaybackGuides(){
   if($('playView').value==='lines'){renderPaths(false);renderActions()}else{pathG.innerHTML='';ghostG.innerHTML='';actionG.innerHTML=''}
@@ -574,8 +647,8 @@ function resetPlan(skipConfirm=false){if(!skipConfirm&&!confirm('Nollställ hela
 
 for(const b of document.querySelectorAll('[data-add]'))b.addEventListener('click',()=>addObject(b.dataset.add));$('quickCoach').onclick=()=>addObject('player','T','#64748b');
 $('pathMode').onclick=()=>pathMode?cancelModes():beginPathMode();$('pathModeDesktop').onclick=()=>pathMode?cancelModes():beginPathMode();$('mobilePath').onclick=()=>pathMode?cancelModes():beginPathMode();$('redrawPath').onclick=()=>beginPathMode(true);$('deleteLastPath').onclick=deleteLastPath;
-$('recordMode').onclick=beginRecordMode;$('recordModeDesktop').onclick=beginRecordMode;$('mobileRecord').onclick=beginRecordMode;$('presetModeDesktop').onclick=openPresetPanel;$('mobilePreset').onclick=openPresetPanel;$('applyPreset').onclick=addPreset;$('presetFit').onclick=()=>{$('presetLength').value=180;$('presetWidth').value=90;$('presetRotation').value=0};$('groupMode').onclick=toggleGroupMode;$('groupModeDesktop').onclick=toggleGroupMode;$('mobileGroup').onclick=toggleGroupMode;$('clearGroup').onclick=clearGroupSelection;$('duplicateGroup').onclick=duplicateSelection;$('mirrorGroup').onclick=mirrorSelection;$('linkGroup').onclick=createRubberBand;$('unlinkGroup').onclick=unlinkRubberBand;
-$('presetQuickGrid').addEventListener('click',e=>{const b=e.target.closest('[data-preset]');if(!b)return;$('presetKind').value=b.dataset.preset;for(const q of $('presetQuickGrid').querySelectorAll('button'))q.classList.toggle('active',q===b);setStatus(`${b.textContent.trim()} vald. Justera storlek/rotation och tryck Lägg till preset.`)});$('presetKind').addEventListener('change',()=>{for(const q of $('presetQuickGrid').querySelectorAll('button'))q.classList.toggle('active',q.dataset.preset===$('presetKind').value)});
+$('recordMode').onclick=beginRecordMode;$('recordModeDesktop').onclick=beginRecordMode;$('mobileRecord').onclick=beginRecordMode;$('presetModeDesktop').onclick=openPresetPanel;$('mobilePreset').onclick=openPresetPanel;$('applyPreset').onclick=addPreset;$('cancelPreset').onclick=()=>cancelPresetDraft(true);$('presetFit').onclick=()=>{$('presetLength').value=180;$('presetWidth').value=90;$('presetRotation').value=0;if(presetDraft)syncPresetDraftFromControls()};$('groupMode').onclick=toggleGroupMode;$('groupModeDesktop').onclick=toggleGroupMode;$('mobileGroup').onclick=toggleGroupMode;$('clearGroup').onclick=clearGroupSelection;$('duplicateGroup').onclick=duplicateSelection;$('mirrorGroup').onclick=mirrorSelection;$('linkGroup').onclick=createRubberBand;$('unlinkGroup').onclick=unlinkRubberBand;
+$('presetQuickGrid').addEventListener('click',e=>{const b=e.target.closest('[data-preset]');if(!b)return;$('presetKind').value=b.dataset.preset;for(const q of $('presetQuickGrid').querySelectorAll('button'))q.classList.toggle('active',q===b);if(!presetDraft)createPresetDraft();else syncPresetDraftFromControls();setStatus(`${b.textContent.trim()} förhandsvisas på planen. Dra handtagen och bekräfta.`,true)});$('presetKind').addEventListener('change',()=>{for(const q of $('presetQuickGrid').querySelectorAll('button'))q.classList.toggle('active',q.dataset.preset===$('presetKind').value);if(presetDraft)syncPresetDraftFromControls()});for(const id of ['presetLength','presetWidth','presetRotation'])$(id).addEventListener('input',()=>{if(presetDraft)syncPresetDraftFromControls()});
 $('passMode').onclick=()=>setActionMode('pass');$('passModeDesktop').onclick=()=>setActionMode('pass');$('mobilePass').onclick=()=>setActionMode('pass');$('shotMode').onclick=()=>setActionMode('shot');$('shotModeDesktop').onclick=()=>setActionMode('shot');$('mobileShot').onclick=()=>setActionMode('shot');
 $('actionList').addEventListener('click',e=>{const b=e.target.closest('[data-remove-action]');if(!b)return;pushUndo();project.actions.splice(+b.dataset.removeAction,1);normalizeActionTimeline();render()});
 $('objLabel').addEventListener('input',e=>{const o=getObj(selectedId);if(o){o.label=e.target.value;renderPaths();renderObjects();renderFlow();renderActionsList()}});$('objSize').addEventListener('change',e=>{const o=getObj(selectedId);if(o){pushUndo();o.r=+e.target.value;render()}});$('swatches').addEventListener('click',swatchClick);$('mobileSwatches').addEventListener('click',swatchClick);$('teamA').onclick=()=>setSelectedColor('#1769e8');$('teamB').onclick=()=>setSelectedColor('#e31818');
@@ -594,7 +667,7 @@ $('propertyBackdrop').addEventListener('click',closeProperties);let sheetDrag=nu
 window.addEventListener('resize',updateAppHeight);window.visualViewport?.addEventListener('resize',updateAppHeight);window.visualViewport?.addEventListener('scroll',updateAppHeight);updateAppHeight();
 window.addEventListener('keydown',e=>{if((e.key==='Delete'||e.key==='Backspace')&&!/INPUT|TEXTAREA/.test(document.activeElement?.tagName))deleteSelected();if(e.key===' '&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)){e.preventDefault();play()}if(e.key==='Escape'){if(presentation)exitPresentationMode();else cancelModes();}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo()}});
 
-render();$('undo').disabled=true;updateAppHeight();setTimeout(fitEverything,30);setStatus('v1.0-alpha.2: hela planen ryms ovanför verktygen · nollställning · pass via aktuella/slutpositioner.');
+render();$('undo').disabled=true;updateAppHeight();setTimeout(fitEverything,30);setStatus('v1.0-alpha.3: passpunkter längs åkbanor · visuellt redigerbara presets.');
 })();
 </script>
 </body>
