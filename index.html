@@ -148,6 +148,8 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
 }
 .endpoint{pointer-events:all}.endpoint .endpointHit{fill:rgba(22,155,98,.001);pointer-events:all}.endpoint.actionTarget circle.endpointVisualHalo{stroke:#169b62;stroke-width:4;opacity:.32}
 
+/* v1.0-alpha.6 – fast passfart, dependency-synk och stabila direkthandtag */
+.savedPresetHit{stroke-width:56;touch-action:none}
 /* v1.0-alpha.5 – samlat Rita-verktyg och händelseankare */
 #mobilePreset,#presetModeDesktop{display:none!important}
 .drawMenu{position:absolute;z-index:13;left:50%;bottom:18px;transform:translateX(-50%);display:none;align-items:center;gap:6px;max-width:calc(100% - 24px);padding:6px;background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:13px;box-shadow:0 12px 30px rgba(15,23,42,.18);overflow-x:auto;backdrop-filter:blur(10px)}
@@ -159,7 +161,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
 <body>
 <div class="app">
 <header class="topbar">
-  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.5 · händelseankare · Rita + presets</small></div></div>
+  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.6 · synkmotor · stabila presets</small></div></div>
   <div class="topControls">
     <select id="rinkMode" aria-label="Planvy"><option value="full">Helplan</option><option value="half">Halvplan</option></select>
     <select id="orientation" aria-label="Anfallsriktning"><option value="up">Anfall uppåt</option><option value="down">Anfall nedåt</option></select>
@@ -260,7 +262,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
     <div class="card">
       <h3>Passning / skott</h3>
       <div class="modeGrid"><button id="passMode" class="mini">Passning</button><button id="shotMode" class="mini">Skott</button></div>
-      <p id="actionHelp" class="hint" style="margin:8px 0 0">Passning: välj valfri avsändarpunkt och sedan valfri mottagningspunkt. Startposition, slutposition och valfri punkt längs en åkbana är giltiga. Appen försöker synka timingen men blockerar inte din skiss.</p><div id="actionList" class="actionList"></div>
+      <p id="actionHelp" class="hint" style="margin:8px 0 0">Passning: välj valfri avsändarpunkt och sedan valfri mottagningspunkt. Startposition, slutposition och valfri punkt längs en åkbana är giltiga. Appen synkar spelarnas timing mot dina hållpunkter. Bollens passfart är fast och görs aldrig långsammare för att lösa timing.</p><div id="actionList" class="actionList"></div>
     </div>
     <div class="card"><h3>Övning</h3><div class="field"><label>Namn</label><input id="projectName" type="text" maxlength="60" value="Ny bandyövning"></div><div class="field"><label>Kommentar</label><textarea id="projectNote" placeholder="Kort instruktion till övningen…"></textarea></div></div>
   </aside>
@@ -328,9 +330,98 @@ function shiftTrackFrom(playerId,index,minStart){const ts=playerTracks(playerId)
 function anchorTime(playerId,segId,fraction=0,anchorType='track'){if(anchorType==='start'||!segId)return 0;const seg=segmentById(playerId,segId);if(!seg)return 0;const dur=segmentDuration(seg);if(anchorType==='segmentStart')return seg.start;if(anchorType==='segmentEnd')return seg.start+dur;return seg.start+dur*Math.max(0,Math.min(1,+fraction||0))}
 function departureBoundaryIndex(playerId,segId,anchorType){const ts=playerTracks(playerId);if(!ts.length)return null;if(anchorType==='start'||!segId)return 0;const i=segmentIndexById(playerId,segId);if(i<0)return null;if(anchorType==='segmentStart')return i;if(anchorType==='segmentEnd')return i+1<ts.length?i+1:null;return null}
 function actionPhysicalDuration(a){const from=a.fromAnchor||playerPos(a.from,a.start||0);if(a.type==='pass'){const to=a.toAnchor||playerPos(a.to,(a.start||0)+.35),d=from&&to?Math.hypot(to.x-from.x,to.y-from.y):120;return Math.max(.22,Math.min(1.8,d/PASS_SPEED))}const target=a.targetAnchor||(project.orientation==='up'?{x:350,y:20}:{x:350,y:1080}),d=from?Math.hypot(target.x-from.x,target.y-from.y):180;return Math.max(.20,Math.min(.85,d/SHOT_SPEED))}
-function scheduleActionsOnce(){let cursor=0,owner=project.ballOwnerStart;project.actions.forEach((a,i)=>{a.order=i;const fromDesired=anchorTime(a.from,a.fromSegId,a.fromFraction,a.fromAnchorType||(!a.fromSegId?'start':'track'));a.start=Math.max(cursor,fromDesired);const physical=actionPhysicalDuration(a);if(a.type==='pass'){const toDesired=anchorTime(a.to,a.toSegId,a.toFraction,a.toAnchorType||(!a.toSegId?'start':'track'));a.duration=Math.max(physical,toDesired>a.start?toDesired-a.start:0)}else a.duration=physical;a.fixedStart=a.start;a.fixedDuration=a.duration;a.ownershipMismatch=!!(owner&&a.from!==owner);if(a.type==='pass')owner=a.to;else if(a.type==='shot')owner=null;cursor=Math.max(cursor,a.start+a.duration)})}
-function applyEventAnchorConstraints(){let changed=false;for(const a of project.actions){const end=a.start+a.duration;const outIdx=departureBoundaryIndex(a.from,a.fromSegId,a.fromAnchorType);if(outIdx!=null)changed=shiftTrackFrom(a.from,outIdx,end)||changed;if(a.fromSegId&&a.fromAnchorType==='track'){const i=segmentIndexById(a.from,a.fromSegId),seg=i>=0?playerTracks(a.from)[i]:null;if(seg){const pointT=seg.start+segmentDuration(seg)*Math.max(0,Math.min(1,+a.fromFraction||0));if(a.start>pointT+.001)changed=shiftTrackFrom(a.from,i,seg.start+(a.start-pointT))||changed}}if(a.type==='pass'){const arrival=end,inIdx=departureBoundaryIndex(a.to,a.toSegId,a.toAnchorType);if(inIdx!=null)changed=shiftTrackFrom(a.to,inIdx,arrival)||changed;if(a.toSegId&&a.toAnchorType==='track'){const i=segmentIndexById(a.to,a.toSegId),seg=i>=0?playerTracks(a.to)[i]:null;if(seg){const pointT=seg.start+segmentDuration(seg)*Math.max(0,Math.min(1,+a.toFraction||0));if(arrival>pointT+.001)changed=shiftTrackFrom(a.to,i,seg.start+(arrival-pointT))||changed}}}}return changed}
-function normalizeActionTimeline(){ensureTrackTimingMeta();resetTrackSchedule();for(let i=0;i<8;i++){scheduleActionsOnce();if(!applyEventAnchorConstraints())break}scheduleActionsOnce()}
+function trackFloor(playerId,index,startFloors={}){
+  const ts=playerTracks(playerId);if(index<0||index>=ts.length)return 0;
+  let floor=index===0?Math.max(0,startFloors[playerId]||0):ts[index-1].start+segmentDuration(ts[index-1])+Math.max(0,+ts[index].baseDelay||0);
+  return floor;
+}
+function moveTrackFrom(playerId,index,delta,startFloors={}){
+  const ts=playerTracks(playerId);if(index<0||index>=ts.length||Math.abs(delta)<.0005)return 0;
+  if(delta<0){const minStart=trackFloor(playerId,index,startFloors);delta=Math.max(delta,minStart-ts[index].start)}
+  if(Math.abs(delta)<.0005)return 0;for(let i=index;i<ts.length;i++)ts[i].start+=delta;return delta;
+}
+function anchorOffset(seg,fraction=0,anchorType='track'){
+  const dur=segmentDuration(seg);if(anchorType==='segmentStart')return 0;if(anchorType==='segmentEnd')return dur;return dur*Math.max(0,Math.min(1,+fraction||0));
+}
+function alignAnchorTime(playerId,segId,fraction,anchorType,targetTime,startFloors={}){
+  if(anchorType==='start'||!segId)return 0;
+  const i=segmentIndexById(playerId,segId),seg=i>=0?playerTracks(playerId)[i]:null;if(!seg)return 0;
+  const current=seg.start+anchorOffset(seg,fraction,anchorType),want=Math.max(0,targetTime),moved=moveTrackFrom(playerId,i,want-current,startFloors);
+  return seg.start+anchorOffset(seg,fraction,anchorType);
+}
+function ensureFirstSegmentFloor(playerId,time,startFloors={}){
+  startFloors[playerId]=Math.max(startFloors[playerId]||0,Math.max(0,time));const ts=playerTracks(playerId);if(ts.length&&ts[0].start<startFloors[playerId])moveTrackFrom(playerId,0,startFloors[playerId]-ts[0].start,startFloors);
+}
+function normalizeActionTimeline(){
+  // alpha.6: bollens flygtid bestäms ENDAST av pass-/skottsträckan. Vi flyttar
+  // spelarnas tidsplacering eller passningens start – aldrig bollens hastighet – för synk.
+  ensureTrackTimingMeta();resetTrackSchedule();
+  const startFloors={};let owner=project.ballOwnerStart,ballReady=0;
+  const actions=[...project.actions].sort((a,b)=>(a.order??0)-(b.order??0));
+  for(let iter=0;iter<5;iter++){
+    owner=project.ballOwnerStart;ballReady=0;let changed=false;
+    for(let idx=0;idx<actions.length;idx++){
+      const a=actions[idx];a.order=idx;const physical=actionPhysicalDuration(a);a.duration=physical;a.fixedDuration=physical;
+      const fromType=a.fromAnchorType||(!a.fromSegId?'start':'track');
+      const toType=a.toAnchorType||(!a.toSegId?'start':'track');
+      let fromT=anchorTime(a.from,a.fromSegId,a.fromFraction,fromType),start=Math.max(ballReady,fromT,0);
+      // Om bollägaren ännu inte är redo vid en punkt på åkbanan flyttas banan senare så
+      // spelaren når punkten när bollen faktiskt finns tillgänglig.
+      if(fromType!=='start'&&a.fromSegId&&start>fromT+.001){
+        const before=anchorTime(a.from,a.fromSegId,a.fromFraction,fromType);alignAnchorTime(a.from,a.fromSegId,a.fromFraction,fromType,start,startFloors);const after=anchorTime(a.from,a.fromSegId,a.fromFraction,fromType);if(Math.abs(after-before)>.001)changed=true;fromT=after;start=Math.max(ballReady,fromT);
+      }
+      if(fromType==='start'){
+        // Utgående pass/skott från startpunkten får ske samtidigt som spelaren börjar röra sig.
+        ensureFirstSegmentFloor(a.from,start,startFloors);
+      }
+      let arrival=start+physical;
+      if(a.type==='pass'){
+        if(toType==='start'||!a.toSegId){
+          // Mottagning i ursprungsposition: spelaren lämnar inte punkten före mottagningen.
+          ensureFirstSegmentFloor(a.to,arrival,startFloors);
+        }else{
+          let targetT=anchorTime(a.to,a.toSegId,a.toFraction,toType);
+          if(targetT<arrival-.001){
+            // Mottagaren skulle vara för tidig: flytta dess bana senare till mötespunkten.
+            const before=targetT;targetT=alignAnchorTime(a.to,a.toSegId,a.toFraction,toType,arrival,startFloors);if(Math.abs(targetT-before)>.001)changed=true;
+          }else if(targetT>arrival+.001){
+            // Försök först flytta mottagarens bana TIDIGARE. Om det inte går (t.ex. start vid 0),
+            // väntar passaren med att slå passet. Bollens flyghastighet ändras aldrig.
+            const before=targetT;targetT=alignAnchorTime(a.to,a.toSegId,a.toFraction,toType,arrival,startFloors);if(Math.abs(targetT-before)>.001)changed=true;
+            if(targetT>arrival+.001){
+              const delayedStart=targetT-physical;
+              if(fromType==='start')ensureFirstSegmentFloor(a.from,delayedStart,startFloors);
+              else if(a.fromSegId){const b=anchorTime(a.from,a.fromSegId,a.fromFraction,fromType);alignAnchorTime(a.from,a.fromSegId,a.fromFraction,fromType,delayedStart,startFloors);if(Math.abs(anchorTime(a.from,a.fromSegId,a.fromFraction,fromType)-b)>.001)changed=true}
+              start=Math.max(ballReady,delayedStart);arrival=start+physical;
+              // Om source-ankaret tvingades ännu senare följer passet den faktiska punkttiden.
+              if(fromType!=='start'&&a.fromSegId){const actual=anchorTime(a.from,a.fromSegId,a.fromFraction,fromType);if(actual>start){start=actual;arrival=start+physical}}
+              targetT=anchorTime(a.to,a.toSegId,a.toFraction,toType);
+              if(targetT<arrival-.001){const b=targetT;alignAnchorTime(a.to,a.toSegId,a.toFraction,toType,arrival,startFloors);if(Math.abs(anchorTime(a.to,a.toSegId,a.toFraction,toType)-b)>.001)changed=true}
+            }
+          }
+          // Om mottagningen sker i en segment-slutpunkt får nästa delbana börja först vid mottagningen.
+          if(toType==='segmentEnd'){
+            const i=segmentIndexById(a.to,a.toSegId);if(i>=0&&i+1<playerTracks(a.to).length){const ns=playerTracks(a.to)[i+1];if(ns.start<arrival){moveTrackFrom(a.to,i+1,arrival-ns.start,startFloors);changed=true}}
+          }
+        }
+      }
+      a.start=start;a.fixedStart=start;a.duration=physical;a.fixedDuration=physical;
+      a.ownershipMismatch=!!(owner&&a.from!==owner);
+      if(a.type==='pass')owner=a.to;else if(a.type==='shot')owner=null;
+      ballReady=start+physical;
+    }
+    if(!changed)break;
+  }
+  // Sista pass utan fler geometriförskjutningar – uppdatera fasta tider och bollkedja.
+  owner=project.ballOwnerStart;ballReady=0;
+  for(let idx=0;idx<actions.length;idx++){
+    const a=actions[idx],fromType=a.fromAnchorType||(!a.fromSegId?'start':'track'),physical=actionPhysicalDuration(a);
+    let start=Math.max(ballReady,anchorTime(a.from,a.fromSegId,a.fromFraction,fromType),0);
+    if(fromType==='start')start=Math.max(start,startFloors[a.from]||0);
+    a.start=start;a.duration=physical;a.fixedStart=start;a.fixedDuration=physical;a.ownershipMismatch=!!(owner&&a.from!==owner);
+    if(a.type==='pass')owner=a.to;else owner=null;ballReady=start+physical;
+  }
+}
 function pointAtDistance(pts,d){if(!pts?.length)return null;if(pts.length===1)return pts[0];let remain=d;for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i],seg=Math.hypot(b.x-a.x,b.y-a.y);if(remain<=seg||i===pts.length-1){const u=seg?Math.max(0,Math.min(1,remain/seg)):0;return{x:a.x+(b.x-a.x)*u,y:a.y+(b.y-a.y)*u}}remain-=seg}return pts.at(-1)}
 function playerPos(id,t){const o=getObj(id);if(!o)return null;let pos={x:o.x,y:o.y};for(const seg of playerTracks(id)){const dur=segmentDuration(seg);if(t<seg.start)break;if(t>=seg.start+dur){pos={...seg.points.at(-1)};continue}const u=Math.max(0,Math.min(1,(t-seg.start)/dur));if(seg.recorded&&seg.samples?.length>1){const ms=u*(seg.samples.at(-1).t||1);let a=seg.samples[0],b=seg.samples.at(-1);for(let i=1;i<seg.samples.length;i++){if(seg.samples[i].t>=ms){a=seg.samples[i-1];b=seg.samples[i];break}}const span=Math.max(1,b.t-a.t),v=Math.max(0,Math.min(1,(ms-a.t)/span));return{x:a.x+(b.x-a.x)*v,y:a.y+(b.y-a.y)*v}}return pointAtDistance(seg.points,polyLength(seg.points)*u)||pos}return pos}
 function actionOwnerAt(t){let owner=project.ballOwnerStart;for(const a of [...project.actions].sort((a,b)=>a.start-b.start||(a.order??0)-(b.order??0))){if(t<a.start)break;if(t<a.start+a.duration)return null;if(a.type==='pass')owner=a.to;else if(a.type==='shot')owner=null}return owner}
@@ -482,27 +573,12 @@ function handleActionTrackPick(hit){
   addPassTrack(actionFirst,hit);actionFirst=null;actionMode=null;draftG.innerHTML='';syncModeButtons();
 }
 function addPassTrack(fromHit,toHit){
-  pushUndo();
-  const hadBall=!!firstBall();
-  ensureBall();
-  if(!project.ballOwnerStart&&project.actions.length===0)project.ballOwnerStart=fromHit.id;
-  const fromObj=getObj(fromHit.id),toObj=getObj(toHit.playerId);
-  const fromAnchor=clone(fromHit.anchor),toAnchor=clone(toHit.point);
-  const dist=Math.hypot(toAnchor.x-fromAnchor.x,toAnchor.y-fromAnchor.y);
-  const physicalDuration=Math.max(.22,Math.min(1.8,dist/PASS_SPEED));
-  // Ritbrädan är fri: valda hållpunkter får aldrig avvisas eller flyttas av tidslogiken.
-  // Tidpunkterna används som synkroniseringsönskemål. Om de krockar behålls geometrin och animationen löser det senare.
-  const ownerReady=latestPassArrival(fromHit.id);
-  const requestedStart=Math.max(0,+fromHit.time||0);
-  // En-bollsmodellen är kausal: senare bollhändelser läggs efter föregående, men de valda hållpunkterna ändras aldrig.
-  const start=Math.max(requestedStart,ownerReady,lastActionEnd());
-  const naturalArrival=+toHit.time||0;
-  const duration=naturalArrival>start+.08?Math.max(.12,naturalArrival-start):physicalDuration;
-  const timingAdjusted=Math.abs(start-requestedStart)>.05 || (naturalArrival>0&&Math.abs((start+duration)-naturalArrival)>.18);
-  const a={id:nextId('a'),type:'pass',from:fromHit.id,to:toHit.playerId,start,duration,fixedStart:start,fixedDuration:duration,anchorMode:'free',order:project.actions.length,fromAnchor,toAnchor,fromSegId:fromHit.segId,toSegId:toHit.segId,fromFraction:fromHit.fraction,toFraction:toHit.fraction,fromAnchorTime:+fromHit.time||0,toAnchorTime:naturalArrival,fromAnchorType:fromHit.anchorType||'track',toAnchorType:toHit.anchorType||'track',timingAdjusted};
+  pushUndo();ensureBall();if(!project.ballOwnerStart&&project.actions.length===0)project.ballOwnerStart=fromHit.id;
+  const fromObj=getObj(fromHit.id),toObj=getObj(toHit.playerId),fromAnchor=clone(fromHit.anchor),toAnchor=clone(toHit.point);
+  const dist=Math.hypot(toAnchor.x-fromAnchor.x,toAnchor.y-fromAnchor.y),duration=Math.max(.22,Math.min(1.8,dist/PASS_SPEED));
+  const a={id:nextId('a'),type:'pass',from:fromHit.id,to:toHit.playerId,start:Math.max(0,+fromHit.time||0),duration,fixedStart:Math.max(0,+fromHit.time||0),fixedDuration:duration,anchorMode:'free',order:project.actions.length,fromAnchor,toAnchor,fromSegId:fromHit.segId,toSegId:toHit.segId,fromFraction:fromHit.fraction,toFraction:toHit.fraction,fromAnchorTime:+fromHit.time||0,toAnchorTime:+toHit.time||0,fromAnchorType:fromHit.anchorType||'track',toAnchorType:toHit.anchorType||'track'};
   project.actions.push(a);normalizeActionTimeline();render();
-  const timingMsg=timingAdjusted?' Valda hållpunkter behålls; tidsmotorn har justerat synkroniseringen utan att ändra ritningen.':' Passningen behåller exakt de hållpunkter du valde.';
-  setStatus(`Pass ${fromObj?.label||''} → ${toObj?.label||''} skapad mellan valfria hållpunkter.${timingMsg}`);
+  setStatus(`Pass ${fromObj?.label||''} → ${toObj?.label||''} skapad. Passfarten hålls konstant; spelarnas timing synkas mot dina valda hållpunkter.`);
 }
 function closeDrawMenu(){if(!drawMenu)return;drawMenu.classList.remove('open');drawMenu.setAttribute('aria-hidden','true')}
 function toggleDrawMenu(){stopPlayback();cancelPresetDraft(false);const open=!drawMenu.classList.contains('open');closeDrawMenu();if(open){drawMenu.classList.add('open');drawMenu.setAttribute('aria-hidden','false');setStatus('Rita: välj frihand eller en formpreset. Båda skapar samma typ av redigerbar rörelsebana.',true)}}
@@ -576,41 +652,56 @@ function presetLocal(kind,L,W,B=0){
   }
   return pts;
 }
+function presetIsClosed(kind){return kind==='circle'||kind==='eightV'||kind==='infinity'}
+function presetForward(rot){const r=rot*Math.PI/180;return{x:Math.sin(r),y:-Math.cos(r)}}
+function resetPresetHandlesFromParams(d){
+  const f=presetForward(d.rot),n={x:-f.y,y:f.x};
+  d.endHandle={x:d.start.x+f.x*d.L,y:d.start.y+f.y*d.L};
+  let off=d.kind==='straight'?(d.B||0):Math.max(18,(d.W||90)/2);
+  if(d.kind==='arcLeft'||d.kind==='semiLeft')off=-Math.abs(off);else if(d.kind==='arcRight'||d.kind==='semiRight')off=Math.abs(off);
+  d.curveHandle={x:d.start.x+f.x*d.L*.5+n.x*off,y:d.start.y+f.y*d.L*.5+n.y*off};
+}
+function updatePresetParamsFromHandles(d,updateControls=false){
+  if(!d.endHandle||!d.curveHandle)resetPresetHandlesFromParams(d);
+  const dx=d.endHandle.x-d.start.x,dy=d.endHandle.y-d.start.y;d.L=Math.max(40,Math.min(440,Math.hypot(dx,dy)));d.rot=Math.atan2(dx,-dy)*180/Math.PI;
+  const f=presetForward(d.rot),n={x:-f.y,y:f.x},mx=d.start.x+f.x*d.L*.5,my=d.start.y+f.y*d.L*.5,signed=(d.curveHandle.x-mx)*n.x+(d.curveHandle.y-my)*n.y;
+  if(d.kind==='straight')d.B=Math.max(-220,Math.min(220,signed));else d.W=Math.max(24,Math.min(300,Math.abs(signed)*2));
+  if(updateControls){const baseRot=(project.orientation==='up'?0:180);$('presetLength').value=Math.round(d.L/10)*10;$('presetWidth').value=Math.round(d.W/10)*10;$('presetBend').value=Math.round((d.B||0)/5)*5;$('presetRotation').value=Math.max(-180,Math.min(180,Math.round((d.rot-baseRot)/5)*5));}
+}
 function presetPointsFromDraft(d=presetDraft){
-  if(!d)return[];return presetLocal(d.kind,d.L,d.W,d.B||0).map(q=>{const r=rotatePoint(q.x,q.y,d.rot);return clampPoint({x:d.start.x+r.x,y:d.start.y+r.y})});
+  if(!d)return[];updatePresetParamsFromHandles(d,false);
+  // Ingen punktvis clampning: den var orsaken till att former "fastnade" och hoppade nära rinkens kanter.
+  return presetLocal(d.kind,d.L,d.W,d.B||0).map(q=>{const r=rotatePoint(q.x,q.y,d.rot);return{x:d.start.x+r.x,y:d.start.y+r.y}});
 }
 function renderPresetDraft(){
-  if(!presetDraft)return;const pts=presetPointsFromDraft(),end=pts.at(-1),mid=pts[Math.floor(pts.length/2)]||end;
+  if(!presetDraft)return;if(!presetDraft.endHandle||!presetDraft.curveHandle)resetPresetHandlesFromParams(presetDraft);const pts=presetPointsFromDraft(),endH=presetDraft.endHandle,curveH=presetDraft.curveHandle;
   const formLabel=presetDraft.kind==='straight'?'↔':'↕';
-  draftG.innerHTML=`<g class="presetDraft"><path class="presetHitPath" data-preset-handle="move" d="${pathD(pts)}"/><path class="presetDraftPath" d="${pathD(pts)}" pointer-events="none"/>${arrowHeadMarkup(pts,'#7c3aed',10,2.5,.95)}<circle class="presetTouch" data-preset-handle="move" cx="${presetDraft.start.x}" cy="${presetDraft.start.y}" r="28"/><circle class="presetHandle start move" data-preset-handle="move" cx="${presetDraft.start.x}" cy="${presetDraft.start.y}" r="14"/><text class="presetHandleLabel" x="${presetDraft.start.x}" y="${presetDraft.start.y}">✥</text><circle class="presetTouch" data-preset-handle="end" cx="${end.x}" cy="${end.y}" r="28"/><circle class="presetHandle end" data-preset-handle="end" cx="${end.x}" cy="${end.y}" r="14"/><text class="presetHandleLabel" x="${end.x}" y="${end.y}">↗</text><circle class="presetTouch" data-preset-handle="curve" cx="${mid.x}" cy="${mid.y}" r="28"/><circle class="presetHandle curve" data-preset-handle="curve" cx="${mid.x}" cy="${mid.y}" r="14"/><text class="presetHandleLabel" x="${mid.x}" y="${mid.y}">${formLabel}</text></g>`;
+  draftG.innerHTML=`<g class="presetDraft"><path class="presetHitPath" data-preset-handle="move" d="${pathD(pts)}"/><path class="presetDraftPath" d="${pathD(pts)}" pointer-events="none"/>${arrowHeadMarkup(pts,'#7c3aed',10,2.5,.95)}<circle class="presetTouch" data-preset-handle="move" cx="${presetDraft.start.x}" cy="${presetDraft.start.y}" r="32"/><circle class="presetHandle start move" data-preset-handle="move" cx="${presetDraft.start.x}" cy="${presetDraft.start.y}" r="14"/><text class="presetHandleLabel" x="${presetDraft.start.x}" y="${presetDraft.start.y}">✥</text><circle class="presetTouch" data-preset-handle="end" cx="${endH.x}" cy="${endH.y}" r="32"/><circle class="presetHandle end" data-preset-handle="end" cx="${endH.x}" cy="${endH.y}" r="14"/><text class="presetHandleLabel" x="${endH.x}" y="${endH.y}">↗</text><circle class="presetTouch" data-preset-handle="curve" cx="${curveH.x}" cy="${curveH.y}" r="32"/><circle class="presetHandle curve" data-preset-handle="curve" cx="${curveH.x}" cy="${curveH.y}" r="14"/><text class="presetHandleLabel" x="${curveH.x}" y="${curveH.y}">${formLabel}</text></g>`;
 }
 function loadPresetSegmentForEdit(playerId,segId){
-  const o=getObj(playerId),ts=playerTracks(playerId),seg=ts.find(x=>x.id===segId);
-  if(!o||!seg?.presetShape)return false;
-  stopPlayback();pathMode=false;actionMode=null;actionFirst=null;recordMode=false;groupMode=false;selectedId=playerId;
-  const baseRot=(project.orientation==='up'?0:180),sh=seg.presetShape;
+  const o=getObj(playerId),ts=playerTracks(playerId),seg=ts.find(x=>x.id===segId);if(!o||!seg?.presetShape)return false;
+  stopPlayback();pathMode=false;actionMode=null;actionFirst=null;recordMode=false;groupMode=false;selectedId=playerId;const baseRot=(project.orientation==='up'?0:180),sh=seg.presetShape;
   $('presetKind').value=sh.kind||seg.preset||'straight';$('presetLength').value=Math.round(sh.L||180);$('presetWidth').value=Math.round(sh.W||90);$('presetBend').value=Math.round(sh.B||0);$('presetRotation').value=Math.max(-180,Math.min(180,Math.round(((sh.rot??baseRot)-baseRot)/5)*5));
   for(const q of $('presetQuickGrid').querySelectorAll('button'))q.classList.toggle('active',q.dataset.preset===$('presetKind').value);
   presetDraft={playerId:o.id,start:clone(seg.points?.[0]||{x:o.x,y:o.y}),kind:sh.kind||seg.preset||'straight',L:+sh.L||180,W:+sh.W||90,B:+sh.B||0,rot:Number.isFinite(+sh.rot)?+sh.rot:baseRot,editSegId:seg.id,oldEnd:clone(seg.points?.at(-1)||{x:o.x,y:o.y})};
-  openProperties();renderPresetDraft();syncModeButtons();setStatus('Preset markerad för redigering. Dra linjen/handtagen och tryck ✓ Bekräfta preset.');
-  setTimeout(()=>$('presetCard')?.scrollIntoView({block:'nearest',behavior:'smooth'}),20);return true;
+  if(sh.geom?.endHandle&&sh.geom?.curveHandle){presetDraft.endHandle=clone(sh.geom.endHandle);presetDraft.curveHandle=clone(sh.geom.curveHandle)}else resetPresetHandlesFromParams(presetDraft);
+  openProperties();renderPresetDraft();syncModeButtons();setStatus('Preset markerad. Dra hela linjen eller dess stora handtag; formen ligger kvar exakt där du släpper den.');setTimeout(()=>$('presetCard')?.scrollIntoView({block:'nearest',behavior:'smooth'}),20);return true;
 }
 function editLastPreset(){
-  const o=getObj(selectedId);if(!o||o.type!=='player'){setStatus('Markera först en spelare med en presetbana.');return}
-  const seg=[...playerTracks(o.id)].reverse().find(x=>x.presetShape);if(!seg){setStatus('Den valda spelaren har ingen presetbana att redigera.');return}
-  loadPresetSegmentForEdit(o.id,seg.id);
+  const o=getObj(selectedId);if(!o||o.type!=='player'){setStatus('Markera först en spelare med en presetbana.');return}const seg=[...playerTracks(o.id)].reverse().find(x=>x.presetShape);if(!seg){setStatus('Den valda spelaren har ingen presetbana att redigera.');return}loadPresetSegmentForEdit(o.id,seg.id);
 }
 function createPresetDraft(){
-  const o=getObj(selectedId);if(!o||o.type!=='player'){presetDraft=null;draftG.innerHTML='';return false}
-  const baseRot=(project.orientation==='up'?0:180),start=lastTrackEndPoint(o.id);
-  presetDraft={playerId:o.id,start:clone(start),kind:$('presetKind').value,L:+$('presetLength').value||180,W:+$('presetWidth').value||90,B:+$('presetBend').value||0,rot:(+$('presetRotation').value||0)+baseRot};renderPresetDraft();return true;
+  const o=getObj(selectedId);if(!o||o.type!=='player'){presetDraft=null;draftG.innerHTML='';return false}const baseRot=(project.orientation==='up'?0:180),start=lastTrackEndPoint(o.id);
+  presetDraft={playerId:o.id,start:clone(start),kind:$('presetKind').value,L:+$('presetLength').value||180,W:+$('presetWidth').value||90,B:+$('presetBend').value||0,rot:(+$('presetRotation').value||0)+baseRot};resetPresetHandlesFromParams(presetDraft);renderPresetDraft();return true;
 }
-function syncPresetDraftFromControls(){if(!presetDraft)return;const baseRot=(project.orientation==='up'?0:180);presetDraft.kind=$('presetKind').value;presetDraft.L=+$('presetLength').value||180;presetDraft.W=+$('presetWidth').value||90;presetDraft.B=+$('presetBend').value||0;presetDraft.rot=(+$('presetRotation').value||0)+baseRot;renderPresetDraft()}
+function syncPresetDraftFromControls(){
+  if(!presetDraft)return;const baseRot=(project.orientation==='up'?0:180);presetDraft.kind=$('presetKind').value;presetDraft.L=+$('presetLength').value||180;presetDraft.W=+$('presetWidth').value||90;presetDraft.B=+$('presetBend').value||0;presetDraft.rot=(+$('presetRotation').value||0)+baseRot;resetPresetHandlesFromParams(presetDraft);renderPresetDraft();
+}
 function cancelPresetDraft(showMsg=true){presetDraft=null;presetDragging=null;if(!actionFirst&&!drawingPath)draftG.innerHTML='';if(showMsg)setStatus('Preset avbruten.')}
 function addPreset(){
   const o=getObj(selectedId);if(!o||o.type!=='player'){setStatus('Markera en spelare innan du lägger till en rörelse-preset.');return}
   stopPlayback();if(!presetDraft||presetDraft.playerId!==o.id)createPresetDraft();if(!presetDraft)return;pushUndo();
-  const pts=smoothPoints(presetPointsFromDraft()),shape={kind:presetDraft.kind,L:presetDraft.L,W:presetDraft.W,B:presetDraft.B||0,rot:presetDraft.rot};
+  const pts=smoothPoints(presetPointsFromDraft()),shape={kind:presetDraft.kind,L:presetDraft.L,W:presetDraft.W,B:presetDraft.B||0,rot:presetDraft.rot,geom:{endHandle:clone(presetDraft.endHandle),curveHandle:clone(presetDraft.curveHandle)}};
   if(presetDraft.editSegId){
     const ts=playerTracks(o.id),i=ts.findIndex(x=>x.id===presetDraft.editSegId);
     if(i>=0){
@@ -628,7 +719,7 @@ function addPreset(){
 }
 function openProperties(){properties.classList.add('open');$('propertyBackdrop')?.classList.add('open')}
 function closeProperties(){properties.classList.remove('open');$('propertyBackdrop')?.classList.remove('open');properties.style.transform=''}
-function openPresetPanel(){closeDrawMenu();stopPlayback();pathMode=false;actionMode=null;actionFirst=null;recordMode=false;groupMode=false;syncModeButtons();openProperties();const o=getObj(selectedId);if(!o||o.type!=='player'){cancelPresetDraft(false);setStatus('Markera först spelaren som ska få preset.');}else{if(!presetDraft||presetDraft.playerId!==o.id)createPresetDraft();else renderPresetDraft();setStatus('Preset visas på planen. Dra turkost handtag/linjen för att flytta, blått för riktning/längd och lila för böjning/bredd. ✓ när du är nöjd.',true)}setTimeout(()=>$('presetCard')?.scrollIntoView({block:'nearest',behavior:'smooth'}),20)}
+function openPresetPanel(){closeDrawMenu();stopPlayback();pathMode=false;actionMode=null;actionFirst=null;recordMode=false;groupMode=false;syncModeButtons();openProperties();const o=getObj(selectedId);if(!o||o.type!=='player'){cancelPresetDraft(false);setStatus('Markera först spelaren som ska få preset.');}else{if(!presetDraft||presetDraft.playerId!==o.id)createPresetDraft();else renderPresetDraft();setStatus('Preset visas på planen. Dra själva linjen för att flytta hela formen; blått handtag flyttar slutet och lila formar kurvan. Formen ska stanna exakt där du släpper den.',true)}setTimeout(()=>$('presetCard')?.scrollIntoView({block:'nearest',behavior:'smooth'}),20)}
 function beginRecordMode(){closeDrawMenu();stopPlayback();cancelPresetDraft(false);const o=getObj(selectedId);if(!o||o.type!=='player'){setStatus('Markera spelaren du vill spela in först.');return}pathMode=false;actionMode=null;groupMode=false;recordMode=!recordMode;document.querySelector('.app').classList.toggle('is-recording',recordMode);syncModeButtons();setStatus(recordMode?'● REC redo. Dra den markerade spelaren. Övriga inspelade spelare spelas samtidigt som referens.':'REC avbruten.',recordMode)}
 function smoothRecordedSamples(samples){if(samples.length<3)return samples;const out=[samples[0]];for(let i=1;i<samples.length-1;i++){const a=samples[i-1],b=samples[i],c=samples[i+1];out.push({x:(a.x+2*b.x+c.x)/4,y:(a.y+2*b.y+c.y)/4,t:b.t})}out.push(samples.at(-1));return out}
 function recordFrame(now){if(!recording)return;const t=Math.max(0,(now-recording.startPerf)/1000),obs=objectsAt(t),po=obs.find(o=>o.id===recording.playerId);if(po){po.x=recording.current.x;po.y=recording.current.y;applyLinkedGroups(obs,t);ballStateAt(t,obs);applyGoalkeeperTracking(obs)}renderObjects(obs);if($('playView').value==='lines'){renderPaths(false);renderActions()}recordRaf=requestAnimationFrame(recordFrame)}
@@ -650,7 +741,7 @@ stage.addEventListener('pointermove',e=>{if(e.pointerType==='touch'&&touchPoints
 function endTouchCamera(e){if(e.pointerType==='touch'){touchPoints.delete(e.pointerId);if(touchPoints.size<2)cameraGesture=null}}
 stage.addEventListener('pointerup',endTouchCamera);stage.addEventListener('pointercancel',endTouchCamera);
 stage.addEventListener('pointerdown',e=>{if(cameraGesture||touchPoints.size>=2)return;if(playing)return;closeDrawMenu();const p=clampPoint(getSvgPoint(e));const node0=e.target.closest?.('.obj');const obj0=node0?getObj(node0.dataset.id):null;const presetHandle=e.target.closest?.('[data-preset-handle]');if(presetDraft&&presetHandle){e.preventDefault();presetDragging={handle:presetHandle.dataset.presetHandle,pointerId:e.pointerId,start:p,orig:clone(presetDraft)};stage.setPointerCapture?.(e.pointerId);return}const endpoint0=e.target.closest?.('.endpoint');if(endpoint0){const eo=getObj(endpoint0.dataset.endpointId);if(eo){e.preventDefault();selectedId=eo.id;const ep=lastTrackEndPoint(eo.id);if(actionMode){handleActionTrackPick({player:eo,playerId:eo.id,point:ep,time:trackEndTime(eo.id),segId:playerTracks(eo.id).at(-1)?.id||null,fraction:1,anchorType:'segmentEnd'});return}renderObjects();syncSelectedControls();setStatus(`Slutpunkten för ${eo.label||'spelaren'} är markerad. Välj Pass, Skott eller Rita för att bygga vidare härifrån.`,true);return}}if(actionMode){const hit=nearestTrackPoint(p,e.pointerType==='touch'?78:52);if(hit){e.preventDefault();handleActionTrackPick(hit);return}}if(recordMode){if(!obj0||obj0.type!=='player'||obj0.id!==selectedId){setStatus('REC: dra den markerade spelaren.',true);return}e.preventDefault();startRecordingDrag(obj0,e);return}if(groupMode&&obj0){e.preventDefault();if(!groupSelection.has(obj0.id)){groupSelection.add(obj0.id);selectedId=obj0.id;renderObjects();syncModeButtons();setStatus(`${groupSelection.size} objekt markerade.`,true);return}pushUndo();const q=getSvgPoint(e);dragging={group:true,anchorId:obj0.id,start:{x:q.x,y:q.y},lastDx:0,lastDy:0,moved:false};stage.setPointerCapture?.(e.pointerId);return}if(pathMode){const hit=nearestPathAnchor(p);if(!hit){setStatus('Börja genom att lägga fingret på spelaren eller spelarens tonade slutmarkering.',true);return}e.preventDefault();selectedId=hit.o.id;const start=nextTrackStart(hit.o.id);drawingPath={playerId:hit.o.id,start,speed:defaultPathSpeed,points:[{...hit.a},p]};stage.setPointerCapture?.(e.pointerId);draftG.innerHTML=`<path d="${pathD(drawingPath.points)}" fill="none" stroke="${hit.o.color}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity=".68"/>`;renderObjects();syncSelectedControls();return}const savedPreset=e.target.closest?.('[data-edit-preset]');if(savedPreset&&!actionMode&&!pathMode&&!recordMode&&!groupMode){e.preventDefault();loadPresetSegmentForEdit(savedPreset.dataset.playerId,savedPreset.dataset.editPreset);return}const node=e.target.closest?.('.obj');if(!node){selectedId=null;renderObjects();syncSelectedControls();return}const o=getObj(node.dataset.id);if(!o)return;if(actionMode){handleActionPick(o,{x:o.x,y:o.y});return}selectedId=o.id;if(o.type==='ball'&&project.ballOwnerStart){setStatus('Bollen sitter hos bollhållaren. Markera spelaren och välj Släpp boll för att flytta bollen fritt.');renderObjects();syncSelectedControls();return}if(o.type==='goalkeeper'&&o.followBall!==false){setStatus('Målvakten följer bollen automatiskt. Stäng av Följ boll under Val för manuell flytt.');renderObjects();syncSelectedControls();return}pushUndo();const q=getSvgPoint(e);dragging={id:o.id,dx:o.x-q.x,dy:o.y-q.y,startX:o.x,startY:o.y};stage.setPointerCapture?.(e.pointerId);renderObjects();syncSelectedControls()})
-stage.addEventListener('pointermove',e=>{if(cameraGesture)return;if(presetDragging&&e.pointerId===presetDragging.pointerId&&presetDraft){e.preventDefault();const p=clampPoint(getSvgPoint(e)),d=presetDraft;if(presetDragging.handle==='move'){const dx=p.x-presetDragging.start.x,dy=p.y-presetDragging.start.y;d.start=clampPoint({x:presetDragging.orig.start.x+dx,y:presetDragging.orig.start.y+dy});}else if(presetDragging.handle==='end'){const dx=p.x-d.start.x,dy=p.y-d.start.y;d.L=Math.max(70,Math.min(360,Math.hypot(dx,dy)));d.rot=Math.atan2(dy,dx)*180/Math.PI+90;const baseRot=(project.orientation==='up'?0:180);$('presetLength').value=Math.round(d.L/10)*10;$('presetRotation').value=Math.max(-180,Math.min(180,Math.round((d.rot-baseRot)/5)*5));}else if(presetDragging.handle==='curve'){const ex=Math.sin(d.rot*Math.PI/180),ey=-Math.cos(d.rot*Math.PI/180),mx=d.start.x+ex*d.L*.5,my=d.start.y+ey*d.L*.5,nx=-ey,ny=ex;const signed=(p.x-mx)*nx+(p.y-my)*ny;if(d.kind==='straight'){d.B=Math.max(-180,Math.min(180,signed));$('presetBend').value=Math.round(d.B/5)*5;}else{const perp=Math.abs(signed);d.W=Math.max(30,Math.min(220,perp*2));$('presetWidth').value=Math.round(d.W/10)*10;}}renderPresetDraft();return}if(recording&&e.pointerId===recording.pointerId){e.preventDefault();const p=clampPoint(getSvgPoint(e)),last=recording.samples.at(-1),t=Math.round(performance.now()-recording.startPerf);recording.current={x:p.x,y:p.y};if(Math.hypot(p.x-last.x,p.y-last.y)>2.5||t-last.t>35)recording.samples.push({x:p.x,y:p.y,t});return}if(drawingPath){e.preventDefault();const p=clampPoint(getSvgPoint(e)),q=drawingPath.points.at(-1);if(Math.hypot(p.x-q.x,p.y-q.y)>4){drawingPath.points.push(p);const o=getObj(drawingPath.playerId);draftG.innerHTML=`<path d="${pathD(drawingPath.points)}" fill="none" stroke="${o?.color||'#1769e8'}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity=".68"/>`}return}if(!dragging)return;if(dragging.group){const q=getSvgPoint(e),dx=q.x-dragging.start.x,dy=q.y-dragging.start.y,ix=dx-dragging.lastDx,iy=dy-dragging.lastDy;if(Math.hypot(dx,dy)>3)dragging.moved=true;for(const id of groupSelection){const go=getObj(id);if(!go)continue;const b=boundsFor(go);go.x=Math.max(b.minX,Math.min(b.maxX,go.x+ix));go.y=Math.max(b.minY,Math.min(b.maxY,go.y+iy));if(go.type==='player')translatePlayerTrack(id,ix,iy)}dragging.lastDx=dx;dragging.lastDy=dy;renderObjects();renderPaths();renderActions();return}const o=getObj(dragging.id);if(!o)return;const p=getSvgPoint(e),b=boundsFor(o),x=Math.max(b.minX,Math.min(b.maxX,p.x+dragging.dx)),y=Math.max(b.minY,Math.min(b.maxY,p.y+dragging.dy)),dx=x-o.x,dy=y-o.y;o.x=x;o.y=y;if(o.type==='player')translatePlayerTrack(o.id,dx,dy);renderObjects();renderPaths();renderActions()})
+stage.addEventListener('pointermove',e=>{if(cameraGesture)return;if(presetDragging&&e.pointerId===presetDragging.pointerId&&presetDraft){e.preventDefault();const p=clampPoint(getSvgPoint(e)),d=presetDraft;if(!d.endHandle||!d.curveHandle)resetPresetHandlesFromParams(d);if(presetDragging.handle==='move'){const dx=p.x-presetDragging.start.x,dy=p.y-presetDragging.start.y;d.start={x:presetDragging.orig.start.x+dx,y:presetDragging.orig.start.y+dy};d.endHandle={x:presetDragging.orig.endHandle.x+dx,y:presetDragging.orig.endHandle.y+dy};d.curveHandle={x:presetDragging.orig.curveHandle.x+dx,y:presetDragging.orig.curveHandle.y+dy};}else if(presetDragging.handle==='end'){d.endHandle={x:p.x,y:p.y};updatePresetParamsFromHandles(d,true);}else if(presetDragging.handle==='curve'){d.curveHandle={x:p.x,y:p.y};updatePresetParamsFromHandles(d,true);}renderPresetDraft();return}if(recording&&e.pointerId===recording.pointerId){e.preventDefault();const p=clampPoint(getSvgPoint(e)),last=recording.samples.at(-1),t=Math.round(performance.now()-recording.startPerf);recording.current={x:p.x,y:p.y};if(Math.hypot(p.x-last.x,p.y-last.y)>2.5||t-last.t>35)recording.samples.push({x:p.x,y:p.y,t});return}if(drawingPath){e.preventDefault();const p=clampPoint(getSvgPoint(e)),q=drawingPath.points.at(-1);if(Math.hypot(p.x-q.x,p.y-q.y)>4){drawingPath.points.push(p);const o=getObj(drawingPath.playerId);draftG.innerHTML=`<path d="${pathD(drawingPath.points)}" fill="none" stroke="${o?.color||'#1769e8'}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity=".68"/>`}return}if(!dragging)return;if(dragging.group){const q=getSvgPoint(e),dx=q.x-dragging.start.x,dy=q.y-dragging.start.y,ix=dx-dragging.lastDx,iy=dy-dragging.lastDy;if(Math.hypot(dx,dy)>3)dragging.moved=true;for(const id of groupSelection){const go=getObj(id);if(!go)continue;const b=boundsFor(go);go.x=Math.max(b.minX,Math.min(b.maxX,go.x+ix));go.y=Math.max(b.minY,Math.min(b.maxY,go.y+iy));if(go.type==='player')translatePlayerTrack(id,ix,iy)}dragging.lastDx=dx;dragging.lastDy=dy;renderObjects();renderPaths();renderActions();return}const o=getObj(dragging.id);if(!o)return;const p=getSvgPoint(e),b=boundsFor(o),x=Math.max(b.minX,Math.min(b.maxX,p.x+dragging.dx)),y=Math.max(b.minY,Math.min(b.maxY,p.y+dragging.dy)),dx=x-o.x,dy=y-o.y;o.x=x;o.y=y;if(o.type==='player')translatePlayerTrack(o.id,dx,dy);renderObjects();renderPaths();renderActions()})
 stage.addEventListener('pointerup',e=>{if(presetDragging&&e.pointerId===presetDragging.pointerId){presetDragging=null;renderPresetDraft();return}if(recording&&e.pointerId===recording.pointerId){const p=clampPoint(getSvgPoint(e)),t=Math.round(performance.now()-recording.startPerf);recording.samples.push({x:p.x,y:p.y,t});finishRecording();return}if(drawingPath){finishDrawPath();return}if(dragging){if(dragging.group&&!dragging.moved){groupSelection.delete(dragging.anchorId);dragging=null;renderObjects();syncModeButtons();return}const o=getObj(dragging.id);if(o?.type==='goalkeeper')o.goalSide=o.y<550?'top':'bottom';dragging=null;render()}});stage.addEventListener('pointercancel',()=>{presetDragging=null;if(recording){cancelAnimationFrame(recordRaf);recording=null;recordMode=false;document.querySelector('.app').classList.remove('is-recording')}drawingPath=null;dragging=null;draftG.innerHTML='';syncModeButtons();if(pathMode)setStatus('Ritningen avbröts. Dra på nytt.',true)})
 
 function renderPlaybackGuides(){
@@ -728,7 +819,7 @@ $('propertyBackdrop').addEventListener('click',closeProperties);let sheetDrag=nu
 window.addEventListener('resize',updateAppHeight);window.visualViewport?.addEventListener('resize',updateAppHeight);window.visualViewport?.addEventListener('scroll',updateAppHeight);updateAppHeight();
 window.addEventListener('keydown',e=>{if((e.key==='Delete'||e.key==='Backspace')&&!/INPUT|TEXTAREA/.test(document.activeElement?.tagName))deleteSelected();if(e.key===' '&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)){e.preventDefault();play()}if(e.key==='Escape'){if(presentation)exitPresentationMode();else cancelModes();}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo()}});
 
-render();$('undo').disabled=true;updateAppHeight();setTimeout(fitEverything,30);setStatus('v1.0-alpha.5: händelser vid start/slut håller spelaren kvar tills momentet är klart · Rita samlar frihand och presets.');
+render();$('undo').disabled=true;updateAppHeight();setTimeout(fitEverything,30);setStatus('v1.0-alpha.6: fast passfart + synkroniserade mötespunkter · presets använder stabila absoluta handtag.');
 })();
 </script>
 </body>
