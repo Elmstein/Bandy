@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f8fafc">
-<title>Bandyövningar v1.0-alpha.7 – fri tidstyrning</title>
+<title>Bandyövningar v1.0-alpha.8 – fri tidstyrning</title>
 <style>
 :root{
   --bg:#eef3f8;--panel:#fff;--panel2:#f8fafc;--line:#d7e0ea;--text:#0f172a;--muted:#64748b;
@@ -163,7 +163,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
 <body>
 <div class="app">
 <header class="topbar">
-  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.7 · fri tidstyrning</small></div></div>
+  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.8 · bollflöde och mottagning i farten</small></div></div>
   <div class="topControls">
     <select id="rinkMode" aria-label="Planvy"><option value="full">Helplan</option><option value="half">Halvplan</option></select>
     <select id="orientation" aria-label="Anfallsriktning"><option value="up">Anfall uppåt</option><option value="down">Anfall nedåt</option></select>
@@ -238,7 +238,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
       <h3>Rita rörelse</h3>
       <div class="modeGrid"><button id="pathMode" class="mini primary wide">✏️ Frihand / fortsätt bana</button><button id="redrawPath" class="mini">Rita om allt</button><button id="deleteLastPath" class="mini danger">Ta bort sista del</button></div>
       <div id="pathState" class="pathState"><strong>Ingen fasindelning.</strong><br>Varje ny del fortsätter där spelarens senaste bana slutade.</div>
-      <div id="motionSettings" class="motionSettings" hidden><div class="field"><label>Välj åkdel att tidsstyra</label><select id="timingSegment"></select></div><div class="field"><label>När ska åkningen börja?</label><select id="timingMode"><option value="auto">Automatiskt – behåll startpunktshändelser</option><option value="direct">Direkt / efter föregående åkdel</option><option value="passRelease">När en passning slås</option><option value="passArrival">När en passning tas emot</option><option value="delay">Efter vald fördröjning</option></select></div><div class="field" id="timingEventRow" hidden><label>Passning som startvillkor</label><select id="timingEvent"></select></div><div class="field" id="timingDelayRow" hidden><label>Extra fördröjning (sekunder)</label><input type="number" id="timingDelay" min="0" max="60" step="0.1" value="0" inputmode="decimal"></div><div class="hint" id="timingInfo">Ingen åkning vald.</div><div class="hint">Om en passning inte kan sammanfalla med punkten utan konflikt visas ⚠ Timing i händelselistan, i stället för att åkningen ändras i smyg.</div><div class="field"><label>Fart nästa/sista del</label><select id="pathSpeed"><option value="0.75">Lugn</option><option value="1" selected>Normal</option><option value="1.25">Snabb</option><option value="1.5">Mycket snabb</option></select></div><div class="field"><label>Fördröjning före nästa del</label><select id="pathDelay"><option value="0" selected>Ingen</option><option value="0.25">+0,25 s</option><option value="0.5">+0,50 s</option><option value="0.75">+0,75 s</option><option value="1">+1,00 s</option></select></div></div>
+      <div id="motionSettings" class="motionSettings" hidden><div class="field"><label>Välj åkdel att tidsstyra</label><select id="timingSegment"></select></div><div class="field"><label>När ska åkningen börja?</label><select id="timingMode"><option value="auto">Automatiskt – behåll startpunktshändelser</option><option value="direct">Direkt / efter föregående åkdel</option><option value="passRelease">När en passning slås</option><option value="passArrival">När en passning tas emot</option><option value="delay">Efter vald fördröjning</option></select></div><div class="field" id="timingEventRow" hidden><label>Passning som startvillkor</label><select id="timingEvent"></select></div><div class="field" id="timingDelayRow" hidden><label>Extra fördröjning (sekunder)</label><input type="number" id="timingDelay" min="0" max="60" step="0.1" value="0" inputmode="decimal"></div><div class="hint" id="timingInfo">Ingen åkning vald.</div><div class="hint">Passningar till en åkbana möter som standard spelaren i farten. Välj ↗ I farten/📍 Exakt i händelselistan om du vill låsa den valda punkten. Ett skott utan boll markeras och animeras inte.</div><div class="field"><label>Fart nästa/sista del</label><select id="pathSpeed"><option value="0.75">Lugn</option><option value="1" selected>Normal</option><option value="1.25">Snabb</option><option value="1.5">Mycket snabb</option></select></div><div class="field"><label>Fördröjning före nästa del</label><select id="pathDelay"><option value="0" selected>Ingen</option><option value="0.25">+0,25 s</option><option value="0.5">+0,50 s</option><option value="0.75">+0,75 s</option><option value="1">+1,00 s</option></select></div></div>
     </div>
     <div class="card" id="presetCard">
       <h3>Formpresets</h3>
@@ -356,103 +356,116 @@ function alignAnchorTime(playerId,segId,fraction,anchorType,targetTime,startFloo
 function ensureFirstSegmentFloor(playerId,time,startFloors={}){
   startFloors[playerId]=Math.max(startFloors[playerId]||0,Math.max(0,time));const ts=playerTracks(playerId);if(ts.length&&ts[0].start<startFloors[playerId])moveTrackFrom(playerId,0,startFloors[playerId]-ts[0].start,startFloors);
 }
-// v1.0-alpha.7: rörelsebanornas tidsättning och bollhändelser är separata.
-// En mottagning längre fram på banan får ALDRIG försena en hel tidigare åkning.
+// v1.0-alpha.8: Deterministisk tidsplanering.
+// Spelare ritas oberoende av när en passning skapas. Bollen och startpunkthändelser
+// påverkar endast berörda spelare, aldrig en tidigare orelaterad bollhändelse.
 function normalizeActionTimeline(){
   ensureTrackTimingMeta();
-  const actions=[...project.actions].sort((a,b)=>(a.order??0)-(b.order??0));
   timingWarnings=[];
-  const firstFloors={};
-  const isStart=a=>a==='start';
-  const aType=(a,side)=>a[side+'AnchorType']||(!a[side+'SegId']?'start':'track');
-  const arrivalReady=(a)=>a.start+a.duration;
-  function layoutTracks(){
+  const actions=[...project.actions].sort((a,b)=>(a.order??0)-(b.order??0));
+  const relevant=(id)=>project.objects.some(o=>o.id===id&&o.type==='player');
+  const ty=(a,side)=>a[side+'AnchorType']||(!a[side+'SegId']?'start':'track');
+  const isAtStart=(a,side)=>ty(a,side)==='start';
+  // Bevara användarens ritning. Bara framåtreferenser till faser som faktiskt har
+  // passningstid får påverka ett annat spår.
+  const floors=new Map(),times=new Map();
+  const keys=(k)=>floors.get(k)||0;
+  function setFloor(id,t){if(!relevant(id)||!Number.isFinite(t))return;floors.set(id,Math.max(keys(id),t))}
+  function layout(passesSoFar){
     for(const o of project.objects.filter(o=>o.type==='player')){
-      let prevEnd=0;
-      for(const [idx,seg] of playerTracks(o.id).entries()){
-        const mode=seg.startMode||'auto';let start=prevEnd+Math.max(0,+seg.baseDelay||0);
-        if(idx===0)start=Math.max(start,0);
-        if(mode==='delay')start=Math.max(start,(idx===0?0:prevEnd)+Math.max(0,+seg.startDelay||0));
-        if((mode==='passRelease'||mode==='passArrival')&&seg.startEventId){
-          const event=actions.find(a=>a.id===seg.startEventId&&a.type==='pass');
-          // Använd senast beräknade pass-tider; en saknad händelse ger noll fördröjning.
-          if(event){
-            const when=mode==='passArrival'?event.start+event.duration:event.start;
-            start=Math.max(start,when+Math.max(0,+seg.startDelay||0));
-          }
+      const ts=playerTracks(o.id);let prevEnd=0;
+      for(const [i,seg] of ts.entries()){
+        let val=prevEnd+Math.max(0,+seg.baseDelay||0);
+        const mode=seg.startMode||'auto';
+        if(mode==='delay')val=Math.max(val,prevEnd+Math.max(0,+seg.startDelay||0));
+        if(mode==='passRelease'||mode==='passArrival'){
+          const a=passesSoFar.get(seg.startEventId);
+          if(a){val=Math.max(val,(mode==='passRelease'?a.start:a.start+a.duration)+Math.max(0,+seg.startDelay||0))}
         }
-        // Ursprungspunktens mottagning/pass kräver närvaro, så länge auto är valt.
-        if(idx===0&&mode==='auto')start=Math.max(start,firstFloors[o.id]||0);
-        seg.start=start;prevEnd=start+segmentDuration(seg);
+        if(i===0&&mode==='auto')val=Math.max(val,keys(o.id));
+        seg.start=val;prevEnd=val+segmentDuration(seg);
       }
     }
   }
-  // Börja med redan ritade banors egna tidpunkter. Action-tid från importerad JSON
-  // används bara för existerande explicit händelsestyrda startvillkor.
-  layoutTracks();
-  let previousTimes='';
-  for(let iteration=0;iteration<12;iteration++){
-    let ballReady=0,owner=project.ballOwnerStart;
-    const nextFloors={};
-    for(let idx=0;idx<actions.length;idx++){
-      const a=actions[idx];a.order=idx;
-      const physical=actionPhysicalDuration(a);a.duration=physical;a.fixedDuration=physical;
-      const sourceType=aType(a,'from'),targetType=aType(a,'to');
-      const sourceAt=anchorTime(a.from,a.fromSegId,a.fromFraction,sourceType);
-      const targetAt=a.type==='pass'?anchorTime(a.to,a.toSegId,a.toFraction,targetType):0;
-      let start=Math.max(0,ballReady,sourceAt);
-      // Mötespunkter på en rörlig spelare väljs på banan. Om möjligt väntar passaren
-      // vid sin hållpunkt så bollen möter mottagaren exakt där, utan att ändra åktider.
-      if(a.type==='pass'&&targetType!=='start'&&a.toSegId){
-        // Mottagaren rör sig; vid för sent pass flaggar vi i stället för att kasta om banorna.
-        start=Math.max(start,targetAt-physical);
+  // Ett äldre projekt kan ha tvingat fram långa startförskjutningar. Nollställ
+  // dem innan vi bygger en ny kausal ordning, annars lever de kvar vid import.
+  layout(times);
+  let ballReady=0,owner=project.ballOwnerStart||actions.find(a=>a.type==='pass')?.from||null;
+  for(let idx=0;idx<actions.length;idx++){
+    const a=actions[idx];a.order=idx;
+    delete a.effectiveToAnchor;delete a.effectiveFromAnchor;
+    delete a.timingConflict;delete a.timingNote;
+    const fromType=ty(a,'from'),toType=ty(a,'to');
+    const fromSegment=segmentById(a.from,a.fromSegId);
+    // Gamla versioner sparade ibland ett skott från banans slutpunkt som ett
+    // omarkerat 'start'-ankare. Återknyt geometrin utan att flytta den.
+    if(a.type==='shot'&&!a.fromSegId&&a.fromAnchor){
+      for(const seg of playerTracks(a.from)){
+        const last=seg.points?.at(-1);
+        if(last&&Math.hypot(last.x-a.fromAnchor.x,last.y-a.fromAnchor.y)<18){
+          a.fromSegId=seg.id;a.fromFraction=1;a.fromAnchorType='segmentEnd';break;
+        }
       }
-      a.start=start;a.fixedStart=start;
-      a.ownershipMismatch=!!(owner&&owner!==a.from);
-      if(a.type==='pass'&&targetType==='start'){
-        // Ta emot bollen innan man börjar åka från just ursprungspositionen.
-        nextFloors[a.to]=Math.max(nextFloors[a.to]||0,start+physical);
-      }
-      if(sourceType==='start'){
-        // Pass som slås från startplatsen sker innan auto-åkning lämnar stationen.
-        nextFloors[a.from]=Math.max(nextFloors[a.from]||0,start);
-      }
-      // På en färdig åkdel ska nästa delbana kunna invänta utpassning/mottagning,
-      // men den tidigare åkningen påverkas aldrig.
-      if(!a.ownershipMismatch){if(a.type==='pass')owner=a.to;else owner=null;}
-      ballReady=start+physical;
     }
-    // Uppdatera enbart de automatiska avgångsgolven – inte hela banor pga sena mottagningar.
-    const old=JSON.stringify(project.objects.filter(x=>x.type==='player').map(x=>playerTracks(x.id).map(s=>s.start)));
-    Object.keys(firstFloors).forEach(k=>delete firstFloors[k]);Object.assign(firstFloors,nextFloors);
-    layoutTracks();
-    const now=JSON.stringify(project.objects.filter(x=>x.type==='player').map(x=>playerTracks(x.id).map(s=>s.start)));
-    const at=actions.map(a=>a.start.toFixed(3)).join(',');
-    if(old===now&&at===previousTimes)break;
-    previousTimes=at;
+    const actualFromType=ty(a,'from');
+    const fromAt=(actualFromType==='start'?0:anchorTime(a.from,a.fromSegId,a.fromFraction,actualFromType));
+    // Endast aktiva bollhändelser kan hålla tillbaka åkningar. Ogiltiga skott
+    // får aldrig ändra lagets synkronisering.
+    a.ownershipMismatch=(owner!==null&&owner!==a.from)||(!owner&&a.type==='shot');
+    let start=Math.max(ballReady,fromAt,0);
+    if(a.type==='pass'&&actualFromType==='start'){
+      // En spelare släpper bollen innan han lämnar startplatsen. Tidigare
+      // mottagning i samma punkt kan ha förskjutit start, men inte tvärtom.
+      const original=playerTracks(a.from)[0];
+      if(original&&(original.startMode||'auto')==='auto'){
+        setFloor(a.from,start+.025);layout(times);
+      }
+    }
+    // Om avsändaren måste vara på en viss punkt längs en rörelse gäller dess
+    // faktiska tidpunkt, men vi fördröjer inte tidiga passningar för att en
+    // annan spelare ska hinna åka hela sin bana.
+    if(actualFromType!=='start')start=Math.max(start,anchorTime(a.from,a.fromSegId,a.fromFraction,actualFromType));
+    const from=actualFromType==='start'?(a.fromAnchor||getObj(a.from)): (a.fromAnchor||playerPos(a.from,start));
+    let to=a.type==='pass'?(a.toAnchor||getObj(a.to)):(a.targetAnchor||(project.orientation==='up'?{x:350,y:20}:{x:350,y:1080}));
+    let duration=actionPhysicalDuration(a);
+    if(a.type==='pass'&&a.toSegId&&toType!=='start'){
+      // Standard: mottagning I FARTEN. Den ritade slutpunkten får inte tvinga
+      // en boll att vänta till slutet av en lång löpning. Den är ett visuellt
+      // riktmärke; den faktiska träffpunkten beräknas från bollfarten.
+      if(a.receiveMode!=='fixed'){
+        for(let k=0;k<9;k++){
+          const point=playerPos(a.to,start+duration);if(!point)break;
+          const revised=Math.max(.22,Math.min(1.8,Math.hypot(point.x-from.x,point.y-from.y)/PASS_SPEED));
+          duration=duration*.35+revised*.65;
+        }
+        to=playerPos(a.to,start+duration)||to;
+        a.effectiveToAnchor={x:to.x,y:to.y};a.timingNote='Mottagning i farten';
+      }else{
+        const toTime=anchorTime(a.to,a.toSegId,a.toFraction,toType);
+        if(Math.abs(toTime-start-duration)>.18)a.timingConflict=true;
+      }
+    }
+    if(a.type==='pass'&&toType==='start'&&!a.ownershipMismatch){
+      // Fånga på stationen innan mottagaren åker därifrån.
+      setFloor(a.to,start+duration);layout(times);
+    }
+    a.start=start;a.fixedStart=start;a.duration=duration;a.fixedDuration=duration;
+    if(!a.ownershipMismatch){
+      owner=a.type==='pass'?a.to:null;
+      ballReady=start+duration;
+    }else{
+      a.timingConflict=true;
+      a.timingNote='Fel bollhållare – ej animerad';
+      // Ett omöjligt skott kan ritas som idé men får inte spela upp en boll.
+      a.start=Math.max(start,ballReady);
+    }
+    times.set(a.id,a);
+    // Händelsestyrda åkningar kan starta vid ett bollsläpp eller en mottagning
+    // utan att bollen väntar på spelarens hela åkbana.
+    layout(times);
   }
-  // Final pass utan att röra spelarna; annotera endast om vald geometri inte kan
-  // matchas i realtid. En ritning förblir alltid tillåten.
-  let ready=0,owner=project.ballOwnerStart;
-  for(const [idx,a] of actions.entries()){
-    a.order=idx;
-    const dur=actionPhysicalDuration(a);a.duration=dur;a.fixedDuration=dur;
-    const fromType=aType(a,'from'),toType=aType(a,'to');
-    const sourceT=anchorTime(a.from,a.fromSegId,a.fromFraction,fromType);
-    let t=Math.max(ready,sourceT,0);
-    if(a.type==='pass'&&toType!=='start'&&a.toSegId)t=Math.max(t,anchorTime(a.to,a.toSegId,a.toFraction,toType)-dur);
-    a.start=t;a.fixedStart=t;
-    a.ownershipMismatch=!!(owner&&a.from!==owner);
-    a.timingConflict=false;
-    // Kontrollera passpunkter mitt på bana. Vid ändring varnar vi, men flyttar inte banan.
-    if(fromType==='track'&&a.fromSegId&&Math.abs(t-sourceT)>.16)a.timingConflict=true;
-    if(a.type==='pass'&&toType==='track'&&a.toSegId){
-      const meet=anchorTime(a.to,a.toSegId,a.toFraction,toType);
-      if(Math.abs((t+dur)-meet)>.16)a.timingConflict=true;
-    }
-    if(a.timingConflict)timingWarnings.push(`${getObj(a.from)?.label||a.from} → ${getObj(a.to)?.label||'mål'}: vald punkt och timing sammanfaller inte`);
-    if(!a.ownershipMismatch){owner=a.type==='pass'?a.to:null;}
-    ready=t+dur;
+  for(const a of actions){
+    if(a.timingConflict)timingWarnings.push(`${getObj(a.from)?.label||a.from} → ${getObj(a.to)?.label||'mål'}: ${a.timingNote||'Kontrollera vald punkt'}`);
   }
 }
 function pointAtDistance(pts,d){if(!pts?.length)return null;if(pts.length===1)return pts[0];let remain=d;for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i],seg=Math.hypot(b.x-a.x,b.y-a.y);if(remain<=seg||i===pts.length-1){const u=seg?Math.max(0,Math.min(1,remain/seg)):0;return{x:a.x+(b.x-a.x)*u,y:a.y+(b.y-a.y)*u}}remain-=seg}return pts.at(-1)}
@@ -478,7 +491,7 @@ function ballStateAt(t,objects){
     // Den ritade passpilen finns kvar, men en omöjlig passning animeras inte med fel avsändare.
     if(a.ownershipMismatch)continue;
     const from=a.fromAnchor||playerPos(a.from,a.start);
-    const to=a.type==='pass'?(a.toAnchor||playerPos(a.to,a.start+a.duration)):(a.targetAnchor||(project.orientation==='up'?{x:350,y:20}:{x:350,y:1080}));
+    const to=a.type==='pass'?(a.effectiveToAnchor||a.toAnchor||playerPos(a.to,a.start+a.duration)):(a.targetAnchor||(project.orientation==='up'?{x:350,y:20}:{x:350,y:1080}));
     if(t<=a.start+a.duration){
       const u=Math.max(0,Math.min(1,(t-a.start)/Math.max(.001,a.duration)));
       if(from&&to){ball.x=from.x+(to.x-from.x)*u;ball.y=from.y+(to.y-from.y)*u;ball._lockedBall=true}return;
@@ -570,7 +583,7 @@ function renderActions(){
   const html=[];
   for(const a of project.actions){
     const from=a.fromAnchor||playerPos(a.from,a.start);let to;
-    if(a.type==='pass')to=a.toAnchor||playerPos(a.to,a.start+a.duration);else to=a.targetAnchor||(project.orientation==='up'?{x:350,y:20}:{x:350,y:1080});
+    if(a.type==='pass')to=a.effectiveToAnchor||a.toAnchor||playerPos(a.to,a.start+a.duration);else to=a.targetAnchor||(project.orientation==='up'?{x:350,y:20}:{x:350,y:1080});
     if(!from||!to)continue;
     const fo=getObj(a.from),toObj=a.type==='pass'?getObj(a.to):null;
     const [p0,p1]=trimLine(from,to,(fo?.r||22)+7,a.type==='pass'?(toObj?.r||22)+12:8);
@@ -586,8 +599,8 @@ function renderActions(){
   }
   actionG.innerHTML=html.join('');
 }
-function renderFlow(){const events=[{type:'start',start:0,label:'Start',meta:'Startpositioner'}];for(const o of project.objects.filter(o=>o.type==='player'))playerTracks(o.id).forEach((s,i)=>events.push({type:'path',start:s.start,label:`${o.label||'Spelare'} · åkning ${i+1}`,meta:`${s.start.toFixed(1)}–${(s.start+segmentDuration(s)).toFixed(1)} s${s.start>(+s.baseDelay||0)+.05?' · väntar vid hållpunkt':''}`,id:o.id}));for(const a of project.actions){const f=getObj(a.from),t=a.type==='pass'?getObj(a.to):null;events.push({type:a.type,start:a.start,label:a.type==='pass'?`Pass ${f?.label||''} → ${t?.label||''}`:`Skott ${f?.label||''}`,meta:`${a.start.toFixed(1)} s`,actionId:a.id})}events.sort((a,b)=>a.start-b.start||({start:0,path:1,pass:2,shot:3}[a.type]-({start:0,path:1,pass:2,shot:3}[b.type])));flowItems.innerHTML=events.map(e=>`<button class="flowItem ${e.type}" data-flow-id="${e.id||''}" data-action-id="${e.actionId||''}"><strong>${esc(e.label)}</strong><span>${esc(e.meta)}</span></button>`).join('')}
-function renderActionsList(){const list=$('actionList');list.innerHTML=project.actions.length?project.actions.map((a,i)=>{const f=getObj(a.from),t=a.type==='pass'?getObj(a.to):null;return `<div class="actionChip"><span><b>${i+1}.</b> ${a.type==='pass'?`🟢 Pass ${esc(f?.label||'')} → ${esc(t?.label||'')}`:`🔴 Skott ${esc(f?.label||'')}`} · ${a.start.toFixed(1)}s${a.ownershipMismatch?' · ⚠ Fel bollhållare':''}${a.timingConflict?' · ⚠ Timing':''}</span><button class="mini danger" data-remove-action="${i}">×</button></div>`}).join(''):'<span class="hint">Inga passningar eller skott ännu.</span>'}
+function renderFlow(){const events=[{type:'start',start:0,label:'Start',meta:'Startpositioner'}];for(const o of project.objects.filter(o=>o.type==='player'))playerTracks(o.id).forEach((s,i)=>events.push({type:'path',start:s.start,label:`${o.label||'Spelare'} · åkning ${i+1}`,meta:`${s.start.toFixed(1)}–${(s.start+segmentDuration(s)).toFixed(1)} s${s.start>(+s.baseDelay||0)+.05?' · väntar vid hållpunkt':''}`,id:o.id}));for(const a of project.actions){const f=getObj(a.from),t=a.type==='pass'?getObj(a.to):null;events.push({type:a.type,start:a.start,label:a.type==='pass'?`Pass ${f?.label||''} → ${t?.label||''}`:`Skott ${f?.label||''}`,meta:`${a.start.toFixed(1)} s${a.ownershipMismatch?' · ⚠ fel bollhållare':''}${a.timingNote?' · '+a.timingNote:''}`,actionId:a.id})}events.sort((a,b)=>a.start-b.start||({start:0,path:1,pass:2,shot:3}[a.type]-({start:0,path:1,pass:2,shot:3}[b.type])));flowItems.innerHTML=events.map(e=>`<button class="flowItem ${e.type}" data-flow-id="${e.id||''}" data-action-id="${e.actionId||''}"><strong>${esc(e.label)}</strong><span>${esc(e.meta)}</span></button>`).join('')}
+function renderActionsList(){const list=$('actionList');list.innerHTML=project.actions.length?project.actions.map((a,i)=>{const f=getObj(a.from),t=a.type==='pass'?getObj(a.to):null;return `<div class="actionChip"><span><b>${i+1}.</b> ${a.type==='pass'?`🟢 Pass ${esc(f?.label||'')} → ${esc(t?.label||'')}`:`🔴 Skott ${esc(f?.label||'')}`} · ${a.start.toFixed(1)}s${a.ownershipMismatch?' · ⚠ Fel bollhållare':''}${a.timingConflict?' · ⚠ '+esc(a.timingNote||'Timing'):''}${a.type==='pass'&&a.toSegId&&a.receiveMode!=='fixed'?' · ↗ I farten':''}</span>${a.type==='pass'&&a.toSegId?`<button class="mini" data-toggle-receive="${a.id}" title="Växla automatisk/fixerad mottagning">${a.receiveMode==='fixed'?'📍 Exakt':'↗ I farten'}</button>`:''}<button class="mini danger" data-remove-action="${i}">×</button></div>`}).join(''):'<span class="hint">Inga passningar eller skott ännu.</span>'}
 function renderSwatches(){const html=colors.map(c=>`<button class="swatch" data-color="${c}" style="background:${c}" aria-label="Färg ${c}"></button>`).join('');$('swatches').innerHTML=html;$('mobileSwatches').innerHTML=html}
 function timingTrack(){
  const o=getObj(selectedId);if(!o||o.type!=='player')return null;
@@ -905,6 +918,7 @@ $('timingDelay').onchange=e=>timingChanged(s=>{s.startDelay=Math.min(60,Math.max
 $('pathSpeed').onchange=e=>{defaultPathSpeed=+e.target.value||1;const o=getObj(selectedId),last=o?.type==='player'?playerTracks(o.id).at(-1):null;if(last){pushUndo();last.speed=defaultPathSpeed;render()}};$('pathDelay').onchange=e=>{defaultPathDelay=Math.max(0,+e.target.value||0);syncSelectedControls()};
 $('projectName').addEventListener('input',e=>project.name=e.target.value);$('projectNote').addEventListener('input',e=>project.note=e.target.value);$('rinkMode').onchange=e=>{project.rinkMode=e.target.value;lastViewKey='';render();fitEverything()};$('orientation').onchange=e=>{project.orientation=e.target.value;lastViewKey='';render();fitEverything()};$('playView').onchange=()=>{if(playing)renderPlaybackGuides();setStatus($('playView').value==='clean'?'Ren Play: ritade linjer döljs under uppspelning.':'Linjer visas under uppspelning.')};$('play').onclick=play;$('pause').onclick=pause;$('restart').onclick=()=>stopPlayback(true);$('saveProject').onclick=saveLocal;$('openProject').onclick=openLocal;$('exportJson').onclick=exportJson;$('exportMobileJson').onclick=exportJson;$('openMobileSaved').onclick=openLocal;$('newProject').onclick=newProject;$('resetPlan').onclick=()=>resetPlan(false);$('undo').onclick=undo;
 $('importJson').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;try{project=JSON.parse(await f.text());rebuildProject();selectedId=null;undoStack=[];render();setStatus('Projekt importerat.')}catch(err){console.error(err);setStatus('Kunde inte läsa projektfilen.')}e.target.value=''});
+$('actionList').addEventListener('click',e=>{const b=e.target.closest('[data-toggle-receive]');if(!b)return;const a=project.actions.find(x=>x.id===b.dataset.toggleReceive);if(!a)return;pushUndo();a.receiveMode=a.receiveMode==='fixed'?'moving':'fixed';normalizeActionTimeline();render();setStatus(a.receiveMode==='fixed'?'Mottagningen är låst till vald hållpunkt.':'Mottagning i farten: boll och spelare möts automatiskt på åkbanan.');});
 $('flowItems').addEventListener('click',e=>{const b=e.target.closest('.flowItem');if(!b)return;if(b.dataset.flowId){selectedId=b.dataset.flowId;renderObjects();syncSelectedControls()}if(b.dataset.actionId){const a=project.actions.find(x=>x.id===b.dataset.actionId);if(a){selectedId=a.from;renderObjects();syncSelectedControls();setStatus(a.type==='pass'?'Passningen är markerad i övningsflödet och sker under spelarens rörelse.':'Skottet är markerat i övningsflödet.')}}});
 function toggleProps(){properties.classList.contains('open')?closeProperties():openProperties()}
 $('toggleProps').onclick=toggleProps;$('mobileProps').onclick=toggleProps;
@@ -916,7 +930,7 @@ $('propertyBackdrop').addEventListener('click',closeProperties);let sheetDrag=nu
 window.addEventListener('resize',updateAppHeight);window.visualViewport?.addEventListener('resize',updateAppHeight);window.visualViewport?.addEventListener('scroll',updateAppHeight);updateAppHeight();
 window.addEventListener('keydown',e=>{if((e.key==='Delete'||e.key==='Backspace')&&!/INPUT|TEXTAREA/.test(document.activeElement?.tagName))deleteSelected();if(e.key===' '&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)){e.preventDefault();play()}if(e.key==='Escape'){if(presentation)exitPresentationMode();else cancelModes();}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo()}});
 
-render();$('undo').disabled=true;updateAppHeight();setTimeout(fitEverything,30);setStatus('v1.0-alpha.7: rörelser startar tidigare och åktider styrs under Val.');
+render();$('undo').disabled=true;updateAppHeight();setTimeout(fitEverything,30);setStatus('v1.0-alpha.8: rörelser startar tidigare och åktider styrs under Val.');
 })();
 </script>
 </body>
