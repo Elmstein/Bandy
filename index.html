@@ -148,6 +148,8 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
 }
 .endpoint{pointer-events:all}.endpoint .endpointHit{fill:rgba(22,155,98,.001);pointer-events:all}.endpoint.actionTarget circle.endpointVisualHalo{stroke:#169b62;stroke-width:4;opacity:.32}
 
+/* Exportfunktion tillgänglig på iPhone utan att påverka motorn */
+.mobileExportRow{display:none}@media(max-width:760px){.mobileExportRow{display:block;margin:0 0 10px}.mobileExportRow button{width:100%;min-height:44px;margin-bottom:6px}}
 /* v1.0-alpha.6 – fast passfart, dependency-synk och stabila direkthandtag */
 .savedPresetHit{stroke-width:56;touch-action:none}
 /* v1.0-alpha.5 – samlat Rita-verktyg och händelseankare */
@@ -161,7 +163,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
 <body>
 <div class="app">
 <header class="topbar">
-  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.6.1 · tydligare presets och bollkedja</small></div></div>
+  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.6.1.1 · mobil JSON-export</small></div></div>
   <div class="topControls">
     <select id="rinkMode" aria-label="Planvy"><option value="full">Helplan</option><option value="half">Halvplan</option></select>
     <select id="orientation" aria-label="Anfallsriktning"><option value="up">Anfall uppåt</option><option value="down">Anfall nedåt</option></select>
@@ -221,6 +223,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
   <aside id="properties" class="properties">
     <div id="sheetHandle" class="sheetHandle" aria-label="Dra ned för att stänga"></div>
     <h2 class="panelTitle">Egenskaper</h2>
+    <div class="mobileExportRow"><button id="openMobileSaved" type="button">Öppna sparad övning</button><button id="exportMobileJson" class="primary" type="button">↓ Exportera övning som JSON</button></div>
     <div class="card" id="noSelection"><span class="muted" style="font-size:12px">Markera ett objekt på planen.</span></div>
     <div class="card" id="selectionCard" hidden>
       <h3>Markerat objekt</h3>
@@ -846,7 +849,7 @@ $('actionList').addEventListener('click',e=>{const b=e.target.closest('[data-rem
 $('objLabel').addEventListener('input',e=>{const o=getObj(selectedId);if(o){o.label=e.target.value;renderPaths();renderObjects();renderFlow();renderActionsList()}});$('objSize').addEventListener('change',e=>{const o=getObj(selectedId);if(o){pushUndo();o.r=+e.target.value;render()}});$('swatches').addEventListener('click',swatchClick);$('mobileSwatches').addEventListener('click',swatchClick);$('teamA').onclick=()=>setSelectedColor('#1769e8');$('teamB').onclick=()=>setSelectedColor('#e31818');
 $('giveBall').onclick=()=>{const o=getObj(selectedId);if(o?.type==='player'){setBallOwner(o.id);setStatus(`${o.label||'Spelaren'} har bollen och den följer spelaren.`);syncSelectedControls()}};$('releaseBall').onclick=()=>{setBallOwner(null);setStatus('Bollen är fri vid start.');syncSelectedControls()};$('quickBallOwnerDesktop').onclick=toggleBallOnSelected;$('quickBallOwnerMobile').onclick=toggleBallOnSelected;$('goalieFollow').onchange=e=>{const o=getObj(selectedId);if(o?.type==='goalkeeper'){pushUndo();o.followBall=e.target.checked;render()}};$('duplicateObj').onclick=duplicateSelection;$('deleteObj').onclick=deleteSelected;
 $('pathSpeed').onchange=e=>{defaultPathSpeed=+e.target.value||1;const o=getObj(selectedId),last=o?.type==='player'?playerTracks(o.id).at(-1):null;if(last){pushUndo();last.speed=defaultPathSpeed;render()}};$('pathDelay').onchange=e=>{defaultPathDelay=Math.max(0,+e.target.value||0);syncSelectedControls()};
-$('projectName').addEventListener('input',e=>project.name=e.target.value);$('projectNote').addEventListener('input',e=>project.note=e.target.value);$('rinkMode').onchange=e=>{project.rinkMode=e.target.value;lastViewKey='';render();fitEverything()};$('orientation').onchange=e=>{project.orientation=e.target.value;lastViewKey='';render();fitEverything()};$('playView').onchange=()=>{if(playing)renderPlaybackGuides();setStatus($('playView').value==='clean'?'Ren Play: ritade linjer döljs under uppspelning.':'Linjer visas under uppspelning.')};$('play').onclick=play;$('pause').onclick=pause;$('restart').onclick=()=>stopPlayback(true);$('saveProject').onclick=saveLocal;$('openProject').onclick=openLocal;$('exportJson').onclick=exportJson;$('newProject').onclick=newProject;$('resetPlan').onclick=()=>resetPlan(false);$('undo').onclick=undo;
+$('projectName').addEventListener('input',e=>project.name=e.target.value);$('projectNote').addEventListener('input',e=>project.note=e.target.value);$('rinkMode').onchange=e=>{project.rinkMode=e.target.value;lastViewKey='';render();fitEverything()};$('orientation').onchange=e=>{project.orientation=e.target.value;lastViewKey='';render();fitEverything()};$('playView').onchange=()=>{if(playing)renderPlaybackGuides();setStatus($('playView').value==='clean'?'Ren Play: ritade linjer döljs under uppspelning.':'Linjer visas under uppspelning.')};$('play').onclick=play;$('pause').onclick=pause;$('restart').onclick=()=>stopPlayback(true);$('saveProject').onclick=saveLocal;$('openProject').onclick=openLocal;$('exportJson').onclick=exportJson;$('exportMobileJson').onclick=exportJson;$('openMobileSaved').onclick=openLocal;$('newProject').onclick=newProject;$('resetPlan').onclick=()=>resetPlan(false);$('undo').onclick=undo;
 $('importJson').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;try{project=JSON.parse(await f.text());rebuildProject();selectedId=null;undoStack=[];render();setStatus('Projekt importerat.')}catch(err){console.error(err);setStatus('Kunde inte läsa projektfilen.')}e.target.value=''});
 $('flowItems').addEventListener('click',e=>{const b=e.target.closest('.flowItem');if(!b)return;if(b.dataset.flowId){selectedId=b.dataset.flowId;renderObjects();syncSelectedControls()}if(b.dataset.actionId){const a=project.actions.find(x=>x.id===b.dataset.actionId);if(a){selectedId=a.from;renderObjects();syncSelectedControls();setStatus(a.type==='pass'?'Passningen är markerad i övningsflödet och sker under spelarens rörelse.':'Skottet är markerat i övningsflödet.')}}});
 function toggleProps(){properties.classList.contains('open')?closeProperties():openProperties()}
