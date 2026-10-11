@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f8fafc">
-<title>Bandyövningar v1.0-alpha.9.2 – rita rörelsen genom att dra</title>
+<title>Bandyövningar v1.0-alpha.9.3 – desktoparbetsyta</title>
 <style>
 :root{
   --bg:#eef3f8;--panel:#fff;--panel2:#f8fafc;--line:#d7e0ea;--text:#0f172a;--muted:#64748b;
@@ -223,12 +223,36 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
 .directModeBar button.active{background:#1769e8;border-color:#1769e8;color:#fff}
 .rinkCard.directAnimate{outline:3px solid rgba(22,155,98,.23);outline-offset:-3px}
 @media(max-width:760px){.directModeBar{left:8px;top:8px;padding:3px}.directModeBar button{font-size:10px;padding:6px 7px;min-height:31px}}
+
+/* v1.0-alpha.9.3: desktop med plan som primär arbetsyta.
+   Mobilens layout och animationsmotorn ändras inte. */
+.desktopPropsTitle{display:flex;align-items:center;justify-content:space-between;gap:7px;margin-bottom:9px}
+.desktopPropsTitle .panelTitle{margin:0}
+#toggleAdvancedProps{font-size:10px;padding:6px 7px;white-space:nowrap}
+@media(min-width:761px){
+  html,body{height:100%;overflow:hidden}
+  .app:not(.presentation){height:var(--app-height,100dvh);min-height:0;overflow:hidden;grid-template-rows:auto minmax(0,1fr) auto}
+  .app:not(.presentation) .workspace{height:100%;min-height:0;overflow:hidden;grid-template-columns:clamp(142px,10vw,175px) minmax(0,1fr) clamp(250px,18vw,295px)}
+  .app:not(.presentation) .palette,.app:not(.presentation) .properties{min-height:0;height:100%;max-height:100%;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding:10px}
+  .app:not(.presentation) .stageArea{height:100%;min-height:0;overflow:hidden;align-items:center;justify-content:center;padding:7px 10px}
+  .app:not(.presentation) .rinkCard{max-height:100%;max-width:100%}
+  .app:not(.presentation) .flowPanel{min-height:0;max-height:156px;overflow:hidden;align-items:center;padding:7px 10px}
+  .app:not(.presentation) .tool{gap:6px;padding:7px 6px;font-size:12px}
+  .app:not(.presentation) .paletteGrid{gap:6px}
+  .app:not(.presentation) .palette .divider{margin:9px 0}
+  .app:not(.presentation) .properties:not(.showAdvanced) .advancedPanel{display:none}
+  .app:not(.presentation) .properties:not(.showAdvanced) #noSelection:not([hidden]) ~ .card #motionSettings{display:none!important}
+  .app:not(.presentation) .properties:not(.showAdvanced) #actionHelp,
+  .app:not(.presentation) .properties:not(.showAdvanced) #actionHelp + .hint{display:none}
+  .app:not(.presentation) .properties .card{padding:9px;margin-bottom:8px}
+}
+@media(max-width:760px){.desktopPropsTitle #toggleAdvancedProps{display:none}}
 </style>
 </head>
 <body>
 <div class="app">
 <header class="topbar">
-  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.9.2 · dra spelaren längs åkvägen</small></div></div>
+  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.9.3 · fokuserad arbetsyta</small></div></div>
   <div class="topControls">
     <select id="rinkMode" aria-label="Planvy"><option value="full">Helplan</option><option value="half">Halvplan</option></select>
     <select id="orientation" aria-label="Anfallsriktning"><option value="up">Anfall uppåt</option><option value="down">Anfall nedåt</option></select>
@@ -292,7 +316,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
   <div id="propertyBackdrop" class="propertyBackdrop" aria-hidden="true"></div>
   <aside id="properties" class="properties">
     <div id="sheetHandle" class="sheetHandle" aria-label="Dra ned för att stänga"></div>
-    <h2 class="panelTitle">Egenskaper</h2>
+    <div class="desktopPropsTitle"><h2 class="panelTitle">Egenskaper</h2><button id="toggleAdvancedProps" type="button" class="mini" aria-expanded="false">Fler inställningar ▾</button></div>
     <div class="mobileExportRow"><button id="openMobileSaved" type="button">Öppna senaste</button><button id="openLibraryMobile" type="button">📚 Mina övningar</button><button id="importMobileJson" type="button">↑ Importera övning (JSON)</button><button id="repairTiming" type="button">↻ Räkna om händelsetider</button><button id="exportMobileJson" class="primary" type="button">↓ Exportera övning som JSON</button></div>
     <div class="card" id="noSelection"><span class="muted" style="font-size:12px">Markera ett objekt på planen.</span></div>
     <div class="card" id="selectionCard" hidden>
@@ -310,7 +334,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
       <div id="pathState" class="pathState"><strong>Ingen fasindelning.</strong><br>Varje ny del fortsätter där spelarens senaste bana slutade.</div>
       <div id="motionSettings" class="motionSettings" hidden><div class="field"><label>Välj åkdel att tidsstyra</label><select id="timingSegment"></select></div><div class="field"><label>När ska åkningen börja?</label><select id="timingMode"><option value="auto">Automatiskt – behåll startpunktshändelser</option><option value="direct">Direkt / efter föregående åkdel</option><option value="passRelease">När en passning slås</option><option value="passArrival">När en passning tas emot</option><option value="delay">Efter vald fördröjning</option></select></div><div class="field" id="timingEventRow" hidden><label>Passning som startvillkor</label><select id="timingEvent"></select></div><div class="field" id="timingDelayRow" hidden><label>Extra fördröjning (sekunder)</label><input type="number" id="timingDelay" min="0" max="60" step="0.1" value="0" inputmode="decimal"></div><div class="hint" id="timingInfo">Ingen åkning vald.</div><div class="hint">Passningar till en åkbana möter som standard spelaren i farten. Välj ↗ I farten/📍 Exakt i händelselistan om du vill låsa den valda punkten. Ett skott utan boll markeras och animeras inte.</div><div class="field"><label>Fart nästa/sista del</label><select id="pathSpeed"><option value="0.75">Lugn</option><option value="1" selected>Normal</option><option value="1.25">Snabb</option><option value="1.5">Mycket snabb</option></select></div><div class="field"><label>Fördröjning före nästa del</label><select id="pathDelay"><option value="0" selected>Ingen</option><option value="0.25">+0,25 s</option><option value="0.5">+0,50 s</option><option value="0.75">+0,75 s</option><option value="1">+1,00 s</option></select></div></div>
     </div>
-    <div class="card" id="presetCard">
+    <div class="card advancedPanel" id="presetCard">
       <h3>Formpresets</h3>
       <div class="presetQuickGrid" id="presetQuickGrid">
         <button data-preset="straight">➜ Pil</button><button data-preset="arcLeft">⌒ Båge V</button><button data-preset="arcRight">⌒ Båge H</button>
@@ -324,7 +348,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
       <div class="row"><button id="applyPreset" class="mini primary">✓ Bekräfta preset</button><button id="cancelPreset" class="mini">× Avbryt</button><button id="presetFit" class="mini">Standardstorlek</button></div><div class="row" style="margin-top:7px"><button id="editLastPreset" class="mini wide">✎ Redigera senaste preset</button></div>
       <div class="hint" style="margin-top:6px">Preseten visas direkt på planen. Dra turkost start-/flytthandtag för att flytta figuren, blått slut-handtag för riktning/längd och lila handtag för böjning eller bredd. ✓ när formen är rätt.</div>
     </div>
-    <div class="card">
+    <div class="card advancedPanel">
       <h3>Grupp / station</h3>
       <div class="modeGrid"><button id="groupMode" class="mini wide">◫ Markera flera</button><button id="duplicateGroup" class="mini">Duplicera val</button><button id="mirrorGroup" class="mini">↔ Spegelvänd</button></div>
       <div class="row" style="margin-top:7px"><button id="clearGroup" class="mini">Rensa grupp</button><button id="recordMode" class="mini danger">● REC vald</button></div>
@@ -337,7 +361,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
       <div class="modeGrid"><button id="passMode" class="mini">Passning</button><button id="shotMode" class="mini">Skott</button></div>
       <p id="actionHelp" class="hint" style="margin:8px 0 0">Passning: välj valfri avsändarpunkt och sedan valfri mottagningspunkt. Startposition, slutposition och valfri punkt längs en åkbana är giltiga. Du väljer fritt pass- och mottagningspunkt. Ritordningen bestämmer inte när spelare börjar åka. Justera åkstart under Markerad spelare vid behov. Passfarten hålls konstant.</p><div class="hint" style="margin:8px 0">Tryck på en grön passningslinje i <b>Flytta</b>-läget för att ändra passaren eller mottagningspunkten. Dra i de två handtagen och tryck Klar.</div><div id="actionList" class="actionList"></div>
     </div>
-    <div class="card"><h3>Övning och bibliotek</h3><div class="field"><label>Namn</label><input id="projectName" type="text" maxlength="60" value="Ny bandyövning"></div><div class="field"><label>Kommentar</label><textarea id="projectNote" placeholder="Kort instruktion till övningen…"></textarea></div><div class="row"><button id="saveLibraryProps" class="mini primary">💾 Spara övning</button><button id="openLibraryProps" class="mini">📚 Mina övningar</button></div><p class="hint">Spara håller kvar flera namngivna övningar på denna enhet. Exportera JSON som säkerhetskopia om du byter telefon eller webbläsare.</p></div>
+    <div class="card advancedPanel"><h3>Övning och bibliotek</h3><div class="field"><label>Namn</label><input id="projectName" type="text" maxlength="60" value="Ny bandyövning"></div><div class="field"><label>Kommentar</label><textarea id="projectNote" placeholder="Kort instruktion till övningen…"></textarea></div><div class="row"><button id="saveLibraryProps" class="mini primary">💾 Spara övning</button><button id="openLibraryProps" class="mini">📚 Mina övningar</button></div><p class="hint">Spara håller kvar flera namngivna övningar på denna enhet. Exportera JSON som säkerhetskopia om du byter telefon eller webbläsare.</p></div>
   </aside>
 </main>
 
@@ -1445,6 +1469,8 @@ function toggleProps(){properties.classList.contains('open')?closeProperties():o
 $('toggleProps').onclick=toggleProps;$('mobileProps').onclick=toggleProps;
 for(const id of ['fitView','fitTop'])$(id).onclick=fitEverything;$('zoomIn').onclick=()=>zoomBy(1.25);$('zoomOut').onclick=()=>zoomBy(0.8);
 for(const id of ['presentMode','presentTop'])$(id).onclick=enterPresentation;$('exitPresent').onclick=exitPresentationMode;$('presentPlay').onclick=play;$('presentPause').onclick=pause;$('presentRestart').onclick=()=>stopPlayback(true);
+const desktopAdvancedButton=$('toggleAdvancedProps');
+desktopAdvancedButton.onclick=()=>{const isOpen=properties.classList.toggle('showAdvanced');desktopAdvancedButton.textContent=isOpen?'Dölj extra ▴':'Fler inställningar ▾';desktopAdvancedButton.setAttribute('aria-expanded',String(isOpen));requestAnimationFrame(fitRinkCard)};
 const flowPanel=document.querySelector('.flowPanel');if(matchMedia('(max-width:760px)').matches){flowPanel.classList.add('collapsed');$('toggleFlow').textContent='▾ Flöde'}$('toggleFlow').onclick=()=>{flowPanel.classList.toggle('collapsed');$('toggleFlow').textContent=flowPanel.classList.contains('collapsed')?'▾ Flöde':'▴ Flöde';requestAnimationFrame(fitRinkCard)};
 const mobilePalette=$('mobilePalette');$('mobileToolsToggle').onclick=()=>{mobilePalette.classList.toggle('tools-collapsed');$('mobileToolsToggle').querySelector('.toolIcon').textContent=mobilePalette.classList.contains('tools-collapsed')?'⌃':'⌄';requestAnimationFrame(fitRinkCard)};
 
@@ -1462,7 +1488,7 @@ $('propertyBackdrop').addEventListener('click',closeProperties);let sheetDrag=nu
 window.addEventListener('resize',updateAppHeight);window.visualViewport?.addEventListener('resize',updateAppHeight);window.visualViewport?.addEventListener('scroll',updateAppHeight);updateAppHeight();
 window.addEventListener('keydown',e=>{if((e.key==='Delete'||e.key==='Backspace')&&!/INPUT|TEXTAREA/.test(document.activeElement?.tagName))deleteSelected();if(e.key===' '&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)){e.preventDefault();play()}if(e.key==='Escape'){if(!$('libraryBackdrop').hidden){hideLibrary();return;}if(presentation)exitPresentationMode();else cancelModes();}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo()}});
 
-render();$('undo').disabled=true;updateAppHeight();setTimeout(fitEverything,30);setStatus('v1.0-alpha.9.2: Välj Animera. Dra spelaren längs hela vägen, runt koner och vidare, så ritas åkbanan.');
+render();$('undo').disabled=true;updateAppHeight();setTimeout(fitEverything,30);setStatus('v1.0-alpha.9.3: Välj Animera. Dra spelaren längs hela vägen, runt koner och vidare, så ritas åkbanan.');
 })();
 </script>
 </body>
