@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f8fafc">
-<title>Bandyövningar v1.0-alpha.9.1 – rita rörelsen genom att dra</title>
+<title>Bandyövningar v1.0-alpha.9.2 – rita rörelsen genom att dra</title>
 <style>
 :root{
   --bg:#eef3f8;--panel:#fff;--panel2:#f8fafc;--line:#d7e0ea;--text:#0f172a;--muted:#64748b;
@@ -228,7 +228,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
 <body>
 <div class="app">
 <header class="topbar">
-  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.9.1 · dra spelaren längs åkvägen</small></div></div>
+  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.9.2 · dra spelaren längs åkvägen</small></div></div>
   <div class="topControls">
     <select id="rinkMode" aria-label="Planvy"><option value="full">Helplan</option><option value="half">Halvplan</option></select>
     <select id="orientation" aria-label="Anfallsriktning"><option value="up">Anfall uppåt</option><option value="down">Anfall nedåt</option></select>
@@ -351,7 +351,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
 </div>
 
 <footer class="flowPanel">
-  <div class="flowWrap"><div class="flowHeader"><b>Övningsflöde</b><span class="flowHint">Skapas automatiskt av det du ritar – inga faser behöver sparas.</span><span class="row"><button id="toggleFlow" class="mini" title="Visa/dölj övningsflöde">▴ Flöde</button><button id="undo" class="mini">↶ Ångra</button></span></div><div id="flowItems" class="flowItems"></div></div>
+  <div class="flowWrap"><div class="flowHeader"><b>Övningsflöde</b><span class="flowHint">Skapas automatiskt av det du ritar – inga faser behöver sparas.</span><span class="row"><button id="toggleFlow" class="mini" title="Visa/dölj övningsflöde">▴ Flöde</button><button id="syncReceivers" class="mini" title="Synka åkningen med bollmottagning – bevara passningspunkterna">⏱ Synka</button><button id="undo" class="mini">↶ Ångra</button></span></div><div id="flowItems" class="flowItems"></div></div>
   <div class="transport"><button id="restart" class="icon" title="Starta om">↺</button><button id="play" class="primary icon" title="Spela">▶</button><button id="pause" class="icon" title="Paus">Ⅱ</button><span id="timeLabel" class="timeLabel">0,0 / 0,0 s</span><div class="progressTrack" aria-hidden="true"><div id="progressFill" class="progressFill"></div></div><select id="speed" class="speed" title="Hastighet"><option value="0.25">0,25×</option><option value="0.30">0,30×</option><option value="0.35">0,35×</option><option value="0.40">0,40×</option><option value="0.45">0,45×</option><option value="0.50">0,50×</option><option value="0.60">0,60×</option><option value="0.75">0,75×</option><option value="1" selected>1×</option><option value="1.25">1,25×</option><option value="1.5">1,5×</option></select><select id="playView" class="playView" title="Visning under uppspelning"><option value="clean" selected>Ren Play – dölj linjer</option><option value="lines">Play – visa linjer</option></select><label class="checkLabel"><input id="loop" type="checkbox"><span>Loop</span></label><button id="toggleProps" class="icon" title="Egenskaper">⚙</button></div>
 </footer>
 
@@ -595,6 +595,72 @@ function normalizeActionTimeline(){
   for(const a of actions){
     if(a.timingConflict)timingWarnings.push(`${getObj(a.from)?.label||a.from} → ${getObj(a.to)?.label||'mål'}: ${a.timingNote||'Kontrollera vald punkt'}`);
   }
+}
+// v1.0-alpha.9.2: Synka utan att skriva om passningsankare eller åkbanans punkter.
+// Till skillnad från den löpande normaliseringen är detta en uttrycklig, ångringsbar
+// handling. Vi fördelar väntan mellan måttlig fartjustering och senare start.
+function synchronizePassReceivers(){
+  stopPlayback(true);
+  normalizeActionTimeline();
+  const valid=project.actions.filter(a=>a.type==='pass'&&!a.ownershipMismatch&&a.toSegId);
+  if(!valid.length){setStatus('Inga giltiga passningar till åkbanor att synkronisera.',true);return;}
+  const before=JSON.stringify(project),notes=[];
+  // Passningsordningen är kausal: ändra en mottagare, beräkna om framtida
+  // avsändare och synka därefter nästa mottagare.
+  for(let iteration=0;iteration<3;iteration++){
+    let any=false;
+    const passes=[...project.actions].filter(a=>a.type==='pass'&&!a.ownershipMismatch).sort((a,b)=>(a.order??0)-(b.order??0));
+    for(const a of passes){
+      if(!a.toSegId||a.toAnchorType==='start')continue;
+      const tracks=playerTracks(a.to),index=tracks.findIndex(s=>s.id===a.toSegId);
+      if(index<0)continue;
+      const seg=tracks[index],target=a.start+a.duration;
+      const current=anchorTime(a.to,a.toSegId,a.toFraction,a.toAnchorType||'track');
+      const wait=target-current;
+      if(wait<=.12)continue;
+      // Manuell händelsestyrning och REC ska inte skrivas över.
+      if(seg.startMode&&seg.startMode!=='auto')continue;
+      const originalSpeed=+seg.speed||1;
+      let speedChange=false;
+      if(!seg.recorded&&originalSpeed>.65){
+        const offset=anchorOffset(seg,a.toFraction,a.toAnchorType||'track');
+        const minSpeed=.65;
+        // Försök fylla en del av väntan med jämnare tempo, utan att få
+        // åkningen att krypa fram onaturligt långsamt.
+        if(offset>.10){
+          const ideal=originalSpeed*offset/(offset+wait);
+          const adjusted=Math.max(minSpeed,Math.min(originalSpeed,ideal));
+          if(adjusted<originalSpeed-.01){seg.speed=adjusted;speedChange=true;}
+        }
+      }
+      // Om tidigare delbanor finns: flytta hela kedjan med samma startfördröjning
+      // när den saknar en tidigare passning, så ingen ny paus införs mitt i banan.
+      normalizeActionTimeline();
+      const afterSpeed=anchorTime(a.to,a.toSegId,a.toFraction,a.toAnchorType||'track');
+      const remaining=Math.max(0,(a.start+a.duration)-afterSpeed);
+      if(remaining>.12){
+        const hasPriorPass=project.actions.some(p=>p.type==='pass'&&p.to===a.to&&(p.order??0)<(a.order??0));
+        let baseIndex=(!hasPriorPass&&index>0)?0:index;
+        const chosen=tracks[baseIndex];
+        if((chosen.startMode||'auto')==='auto')chosen.baseDelay=(+chosen.baseDelay||0)+remaining;
+        else seg.baseDelay=(+seg.baseDelay||0)+remaining;
+      }
+      normalizeActionTimeline();
+      const after=anchorTime(a.to,a.toSegId,a.toFraction,a.toAnchorType||'track');
+      const finalGap=(a.start+a.duration)-after;
+      if(Math.abs(finalGap)<=.2||speedChange||remaining>.12){
+        const label=getObj(a.to)?.label||a.to;
+        if(!notes.some(n=>n.id===a.id))notes.push({id:a.id,label,wait,speed:seg.speed});
+        any=true;
+      }
+    }
+    if(!any)break;
+  }
+  if(JSON.stringify(project)===before){setStatus('Inget kunde synkas automatiskt. Kontrollera inställningarna för åkstart.',true);return;}
+  undoStack.push(before);if(undoStack.length>30)undoStack.shift();$('undo').disabled=false;
+  render();
+  const done=notes.map(n=>`spelare ${n.label}`).filter((x,i,a)=>a.indexOf(x)===i);
+  setStatus(`Synkat ${done.join(' och ')} mot passningarna. Åkbanor och mottagningspunkter är oförändrade. Ångra om du vill återställa.`,true);
 }
 function pointAtDistance(pts,d){if(!pts?.length)return null;if(pts.length===1)return pts[0];let remain=d;for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i],seg=Math.hypot(b.x-a.x,b.y-a.y);if(remain<=seg||i===pts.length-1){const u=seg?Math.max(0,Math.min(1,remain/seg)):0;return{x:a.x+(b.x-a.x)*u,y:a.y+(b.y-a.y)*u}}remain-=seg}return pts.at(-1)}
 function playerPos(id,t){const o=getObj(id);if(!o)return null;let pos={x:o.x,y:o.y};for(const seg of playerTracks(id)){const dur=segmentDuration(seg);if(t<seg.start)break;if(t>=seg.start+dur){pos={...seg.points.at(-1)};continue}const u=Math.max(0,Math.min(1,(t-seg.start)/dur));if(seg.recorded&&seg.samples?.length>1){const ms=u*(seg.samples.at(-1).t||1);let a=seg.samples[0],b=seg.samples.at(-1);for(let i=1;i<seg.samples.length;i++){if(seg.samples[i].t>=ms){a=seg.samples[i-1];b=seg.samples[i];break}}const span=Math.max(1,b.t-a.t),v=Math.max(0,Math.min(1,(ms-a.t)/span));return{x:a.x+(b.x-a.x)*v,y:a.y+(b.y-a.y)*v}}return pointAtDistance(seg.points,polyLength(seg.points)*u)||pos}return pos}
@@ -1366,7 +1432,7 @@ $('timingMode').onchange=e=>timingChanged(s=>{s.startMode=e.target.value;if((s.s
 $('timingEvent').onchange=e=>timingChanged(s=>{s.startEventId=e.target.value});
 $('timingDelay').onchange=e=>timingChanged(s=>{s.startDelay=Math.min(60,Math.max(0,+e.target.value||0))});
 $('pathSpeed').onchange=e=>{defaultPathSpeed=+e.target.value||1;const o=getObj(selectedId),last=o?.type==='player'?playerTracks(o.id).at(-1):null;if(last){pushUndo();last.speed=defaultPathSpeed;render()}};$('pathDelay').onchange=e=>{defaultPathDelay=Math.max(0,+e.target.value||0);syncSelectedControls()};
-$('projectName').addEventListener('input',e=>project.name=e.target.value);$('projectNote').addEventListener('input',e=>project.note=e.target.value);$('rinkMode').onchange=e=>{project.rinkMode=e.target.value;lastViewKey='';render();fitEverything()};$('orientation').onchange=e=>{project.orientation=e.target.value;lastViewKey='';render();fitEverything()};$('playView').onchange=()=>{if(playing)renderPlaybackGuides();setStatus($('playView').value==='clean'?'Ren Play: ritade linjer döljs under uppspelning.':'Linjer visas under uppspelning.')};$('play').onclick=play;$('pause').onclick=pause;$('restart').onclick=()=>stopPlayback(true);$('saveProject').onclick=saveLocal;$('openProject').onclick=openLocal;$('exportJson').onclick=exportJson;$('exportMobileJson').onclick=exportJson;$('openMobileSaved').onclick=openLocal;$('importMobileJson').onclick=()=>$('importJson').click();$('repairTiming').onclick=()=>{stopPlayback(true);pushUndo();normalizeActionTimeline();render();setStatus('Tidsplaneringen är omräknad utifrån åkbanor, passningar och bollinnehav.');};$('newProject').onclick=newProject;$('resetPlan').onclick=()=>resetPlan(false);$('undo').onclick=undo;
+$('projectName').addEventListener('input',e=>project.name=e.target.value);$('projectNote').addEventListener('input',e=>project.note=e.target.value);$('rinkMode').onchange=e=>{project.rinkMode=e.target.value;lastViewKey='';render();fitEverything()};$('orientation').onchange=e=>{project.orientation=e.target.value;lastViewKey='';render();fitEverything()};$('playView').onchange=()=>{if(playing)renderPlaybackGuides();setStatus($('playView').value==='clean'?'Ren Play: ritade linjer döljs under uppspelning.':'Linjer visas under uppspelning.')};$('play').onclick=play;$('pause').onclick=pause;$('restart').onclick=()=>stopPlayback(true);$('saveProject').onclick=saveLocal;$('openProject').onclick=openLocal;$('exportJson').onclick=exportJson;$('exportMobileJson').onclick=exportJson;$('openMobileSaved').onclick=openLocal;$('importMobileJson').onclick=()=>$('importJson').click();$('repairTiming').onclick=()=>{stopPlayback(true);pushUndo();normalizeActionTimeline();render();setStatus('Tidsplaneringen är omräknad utifrån åkbanor, passningar och bollinnehav.');};$('newProject').onclick=newProject;$('resetPlan').onclick=()=>resetPlan(false);$('undo').onclick=undo;$('syncReceivers').onclick=synchronizePassReceivers;
 for(const id of ['openLibraryTop','openLibraryMobile','openLibraryProps'])$(id).onclick=showLibrary;
 $('saveLibraryProps').onclick=saveLocal;$('librarySaveCurrent').onclick=saveLocal;$('libraryBackupCurrent').onclick=exportJson;
 $('libraryClose').onclick=hideLibrary;
@@ -1396,7 +1462,7 @@ $('propertyBackdrop').addEventListener('click',closeProperties);let sheetDrag=nu
 window.addEventListener('resize',updateAppHeight);window.visualViewport?.addEventListener('resize',updateAppHeight);window.visualViewport?.addEventListener('scroll',updateAppHeight);updateAppHeight();
 window.addEventListener('keydown',e=>{if((e.key==='Delete'||e.key==='Backspace')&&!/INPUT|TEXTAREA/.test(document.activeElement?.tagName))deleteSelected();if(e.key===' '&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)){e.preventDefault();play()}if(e.key==='Escape'){if(!$('libraryBackdrop').hidden){hideLibrary();return;}if(presentation)exitPresentationMode();else cancelModes();}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo()}});
 
-render();$('undo').disabled=true;updateAppHeight();setTimeout(fitEverything,30);setStatus('v1.0-alpha.9.1: Välj Animera. Dra spelaren längs hela vägen, runt koner och vidare, så ritas åkbanan.');
+render();$('undo').disabled=true;updateAppHeight();setTimeout(fitEverything,30);setStatus('v1.0-alpha.9.2: Välj Animera. Dra spelaren längs hela vägen, runt koner och vidare, så ritas åkbanan.');
 })();
 </script>
 </body>
