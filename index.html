@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f8fafc">
-<title>Bandyövningar v1.0-alpha.9.0 – dra för att animera</title>
+<title>Bandyövningar v1.0-alpha.9.1 – rita rörelsen genom att dra</title>
 <style>
 :root{
   --bg:#eef3f8;--panel:#fff;--panel2:#f8fafc;--line:#d7e0ea;--text:#0f172a;--muted:#64748b;
@@ -228,7 +228,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
 <body>
 <div class="app">
 <header class="topbar">
-  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.9.0 · dra spelare för att animera</small></div></div>
+  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.9.1 · dra spelaren längs åkvägen</small></div></div>
   <div class="topControls">
     <select id="rinkMode" aria-label="Planvy"><option value="full">Helplan</option><option value="half">Halvplan</option></select>
     <select id="orientation" aria-label="Anfallsriktning"><option value="up">Anfall uppåt</option><option value="down">Anfall nedåt</option></select>
@@ -946,39 +946,108 @@ function cancelModes(){drawTargetId=null;editingPassId=null;passEditGesture=null
 function selectDirectMode(next){
   stopPlayback();closeDrawMenu();closeProperties();cancelModes();groupMode=false;directDrag=null;
   directAnimateMode=next==='animate';draftG.innerHTML='';
-  render();setStatus(directAnimateMode?'Animera: dra spelaren till nästa position för att skapa en åkdel. Dra igen för att fortsätta. Välj Pass för bollöverföring.':'Uppställning: dra spelare och koner för att placera dem. Välj Animera för att skapa rörelser.',true);
+  render();setStatus(directAnimateMode?'Animera: håll fingret på spelaren och dra längs hela åkvägen, till exempel runt en kon. Släpp för att skapa åkdelen. Dra igen för att fortsätta.':'Uppställning: dra spelare och koner för att placera dem. Välj Animera för att skapa rörelser.',true);
+}
+// Direktdragning i Animera: åkbanan följer spelarens verkliga fingerbana.
+// Smoothing ska ta bort små skakningar, inte dra en rak genväg genom en kon.
+function smoothDirectTrace(raw){
+  if(!raw?.length)return[];
+  const sampled=[clone(raw[0])];
+  for(let i=1;i<raw.length;i++){
+    const p=raw[i],q=sampled.at(-1);
+    if(Math.hypot(p.x-q.x,p.y-q.y)>=3.2)sampled.push(clone(p));
+  }
+  const last=raw.at(-1);
+  if(Math.hypot(last.x-sampled.at(-1).x,last.y-sampled.at(-1).y)>.2)sampled.push(clone(last));
+  else sampled[sampled.length-1]=clone(last);
+  if(sampled.length<3)return sampled;
+  // Mjuk lokal utjämning med skydd för tydliga svängar och vändpunkter.
+  const averaged=[sampled[0]];
+  for(let i=1;i<sampled.length-1;i++){
+    const a=sampled[i-1],b=sampled[i],c=sampled[i+1];
+    const ux=b.x-a.x,uy=b.y-a.y,vx=c.x-b.x,vy=c.y-b.y;
+    const dl=Math.hypot(ux,uy)*Math.hypot(vx,vy);
+    const cosine=dl>0?(ux*vx+uy*vy)/dl:1;
+    const longCorner=cosine<.55&&Math.min(Math.hypot(ux,uy),Math.hypot(vx,vy))>10;
+    const w=longCorner?.025:.24;
+    averaged.push({x:b.x*(1-2*w)+(a.x+c.x)*w,y:b.y*(1-2*w)+(a.y+c.y)*w});
+  }
+  averaged.push(sampled.at(-1));
+  // Reducera onödiga datapunkter men bevara kurvor, konrundning och slutpunkt.
+  function simplify(points,tolerance){
+    if(points.length<3)return points;
+    const keep=new Uint8Array(points.length);keep[0]=1;keep[points.length-1]=1;
+    const stack=[[0,points.length-1]],tol2=tolerance*tolerance;
+    while(stack.length){
+      const [a,b]=stack.pop();if(b-a<2)continue;
+      const v=points[a],w=points[b],dx=w.x-v.x,dy=w.y-v.y,den=dx*dx+dy*dy;
+      let best=0,at=-1;
+      for(let i=a+1;i<b;i++){
+        const q=points[i],t=den?Math.max(0,Math.min(1,((q.x-v.x)*dx+(q.y-v.y)*dy)/den)):0;
+        const ex=q.x-v.x-t*dx,ey=q.y-v.y-t*dy,d2=ex*ex+ey*ey;
+        if(d2>best){best=d2;at=i;}
+      }
+      if(best>tol2&&at>=0){keep[at]=1;stack.push([a,at],[at,b]);}
+    }
+    return points.filter((_,i)=>keep[i]);
+  }
+  return simplify(averaged,2.1);
+}
+function traceLength(points){let length=0;for(let i=1;i<points.length;i++)length+=Math.hypot(points[i].x-points[i-1].x,points[i].y-points[i-1].y);return length;}
+function directDragPoint(e,d){
+  const p=stage.createSVGPoint();p.x=e.clientX;p.y=e.clientY;
+  return clampPoint(p.matrixTransform(d.screenInverse));
 }
 function startDirectDrag(o,e){
-  const start=lastTrackEndPoint(o.id),p=clampPoint(getSvgPoint(e));
+  const start=lastTrackEndPoint(o.id),screenInverse=stage.getScreenCTM().inverse(),p=clampPoint(getSvgPoint(e));
   selectedId=o.id;drawTargetId=o.id;
-  directDrag={id:o.id,pointerId:e.pointerId,from:clone(start),to:clone(start),dx:start.x-p.x,dy:start.y-p.y,screenX:e.clientX,screenY:e.clientY,moved:false};
+  directDrag={id:o.id,pointerId:e.pointerId,from:clone(start),to:clone(start),dx:start.x-p.x,dy:start.y-p.y,screenX:e.clientX,screenY:e.clientY,moved:false,points:[clone(start)],screenInverse};
   stage.setPointerCapture?.(e.pointerId);
-  // No SVG rerender here: preserve pointer capture until release.
+  // Ingen SVG-omrendering här: behåll pointer capture hela dragningen.
   syncSelectedControls();syncModeButtons();
 }
 function moveDirectDrag(e){
   const d=directDrag;if(!d||e.pointerId!==d.pointerId)return false;
   e.preventDefault();
   if(!d.moved&&Math.hypot(e.clientX-d.screenX,e.clientY-d.screenY)<6)return true;
-  d.moved=true;const o=getObj(d.id),p=clampPoint(getSvgPoint(e));
-  d.to={x:Math.max(43,Math.min(657,p.x+d.dx)),y:Math.max(43,Math.min(1057,p.y+d.dy))};
+  d.moved=true;
+  const coalesced=(typeof e.getCoalescedEvents==='function'?e.getCoalescedEvents():null)||[];
+  // Coalesced events används för att inte missa snabba svängar mellan skärmuppdateringar.
+  const events=coalesced.length?coalesced:[e];
+  for(const sample of events){
+    const p=directDragPoint(sample,d);
+    const q={x:Math.max(43,Math.min(657,p.x+d.dx)),y:Math.max(43,Math.min(1057,p.y+d.dy))};
+    const last=d.points.at(-1);
+    if(Math.hypot(q.x-last.x,q.y-last.y)>=2.5){d.points.push(q);}
+    d.to=q;
+  }
+  // Få med slutpositionen även om den sista fingerrörelsen är mindre än samplingssteget.
+  const last=d.points.at(-1);
+  if(Math.hypot(d.to.x-last.x,d.to.y-last.y)>1)d.points.push(clone(d.to));
   const el=[...objectsG.querySelectorAll('.obj')].find(x=>x.dataset.id===d.id);
   if(el)el.setAttribute('transform',`translate(${d.to.x} ${d.to.y})`);
-  if(o){draftG.innerHTML=`<path d="M ${d.from.x} ${d.from.y} L ${d.to.x} ${d.to.y}" fill="none" stroke="${o.color}" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="9 5" opacity=".78" pointer-events="none"/><circle cx="${d.from.x}" cy="${d.from.y}" r="7" fill="#fff" stroke="${o.color}" stroke-width="3" pointer-events="none"/>`}
+  const o=getObj(d.id);
+  if(o){const preview=smoothDirectTrace(d.points);draftG.innerHTML=`<path d="${pathD(preview)}" fill="none" stroke="${o.color}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="9 5" opacity=".78" pointer-events="none"/><circle cx="${d.from.x}" cy="${d.from.y}" r="7" fill="#fff" stroke="${o.color}" stroke-width="3" pointer-events="none"/>`}
   return true;
 }
 function finishDirectDrag(e,cancel=false){
   const d=directDrag;if(!d||e.pointerId!==d.pointerId)return false;directDrag=null;draftG.innerHTML='';
-  const distance=Math.hypot(d.to.x-d.from.x,d.to.y-d.from.y),o=getObj(d.id);
-  if(!cancel&&d.moved&&distance>=17&&o){
+  // Pointerup kan komma efter sista pointermove – inkludera alltid fingerpositionen.
+  if(!cancel&&d.moved){
+    const p=directDragPoint(e,d);
+    const end={x:Math.max(43,Math.min(657,p.x+d.dx)),y:Math.max(43,Math.min(1057,p.y+d.dy))};
+    if(Math.hypot(end.x-d.points.at(-1).x,end.y-d.points.at(-1).y)>.5)d.points.push(end);
+    d.to=end;
+  }
+  const points=smoothDirectTrace(d.points),o=getObj(d.id);
+  if(!cancel&&d.moved&&points.length>=2&&traceLength(points)>=17&&o){
     pushUndo();lockPassTargetsBeforeNewPath(o.id);
-    const dx=d.to.x-d.from.x,dy=d.to.y-d.from.y,rot=Math.atan2(dx,-dy)*180/Math.PI,dist=Math.hypot(dx,dy);
-    const curve={x:(d.from.x+d.to.x)/2,y:(d.from.y+d.to.y)/2};
-    playerTracks(o.id).push({id:nextId('s'),points:[clone(d.from),clone(d.to)],speed:defaultPathSpeed,start:nextTrackStart(o.id),baseDelay:Math.max(0,defaultPathDelay),preset:'straight',presetShape:{kind:'straight',L:dist,W:90,B:0,rot,geom:{endHandle:clone(d.to),curveHandle:curve}}});
+    // Samma lagringsformat som frihand. Ingen rak preset får ersätta den ritade kurvan.
+    playerTracks(o.id).push({id:nextId('s'),points,speed:defaultPathSpeed,start:nextTrackStart(o.id),baseDelay:Math.max(0,defaultPathDelay)});
     normalizeActionTimeline();render();
-    setStatus(`Spelare ${o.label||''}: åkdel skapad. Dra spelaren igen för att fortsätta. Tryck på linjen för att böja den.`,true);
+    setStatus(`Spelare ${o.label||''}: den ritade vägen har jämnats ut och sparats. Dra spelaren igen för att fortsätta. Tidigare passningar ligger kvar.`,true);
   }else{
-    renderObjects();syncSelectedControls();setStatus(cancel?'Dragningen avbröts.':'Spelaren markerad. Dra till nästa position för att skapa en rörelse.',true)
+    renderObjects();syncSelectedControls();setStatus(cancel?'Dragningen avbröts.':'Spelaren markerad. Dra spelaren längs önskad åkväg.',true)
   }
   return true;
 }
@@ -1190,7 +1259,7 @@ stage.addEventListener('pointerdown',e=>{if(cameraGesture||touchPoints.size>=2)r
   if(editingPassId&&handle){e.preventDefault();e.stopImmediatePropagation();passEditGesture={pointerId:e.pointerId,which:handle.dataset.passHandle};stage.setPointerCapture?.(e.pointerId);return;}
   const passLine=e.target.closest?.('[data-pass-edit]');
   if(passLine&&!actionMode&&!pathMode&&!groupMode&&!recordMode){e.preventDefault();e.stopImmediatePropagation();chooseEditPass(passLine.dataset.passEdit);return;}
-  closeDrawMenu();const p=clampPoint(getSvgPoint(e));const node0=e.target.closest?.('.obj');let obj0=node0?getObj(node0.dataset.id):null;if(directAnimateMode&&!actionMode&&!pathMode&&!recordMode&&!groupMode&&!presetDraft&&obj0?.type==='player'){e.preventDefault();startDirectDrag(obj0,e);return}if(obj0?.type==='ball'&&!project.ballOwnerStart){const people=project.objects.filter(x=>x.type==='coach'||x.type==='player');const closer=people.filter(x=>Math.hypot(p.x-x.x,p.y-x.y)<Math.max(26,x.r+8)).sort((a,b)=>Math.hypot(p.x-a.x,p.y-a.y)-Math.hypot(p.x-b.x,p.y-b.y))[0];if(closer&&Math.hypot(p.x-obj0.x,p.y-obj0.y)>13)obj0=closer;}if(!actionMode&&!pathMode&&!recordMode&&!groupMode&&!presetDraft){const near=closestMoveObject(p);if(near)obj0=near;}if(!pathMode&&!actionMode&&!recordMode&&!groupMode&&!presetDraft&&lastSelectionTap&&Date.now()-lastSelectionTap.at<1300&&Math.hypot(p.x-lastSelectionTap.x,p.y-lastSelectionTap.y)<35){const stack=stackedCandidates(p);if(stack.length>1){const j=stack.findIndex(o=>o.id===lastSelectionTap.id);if(j>=0)obj0=stack[(j+1)%stack.length];}}const presetHandle=e.target.closest?.('[data-preset-handle]');if(presetDraft&&presetHandle){e.preventDefault();presetDragging={handle:presetHandle.dataset.presetHandle,pointerId:e.pointerId,start:p,orig:clone(presetDraft)};stage.setPointerCapture?.(e.pointerId);return}const endpoint0=e.target.closest?.('.endpoint');if(endpoint0&&!pathMode&&!recordMode&&!groupMode&&(!actionMode||Math.hypot(p.x-lastTrackEndPoint(endpoint0.dataset.endpointId).x,p.y-lastTrackEndPoint(endpoint0.dataset.endpointId).y)<25)){const eo=getObj(endpoint0.dataset.endpointId);if(eo){e.preventDefault();selectedId=eo.id;const ep=lastTrackEndPoint(eo.id);if(actionMode){startPassDragIfPossible(e,{player:eo,playerId:eo.id,point:ep,time:trackEndTime(eo.id),segId:playerTracks(eo.id).at(-1)?.id||null,fraction:1,anchorType:'segmentEnd'});if(actionMode==='shot')handleActionTrackPick({player:eo,playerId:eo.id,point:ep,time:trackEndTime(eo.id),segId:playerTracks(eo.id).at(-1)?.id||null,fraction:1,anchorType:'segmentEnd'});return}renderObjects();syncSelectedControls();setStatus(`Slutpunkten för ${eo.label||'spelaren'} är markerad. Välj Pass, Skott eller Rita för att bygga vidare härifrån.`,true);return}}if(actionMode){const hit=passCandidate(p,e,actionFirst?.id===undefined?lastPassReceiverId:null);if(hit){e.preventDefault();if(actionMode==='pass')startPassDragIfPossible(e,hit);else handleActionTrackPick(hit);return}setStatus('Tryck närmare en spelare eller längs den färgade åkbanan. Små gröna punkter markerar valbara hållpunkter.',true);return}if(recordMode){if(!obj0||obj0.type!=='player'||obj0.id!==selectedId){setStatus('REC: dra den markerade spelaren.',true);return}e.preventDefault();startRecordingDrag(obj0,e);return}if(groupMode&&obj0){e.preventDefault();if(!groupSelection.has(obj0.id)){groupSelection.add(obj0.id);selectedId=obj0.id;renderObjects();syncModeButtons();setStatus(`${groupSelection.size} objekt markerade.`,true);return}pushUndo();const q=getSvgPoint(e);dragging={group:true,anchorId:obj0.id,start:{x:q.x,y:q.y},lastDx:0,lastDy:0,moved:false};stage.setPointerCapture?.(e.pointerId);return}if(pathMode){let hit=null;const touchedPlayer=obj0?.type==='player'?obj0:null;const chosen=getObj(drawTargetId);if(touchedPlayer){hit={o:touchedPlayer,a:lastTrackEndPoint(touchedPlayer.id)};}else if(chosen?.type==='player'){hit={o:chosen,a:lastTrackEndPoint(chosen.id)};}else{hit=nearestPathAnchor(p);}if(!hit){setStatus('Välj spelare 1 eller 2 i Åkbana för ovanför planen. Tränarens boll påverkas inte.',true);return}e.preventDefault();selectedId=hit.o.id;drawTargetId=hit.o.id;const start=nextTrackStart(hit.o.id);drawingPath={playerId:hit.o.id,start,speed:defaultPathSpeed,points:[{...hit.a}],pointerId:e.pointerId,fromTap:!!touchedPlayer};stage.setPointerCapture?.(e.pointerId);draftG.innerHTML=`<path d="${pathD(drawingPath.points)}" fill="none" stroke="${hit.o.color}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity=".68"/>`;renderObjects();syncSelectedControls();updateDrawTargetUI();return}const savedPreset=e.target.closest?.('[data-edit-preset]');if(savedPreset&&!actionMode&&!pathMode&&!recordMode&&!groupMode){e.preventDefault();loadPresetSegmentForEdit(savedPreset.dataset.playerId,savedPreset.dataset.editPreset);return}const o=obj0;if(!o){selectedId=null;renderObjects();syncSelectedControls();return}if(actionMode){handleActionPick(o,{x:o.x,y:o.y});return}selectedId=o.id;if(o.type==='ball'&&project.ballOwnerStart){setStatus('Bollen sitter hos bollhållaren. Markera spelaren och välj Släpp boll för att flytta bollen fritt.');renderObjects();syncSelectedControls();return}if(o.type==='goalkeeper'&&o.followBall!==false){setStatus('Målvakten följer bollen automatiskt. Stäng av Följ boll under Val för manuell flytt.');renderObjects();syncSelectedControls();return}const q=getSvgPoint(e);dragging={id:o.id,pointerId:e.pointerId,dx:o.x-q.x,dy:o.y-q.y,startX:o.x,startY:o.y,screenX:e.clientX,screenY:e.clientY,moved:false};stage.setPointerCapture?.(e.pointerId)})
+  closeDrawMenu();const p=clampPoint(getSvgPoint(e));const node0=e.target.closest?.('.obj');let obj0=node0?getObj(node0.dataset.id):null;if(directAnimateMode&&!actionMode&&!pathMode&&!recordMode&&!groupMode&&!presetDraft&&!obj0){const ep=e.target.closest?.('.endpoint');const eo=ep?getObj(ep.dataset.endpointId):null;if(eo?.type==='player')obj0=eo;}if(directAnimateMode&&!actionMode&&!pathMode&&!recordMode&&!groupMode&&!presetDraft&&obj0?.type==='player'){e.preventDefault();startDirectDrag(obj0,e);return}if(obj0?.type==='ball'&&!project.ballOwnerStart){const people=project.objects.filter(x=>x.type==='coach'||x.type==='player');const closer=people.filter(x=>Math.hypot(p.x-x.x,p.y-x.y)<Math.max(26,x.r+8)).sort((a,b)=>Math.hypot(p.x-a.x,p.y-a.y)-Math.hypot(p.x-b.x,p.y-b.y))[0];if(closer&&Math.hypot(p.x-obj0.x,p.y-obj0.y)>13)obj0=closer;}if(!actionMode&&!pathMode&&!recordMode&&!groupMode&&!presetDraft){const near=closestMoveObject(p);if(near)obj0=near;}if(!pathMode&&!actionMode&&!recordMode&&!groupMode&&!presetDraft&&lastSelectionTap&&Date.now()-lastSelectionTap.at<1300&&Math.hypot(p.x-lastSelectionTap.x,p.y-lastSelectionTap.y)<35){const stack=stackedCandidates(p);if(stack.length>1){const j=stack.findIndex(o=>o.id===lastSelectionTap.id);if(j>=0)obj0=stack[(j+1)%stack.length];}}const presetHandle=e.target.closest?.('[data-preset-handle]');if(presetDraft&&presetHandle){e.preventDefault();presetDragging={handle:presetHandle.dataset.presetHandle,pointerId:e.pointerId,start:p,orig:clone(presetDraft)};stage.setPointerCapture?.(e.pointerId);return}const endpoint0=e.target.closest?.('.endpoint');if(endpoint0&&!pathMode&&!recordMode&&!groupMode&&(!actionMode||Math.hypot(p.x-lastTrackEndPoint(endpoint0.dataset.endpointId).x,p.y-lastTrackEndPoint(endpoint0.dataset.endpointId).y)<25)){const eo=getObj(endpoint0.dataset.endpointId);if(eo){e.preventDefault();selectedId=eo.id;const ep=lastTrackEndPoint(eo.id);if(actionMode){startPassDragIfPossible(e,{player:eo,playerId:eo.id,point:ep,time:trackEndTime(eo.id),segId:playerTracks(eo.id).at(-1)?.id||null,fraction:1,anchorType:'segmentEnd'});if(actionMode==='shot')handleActionTrackPick({player:eo,playerId:eo.id,point:ep,time:trackEndTime(eo.id),segId:playerTracks(eo.id).at(-1)?.id||null,fraction:1,anchorType:'segmentEnd'});return}renderObjects();syncSelectedControls();setStatus(`Slutpunkten för ${eo.label||'spelaren'} är markerad. Välj Pass, Skott eller Rita för att bygga vidare härifrån.`,true);return}}if(actionMode){const hit=passCandidate(p,e,actionFirst?.id===undefined?lastPassReceiverId:null);if(hit){e.preventDefault();if(actionMode==='pass')startPassDragIfPossible(e,hit);else handleActionTrackPick(hit);return}setStatus('Tryck närmare en spelare eller längs den färgade åkbanan. Små gröna punkter markerar valbara hållpunkter.',true);return}if(recordMode){if(!obj0||obj0.type!=='player'||obj0.id!==selectedId){setStatus('REC: dra den markerade spelaren.',true);return}e.preventDefault();startRecordingDrag(obj0,e);return}if(groupMode&&obj0){e.preventDefault();if(!groupSelection.has(obj0.id)){groupSelection.add(obj0.id);selectedId=obj0.id;renderObjects();syncModeButtons();setStatus(`${groupSelection.size} objekt markerade.`,true);return}pushUndo();const q=getSvgPoint(e);dragging={group:true,anchorId:obj0.id,start:{x:q.x,y:q.y},lastDx:0,lastDy:0,moved:false};stage.setPointerCapture?.(e.pointerId);return}if(pathMode){let hit=null;const touchedPlayer=obj0?.type==='player'?obj0:null;const chosen=getObj(drawTargetId);if(touchedPlayer){hit={o:touchedPlayer,a:lastTrackEndPoint(touchedPlayer.id)};}else if(chosen?.type==='player'){hit={o:chosen,a:lastTrackEndPoint(chosen.id)};}else{hit=nearestPathAnchor(p);}if(!hit){setStatus('Välj spelare 1 eller 2 i Åkbana för ovanför planen. Tränarens boll påverkas inte.',true);return}e.preventDefault();selectedId=hit.o.id;drawTargetId=hit.o.id;const start=nextTrackStart(hit.o.id);drawingPath={playerId:hit.o.id,start,speed:defaultPathSpeed,points:[{...hit.a}],pointerId:e.pointerId,fromTap:!!touchedPlayer};stage.setPointerCapture?.(e.pointerId);draftG.innerHTML=`<path d="${pathD(drawingPath.points)}" fill="none" stroke="${hit.o.color}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity=".68"/>`;renderObjects();syncSelectedControls();updateDrawTargetUI();return}const savedPreset=e.target.closest?.('[data-edit-preset]');if(savedPreset&&!actionMode&&!pathMode&&!recordMode&&!groupMode){e.preventDefault();loadPresetSegmentForEdit(savedPreset.dataset.playerId,savedPreset.dataset.editPreset);return}const o=obj0;if(!o){selectedId=null;renderObjects();syncSelectedControls();return}if(actionMode){handleActionPick(o,{x:o.x,y:o.y});return}selectedId=o.id;if(o.type==='ball'&&project.ballOwnerStart){setStatus('Bollen sitter hos bollhållaren. Markera spelaren och välj Släpp boll för att flytta bollen fritt.');renderObjects();syncSelectedControls();return}if(o.type==='goalkeeper'&&o.followBall!==false){setStatus('Målvakten följer bollen automatiskt. Stäng av Följ boll under Val för manuell flytt.');renderObjects();syncSelectedControls();return}const q=getSvgPoint(e);dragging={id:o.id,pointerId:e.pointerId,dx:o.x-q.x,dy:o.y-q.y,startX:o.x,startY:o.y,screenX:e.clientX,screenY:e.clientY,moved:false};stage.setPointerCapture?.(e.pointerId)})
 stage.addEventListener('pointermove',e=>{if(cameraGesture)return;
  if(moveDirectDrag(e))return;
  if(passEditGesture&&e.pointerId===passEditGesture.pointerId){e.preventDefault();const hit=passCandidate(clampPoint(getSvgPoint(e)),e);renderPassEditMarkers(hit,passEditGesture.which);return;}
@@ -1327,7 +1396,7 @@ $('propertyBackdrop').addEventListener('click',closeProperties);let sheetDrag=nu
 window.addEventListener('resize',updateAppHeight);window.visualViewport?.addEventListener('resize',updateAppHeight);window.visualViewport?.addEventListener('scroll',updateAppHeight);updateAppHeight();
 window.addEventListener('keydown',e=>{if((e.key==='Delete'||e.key==='Backspace')&&!/INPUT|TEXTAREA/.test(document.activeElement?.tagName))deleteSelected();if(e.key===' '&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)){e.preventDefault();play()}if(e.key==='Escape'){if(!$('libraryBackdrop').hidden){hideLibrary();return;}if(presentation)exitPresentationMode();else cancelModes();}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo()}});
 
-render();$('undo').disabled=true;updateAppHeight();setTimeout(fitEverything,30);setStatus('v1.0-alpha.9.0: Börja i Uppställning. Välj Animera och dra spelarna till nästa position.');
+render();$('undo').disabled=true;updateAppHeight();setTimeout(fitEverything,30);setStatus('v1.0-alpha.9.1: Välj Animera. Dra spelaren längs hela vägen, runt koner och vidare, så ritas åkbanan.');
 })();
 </script>
 </body>
