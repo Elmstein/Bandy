@@ -392,7 +392,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
 <body>
 <div class="app">
 <header class="topbar">
-  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.9.9 · valbara formationer för två lag</small></div></div>
+  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.9.10 · formationer & kvalitetstest</small></div></div>
   <div class="topControls">
     <select id="rinkMode" aria-label="Planvy"><option value="full">Helplan</option><option value="half">Halvplan</option></select>
     <select id="orientation" aria-label="Anfallsriktning"><option value="up">Anfall uppåt</option><option value="down">Anfall nedåt</option></select>
@@ -1115,26 +1115,23 @@ function findOpenSpawn(type,center,r){
   }
   return best;
 }
-// Formationerna avser UTESPELARE. Exempel: 3–5–2 = 3+5+2 = 10, plus målvakt = 11.
-// Varianterna inom parentes väljs separat eftersom de har andra positioner på planen.
+// Formationerna avser UTESPELARE. Parentesbeteckningen är en alternativ
+// benämning/uppställning av SAMMA grundformation, inte ett eget menyval.
+// Låt befintliga JSON-filer behålla sina inritade spelarpositioner vid import.
 const FORMATION_TYPES={
-  9:[{key:'242',label:'2–4–2',rows:[2,4,2]},
-     {key:'1142',label:'1–1–4–2',rows:[1,1,4,2]},
-     {key:'332',label:'3–3–2',rows:[3,3,2]},
-     {key:'1232',label:'1–2–3–2',rows:[1,2,3,2]},
+  9:[{key:'242',label:'2–4–2 (1–1–4–2)',rows:[2,4,2]},
+     {key:'332',label:'3–3–2 (1–2–3–2)',rows:[3,3,2]},
      {key:'233',label:'2–3–3',rows:[2,3,3]}],
-  11:[{key:'352',label:'3–5–2',rows:[3,5,2]},
-      {key:'433',label:'4–3–3 (tidigare standard)',rows:[4,3,3]},
-      {key:'1342',label:'1–3–4–2',rows:[1,3,4,2]},
-      {key:'343',label:'3–4–3',rows:[3,4,3]},
-      {key:'1333',label:'1–3–3–3',rows:[1,3,3,3]},
-      {key:'4411',label:'4–4–1–1',rows:[4,4,1,1]},
-      {key:'1441',label:'1–4–4–1',rows:[1,4,4,1]}]
+  11:[{key:'352',label:'3–5–2 (1–3–4–2)',rows:[3,5,2]},
+      {key:'343',label:'3–4–3 (1–3–3–3)',rows:[3,4,3]},
+      {key:'4411',label:'4–4–1–1 (1–4–4–1)',rows:[4,4,1,1]},
+      {key:'433',label:'4–3–3',rows:[4,3,3]}]
 };
-const DEFAULT_FORMATION={9:'332',11:'352'};
+// Gamla formationer från 9.9 läses fortfarande utan att rörelser skrivs om.
+const FORMATION_ALIASES={9:{'1142':'242','1232':'332'},11:{'1342':'352','1333':'343','1441':'4411'}};
 let formationSize=9;
 let formationPreferred={9:{A:'332',B:'332'},11:{A:'352',B:'352'}};
-function formationByKey(size,key){return FORMATION_TYPES[size]?.find(f=>f.key===key)||FORMATION_TYPES[size]?.[0]}
+function formationByKey(size,key){const canonical=FORMATION_ALIASES[size]?.[key]||key;return FORMATION_TYPES[size]?.find(f=>f.key===canonical)||FORMATION_TYPES[size]?.[0]}
 function teamFormationRows(size,key){
   const f=formationByKey(size,key);if(!f)return[];
   const count=f.rows.length;
@@ -1195,7 +1192,7 @@ function openFormationMenu(){closeMobilePopovers();
     formationSize=project.formationSelection.size;
     for(const id of ['A','B']){
       const key=project.formationSelection[id];
-      if(formationByKey(formationSize,key)?.key===key)formationPreferred[formationSize][id]=key;
+      if(formationByKey(formationSize,key))formationPreferred[formationSize][id]=formationByKey(formationSize,key).key;
     }
   }
   refreshFormationUI();$('formationBackdrop').hidden=false;
@@ -1595,9 +1592,73 @@ function syncGroupState(){
 function toggleGroupMode(){closeDrawMenu();stopPlayback();cancelPresetDraft(false);groupMode=!groupMode;pathMode=false;actionMode=null;recordMode=false;document.querySelector('.app').classList.remove('is-recording');syncModeButtons();setStatus(groupMode?'Gruppmarkering: tryck objekt för att lägga till. Dra ett redan markerat objekt för att flytta hela gruppen.':'Gruppmarkering avslutad.',groupMode)}
 function clearGroupSelection(){groupSelection.clear();renderObjects();syncModeButtons();setStatus('Gruppmarkeringen rensades.')}
 function selectedIds(){return groupSelection.size?[...groupSelection]:(selectedId?[selectedId]:[])}
-function duplicateSelection(){const ids=selectedIds();if(!ids.length){setStatus('Markera ett objekt eller en grupp först.');return}pushUndo();const map=new Map(),dx=28,dy=28;for(const id of ids){const o=getObj(id);if(!o||o.type==='ball')continue;const n={...clone(o),id:nextId(),x:o.x+dx,y:o.y+dy};project.objects.push(n);map.set(id,n.id);if(o.type==='player'&&project.tracks[id])project.tracks[n.id]=clone(project.tracks[id]).map(seg=>({...seg,id:nextId('s'),points:seg.points.map(p=>({x:p.x+dx,y:p.y+dy})),samples:seg.samples?.map(q=>({...q,x:q.x+dx,y:q.y+dy}))}))}
-  for(const a of [...project.actions])if(map.has(a.from)&&(a.type!=='pass'||map.has(a.to)))project.actions.push({...clone(a),id:nextId('a'),from:map.get(a.from),to:a.to?map.get(a.to):undefined,order:project.actions.length});normalizeActionTimeline();groupSelection=new Set(map.values());selectedId=[...groupSelection][0]||null;render();setStatus(`${groupSelection.size} objekt duplicerade.`)}
-function mirrorSelection(){const ids=selectedIds();if(!ids.length){setStatus('Markera ett objekt eller en grupp först.');return}pushUndo();for(const id of ids){const o=getObj(id);if(!o)continue;o.x=700-o.x;if(o.type==='player')for(const seg of playerTracks(id)){seg.points=seg.points.map(p=>({x:700-p.x,y:p.y}));if(seg.samples)seg.samples=seg.samples.map(q=>({...q,x:700-q.x}))}}render();setStatus('Valet spegelvändes över planens mittaxel.')}
+// Gruppkopiering: kopiera spelare och deras åkbanor med nya segment-ID:n.
+// Eftersom en övning har EN boll kopieras inte pass-/skotthändelser automatiskt:
+// det skulle annars skapa en andra, ogiltig bollkedja och föräldralösa ankare.
+function duplicateSelection(){
+  const ids=selectedIds();if(!ids.length){setStatus('Markera ett objekt eller en grupp först.');return}
+  const chosen=ids.map(id=>getObj(id)).filter(Boolean).filter(o=>o.type!=='ball');
+  if(!chosen.length){setStatus('Bollen kan inte dupliceras.');return}
+  pushUndo();const map=new Map(),dx=28,dy=28;
+  let goalkeeperCount=project.objects.filter(o=>o.type==='goalkeeper').length;
+  for(const o of chosen){
+    if(o.type==='goalkeeper'&&goalkeeperCount>=2)continue;
+    let n={...clone(o),id:nextId(),x:o.x+dx,y:o.y+dy};
+    if(o.type==='goalkeeper'){
+      goalkeeperCount++;
+      const occupied=project.objects.filter(x=>x.type==='goalkeeper').map(x=>x.goalSide||((x.y||550)<550?'top':'bottom'));
+      const free=occupied.includes('top')?'bottom':'top';
+      n={...n,x:350,y:free==='top'?58:1042,goalSide:free,teamId:undefined};
+    }
+    project.objects.push(n);map.set(o.id,n.id);
+    if(o.type==='player'&&project.tracks[o.id]){
+      project.tracks[n.id]=clone(project.tracks[o.id]).map(seg=>{
+        const newSeg={...seg,id:nextId('s'),
+          points:seg.points.map(p=>({x:p.x+dx,y:p.y+dy})),
+          samples:seg.samples?.map(q=>({...q,x:q.x+dx,y:q.y+dy}))};
+        // Kopierade rörelser får en egen tidslinje utan hänvisning till gamla bollhändelser.
+        delete newSeg.startEventId;
+        if(newSeg.startMode==='passArrival'||newSeg.startMode==='passRelease')newSeg.startMode='auto';
+        if(newSeg.presetShape?.geom){
+          for(const h of ['endHandle','curveHandle'])if(newSeg.presetShape.geom[h]){
+            newSeg.presetShape.geom[h].x+=dx;newSeg.presetShape.geom[h].y+=dy;
+          }
+        }
+        return newSeg;
+      });
+    }
+  }
+  groupSelection=new Set(map.values());selectedId=[...groupSelection][0]||null;
+  normalizeActionTimeline();render();
+  setStatus(`${map.size} objekt och deras åkbanor kopierade. Passningar och skott kopieras inte eftersom de hör till bollkedjan.`,true)
+}
+// Spegelvändning av en befintlig övning måste flytta även tillhörande
+// passningsankare, händelsenoder och preset-handtag – inte bara spelarmarkören.
+function mirrorSelection(){
+  const ids=selectedIds();if(!ids.length){setStatus('Markera ett objekt eller en grupp först.');return}
+  const chosen=new Set(ids);pushUndo();
+  for(const id of ids){
+    const o=getObj(id);if(!o)continue;
+    o.x=700-o.x;
+    if(o.type==='player')for(const seg of playerTracks(id)){
+      seg.points=seg.points.map(p=>({x:700-p.x,y:p.y}));
+      if(seg.samples)seg.samples=seg.samples.map(q=>({...q,x:700-q.x}));
+      if(seg.presetShape?.geom)for(const handle of ['endHandle','curveHandle']){
+        const h=seg.presetShape.geom[handle];if(h)h.x=700-h.x;
+      }
+      if(seg.presetShape)seg.presetShape.rot=-seg.presetShape.rot;
+    }
+  }
+  for(const a of project.actions){
+    if(chosen.has(a.from)&&a.fromAnchor)a.fromAnchor.x=700-a.fromAnchor.x;
+    if(chosen.has(a.to)&&a.toAnchor)a.toAnchor.x=700-a.toAnchor.x;
+    if(chosen.has(a.to)&&a.effectiveToAnchor)a.effectiveToAnchor.x=700-a.effectiveToAnchor.x;
+  }
+  for(const node of Object.values(project.eventNodes||{})){
+    if(chosen.has(node.playerId))node.x=700-node.x;
+  }
+  normalizeActionTimeline();render();setStatus('Valet och dess kopplade passningspunkter spegelvändes.',true)
+}
 function rotatePoint(x,y,deg){const r=deg*Math.PI/180,c=Math.cos(r),s=Math.sin(r);return{x:x*c-y*s,y:x*s+y*c}}
 
 function createRubberBand(){
@@ -1793,9 +1854,44 @@ function ensureBall(){let b=firstBall();if(!b){const c=visibleCenter();b={id:nex
 function setBallOwner(id){pushUndo();ensureBall();project.ballOwnerStart=id||null;render()}
 function setSelectedColor(color){const o=getObj(selectedId);if(!o)return;pushUndo();o.color=color;render()}
 function swatchClick(e){const b=e.target.closest('[data-color]');if(b)setSelectedColor(b.dataset.color)}
-function deleteSelected(){const id=selectedId;if(!id){setStatus('Markera först det objekt som ska tas bort.');return;}const removed=getObj(id);stopPlayback();pushUndo();project.objects=project.objects.filter(o=>o.id!==id);delete project.tracks[id];project.actions=project.actions.filter(a=>a.from!==id&&a.to!==id);project.linkedGroups=(project.linkedGroups||[]).filter(g=>g.leader!==id&&!g.members?.includes(id));if(project.ballOwnerStart===id)project.ballOwnerStart=null;normalizeActionTimeline();selectedId=null;groupSelection.delete(id);render();setStatus(`${removed?.label||'Objekt'} borttaget. Ångra finns under Övningsflöde.`)}
-function duplicateSelected(){const o=getObj(selectedId);if(!o)return;pushUndo();const n={...clone(o),id:nextId(),x:o.x+32,y:o.y+32};project.objects.push(n);selectedId=n.id;render()}
-function deleteLastPath(){const o=getObj(selectedId);if(!o||o.type!=='player'||!playerTracks(o.id).length){setStatus('Markera en spelare som har en åkväg.');return}pushUndo();playerTracks(o.id).pop();const end=trackEndTime(o.id);project.actions=project.actions.filter(a=>!(a.from===o.id&&a.start>end+.001));normalizeActionTimeline();render();setStatus('Spelarens sista delbana togs bort.')}
+// Ta bort händelser som pekar mot borttagna objekt/åkdelar. Aldrig kvarlämnade
+// startEventId eller fasta passningsnoder utan en existerande bollhändelse.
+function removeActionsSafely(predicate){
+  const removed=project.actions.filter(predicate),ids=new Set(removed.map(a=>a.id));
+  if(!removed.length)return 0;
+  for(const a of removed){if(a.fromNodeId)delete project.eventNodes?.[a.fromNodeId];if(a.toNodeId)delete project.eventNodes?.[a.toNodeId]}
+  project.actions=project.actions.filter(a=>!ids.has(a.id));
+  project.actions.forEach((a,i)=>a.order=i);
+  for(const segs of Object.values(project.tracks))for(const seg of segs){
+    if(ids.has(seg.startEventId)){
+      seg.startEventId=null;
+      if(seg.startMode==='passArrival'||seg.startMode==='passRelease')seg.startMode='auto';
+    }
+  }
+  if(lastPassReceiverId&&!project.actions.some(a=>a.type==='pass'&&a.to===lastPassReceiverId)){
+    lastPassReceiverId=null;lastPassReceiverHit=null;
+  }
+  return removed.length;
+}
+function deleteSelected(){const id=selectedId;if(!id){setStatus('Markera först det objekt som ska tas bort.');return;}const removed=getObj(id);stopPlayback();pushUndo();const erased=removeActionsSafely(a=>a.from===id||a.to===id);project.objects=project.objects.filter(o=>o.id!==id);delete project.tracks[id];project.linkedGroups=(project.linkedGroups||[]).filter(g=>g.leader!==id&&!g.members?.includes(id));if(project.ballOwnerStart===id)project.ballOwnerStart=null;normalizeActionTimeline();selectedId=null;groupSelection.delete(id);render();setStatus(`${removed?.label||'Objekt'} borttaget.${erased?' '+erased+' kopplade passningar/skott borttagna.':''} Ångra finns under Övningsflöde.`)}
+function duplicateSelected(){const o=getObj(selectedId);if(!o)return;
+  if(o.type==='ball'){setStatus('En övning använder bara en boll. Välj befintlig boll i stället.',true);return}
+  let n;
+  if(o.type==='goalkeeper'){
+    const keepers=project.objects.filter(x=>x.type==='goalkeeper');
+    if(keepers.length>=2){setStatus('Det finns redan en målvakt i varje mål.',true);return}
+    const occupied=o.goalSide||((o.y||550)<550?'top':'bottom'),side=occupied==='top'?'bottom':'top';
+    n={...clone(o),id:nextId(),x:350,y:side==='top'?58:1042,goalSide:side,teamId:undefined};
+  }else n={...clone(o),id:nextId(),x:o.x+32,y:o.y+32};
+  pushUndo();project.objects.push(n);selectedId=n.id;render();
+}
+function deleteLastPath(){const o=getObj(selectedId);if(!o||o.type!=='player'||!playerTracks(o.id).length){setStatus('Markera en spelare som har en åkväg.');return}
+  stopPlayback();pushUndo();const removed=playerTracks(o.id).pop();
+  const end=trackEndTime(o.id);
+  const erased=removeActionsSafely(a=>a.fromSegId===removed.id||a.toSegId===removed.id||(a.from===o.id&&a.start>end+.001));
+  normalizeActionTimeline();render();
+  setStatus(`Sista åkdelen togs bort.${erased?' '+erased+' passningar/skott som var kopplade till den togs också bort.':''} Ångra om du vill återställa allt.`,true)
+}
 
 function toggleBallOnSelected(){const o=getObj(selectedId);if(!o||(o.type!=='player'&&o.type!=='coach')){setStatus('Markera först spelaren eller tränaren som ska ha bollen.');return}if(project.ballOwnerStart===o.id){setBallOwner(null);setStatus('Bollen är nu fri vid start.')}else{setBallOwner(o.id);setStatus(`${o.label||'Spelaren'} har nu bollen och den följer spelaren.`)}syncSelectedControls()}
 
@@ -1877,7 +1973,29 @@ $('saveLibraryProps').onclick=saveLocal;$('librarySaveCurrent').onclick=saveLoca
 $('libraryClose').onclick=hideLibrary;
 $('libraryBackdrop').addEventListener('click',e=>{if(e.target===$('libraryBackdrop'))hideLibrary()});
 $('libraryEntries').addEventListener('click',e=>{const open=e.target.closest('[data-library-open]'),remove=e.target.closest('[data-library-remove]');if(open)openFromLibrary(open.dataset.libraryOpen);else if(remove)removeFromLibrary(remove.dataset.libraryRemove)});
-$('importJson').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;try{project=JSON.parse(await f.text());project.libraryId=null;rebuildProject();selectedId=null;undoStack=[];render();setStatus('Projekt importerat.')}catch(err){console.error(err);setStatus('Kunde inte läsa projektfilen.')}e.target.value=''});
+function validateImportedProject(p){
+  if(!p||typeof p!=='object'||Array.isArray(p)||!Number.isInteger(p.version)||p.version<1||p.version>10)
+    throw new Error('Okänd projektversion eller ogiltig filstruktur');
+  if(p.version>=6&&(!Array.isArray(p.objects)||!p.tracks||typeof p.tracks!=='object'||Array.isArray(p.tracks)||!Array.isArray(p.actions)))
+    throw new Error('Saknar objekt, åkbanor eller bollhändelser');
+  if(p.version<6&&!Array.isArray(p.sequences)&&!Array.isArray(p.steps))
+    throw new Error('Äldre projekt saknar övningssekvenser');
+  return p;
+}
+$('importJson').addEventListener('change',async e=>{
+  const f=e.target.files?.[0];if(!f)return;
+  const previous=clone(project);
+  try{
+    const incoming=validateImportedProject(JSON.parse(await f.text()));
+    stopPlayback(true);project=incoming;project.libraryId=null;rebuildProject();
+    selectedId=null;undoStack=[];render();setStatus('Projekt importerat.');
+  }catch(err){
+    console.warn('Avvisad import:',err);project=previous;
+    try{rebuildProject();render()}catch(e2){console.error('Återställning misslyckades:',e2)}
+    setStatus('Importen avvisades. Originalövningen finns kvar. Kontrollera JSON-filens format.',true);
+  }
+  e.target.value='';
+});
 $('actionList').addEventListener('click',e=>{const edit=e.target.closest('[data-edit-pass]');if(edit){closeProperties();chooseEditPass(edit.dataset.editPass);return}return;});
 $('flowItems').addEventListener('click',e=>{const b=e.target.closest('.flowItem');if(!b)return;if(b.dataset.flowId){selectedId=b.dataset.flowId;renderObjects();syncSelectedControls()}if(b.dataset.actionId){const a=project.actions.find(x=>x.id===b.dataset.actionId);if(a?.type==='pass'){chooseEditPass(a.id);return}if(a){selectedId=a.from;renderObjects();syncSelectedControls();setStatus(a.type==='pass'?'Passningen är markerad i övningsflödet och sker under spelarens rörelse.':'Skottet är markerat i övningsflödet.')}}});
 function toggleProps(){properties.classList.contains('open')?closeProperties():openProperties()}
@@ -1929,7 +2047,7 @@ if(window.ResizeObserver){new ResizeObserver(()=>fitRinkCard()).observe($('rinkV
 window.addEventListener('resize',updateAppHeight);window.visualViewport?.addEventListener('resize',updateAppHeight);window.visualViewport?.addEventListener('scroll',updateAppHeight);updateAppHeight();
 window.addEventListener('keydown',e=>{if((e.key==='Delete'||e.key==='Backspace')&&!/INPUT|TEXTAREA/.test(document.activeElement?.tagName))deleteSelected();if(e.key===' '&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)){e.preventDefault();play()}if(e.key==='Escape'){if(!$('libraryBackdrop').hidden){hideLibrary();return;}if(presentation)exitPresentationMode();else cancelModes();}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo()}});
 
-render();$('undo').disabled=true;updateAppHeight();setTimeout(fitEverything,30);setStatus('v1.0-alpha.9.9: välj olika grundformationer för blått och rött lag under Objekt → Laguppställning.');
+render();$('undo').disabled=true;updateAppHeight();setTimeout(fitEverything,30);setStatus('v1.0-alpha.9.10: grupperade formationer, testad betaversion.');
 })();
 </script>
 </body>
