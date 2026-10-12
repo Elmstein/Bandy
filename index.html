@@ -356,12 +356,43 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
  .mobileQuickColors #quickBallOwnerMobile{padding:6px 9px;font-size:11px}
  .app.presentation .mobilePopover{display:none!important}
 }
+/* v1.0-alpha.9.8: matchuppställning utan extra verktyg i huvuddocken */
+.formationBackdrop[hidden]{display:none!important}
+.formationBackdrop{position:fixed;inset:0;z-index:105;background:rgba(15,23,42,.46);display:grid;place-items:center;padding:16px}
+.formationPanel{width:min(460px,100%);max-height:min(85dvh,650px);overflow-y:auto;background:#fff;color:#12243a;border-radius:18px;border:1px solid #cbd5e1;box-shadow:0 24px 75px rgba(15,23,42,.28);padding:18px}
+.formationHeader{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:17px}
+.formationPanel p{font-size:13px;line-height:1.5;color:#46566b;margin:12px 0}
+.formationChoices{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:14px 0}
+.formationChoices button{min-height:91px;padding:12px 8px;background:#f2f7ff;border:1px solid #a9c4f0;border-radius:12px;display:flex;flex-direction:column;justify-content:center;gap:7px}
+.formationChoices button strong{font-size:17px;color:#1453b9}
+.formationChoices button span{font-size:11px;color:#3e526c}
+.formationChoices button:hover{background:#e4efff;border-color:#4c8de8}
+.formationHint{font-size:11px!important;background:#f8fafc;padding:10px;border-radius:10px}
+/* v1.0-alpha.9.9: kompakt formationsväljare och enkel förhandsbild */
+.formationPanel{width:min(540px,100%)}
+.formationChoices button{min-height:58px;padding:8px 10px}
+.formationChoices button strong{font-size:15px}
+.formationChoices button[aria-pressed="true"]{border:2px solid #1769e8;background:#e7f0ff}
+.formationTeamGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0}
+.formationTeam{border:1px solid #d8e1ec;border-radius:13px;padding:10px;min-width:0}
+.formationTeam label{font-size:13px;font-weight:750;display:flex;align-items:center;gap:6px;margin-bottom:7px}
+.formationSwatch{display:inline-block;width:13px;height:13px;border-radius:50%}
+.formationTeam select{width:100%;max-width:100%;font-size:14px;background:#fff;border:1px solid #aebdd1;border-radius:8px;padding:9px 6px;min-height:40px;color:#12243a}
+.formationPreview{margin-top:9px;padding:5px;border-radius:9px;background:#f5f8fc;display:flex;justify-content:center}
+.formationPreview svg{width:100%;height:125px;max-width:150px}
+.formationActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:13px 0 6px}
+.formationActions button{font-size:13px;border:1px solid #b5c7dd;border-radius:10px;min-height:44px;padding:8px 5px;background:#f6f9ff;color:#17385c;font-weight:700}
+.formationActions button.primary{grid-column:1/-1;background:#1769e8;color:white;border-color:#1769e8}
+.formationActions button:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:400px){.formationTeamGrid{gap:7px}.formationTeam{padding:7px}.formationTeam select{font-size:12px}.formationPreview svg{height:95px}}
+
+@media(max-width:400px){.formationPanel{padding:13px}.formationChoices button strong{font-size:15px}.formationChoices{gap:7px}}
 </style>
 </head>
 <body>
 <div class="app">
 <header class="topbar">
-  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.9.7 · renare verktyg</small></div></div>
+  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.9.9 · valbara formationer för två lag</small></div></div>
   <div class="topControls">
     <select id="rinkMode" aria-label="Planvy"><option value="full">Helplan</option><option value="half">Halvplan</option></select>
     <select id="orientation" aria-label="Anfallsriktning"><option value="up">Anfall uppåt</option><option value="down">Anfall nedåt</option></select>
@@ -385,6 +416,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
         <button id="quickCoach" class="tool" data-add="coach"><span class="toolIcon coachIcon">TR</span><span>Tränare</span></button>
         <button class="tool" data-add="ball"><span class="toolIcon"><i class="ballIcon"></i></span><span>Boll</span></button>
         <button class="tool" data-add="text"><span class="toolIcon textIcon">T</span><span>Text</span></button>
+        <button id="formationDesktop" class="tool" type="button"><span class="toolIcon" style="font-size:22px">♟</span><span>Laguppställning</span></button>
         <button id="quickBallOwnerDesktop" class="tool"><span class="toolIcon" style="font-size:20px">🔴</span><span>Fäst boll vid vald spelare/tränare</span></button>
       </div>
     </details>
@@ -491,6 +523,35 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
   </section>
 </div>
 
+<div id="formationBackdrop" class="formationBackdrop" hidden>
+  <section class="formationPanel" role="dialog" aria-modal="true" aria-labelledby="formationTitle">
+    <div class="formationHeader"><strong id="formationTitle">♟ Laguppställning</strong><button id="formationClose" type="button" class="mini" aria-label="Stäng">✕ Stäng</button></div>
+    <p>Välj lagstorlek och <strong>olika grundformationer</strong> för blått och rött lag. Siffrorna avser <strong>utespelare</strong>; en målvakt tillkommer i varje lag.</p>
+    <div class="formationChoices" role="group" aria-label="Lagstorlek">
+      <button id="formationNine" type="button" aria-pressed="true"><strong>9 mot 9</strong><span>8 utespelare + målvakt per lag</span></button>
+      <button id="formationEleven" type="button" aria-pressed="false"><strong>11 mot 11</strong><span>10 utespelare + målvakt per lag</span></button>
+    </div>
+    <div class="formationTeamGrid">
+      <div class="formationTeam">
+        <label for="formationBlue"><span class="formationSwatch" style="background:#1769e8"></span> Blått lag · anfall uppåt</label>
+        <select id="formationBlue" aria-label="Blå lagets formation"></select>
+        <div class="formationPreview" id="formationPreviewBlue" aria-hidden="true"></div>
+      </div>
+      <div class="formationTeam">
+        <label for="formationRed"><span class="formationSwatch" style="background:#e31818"></span> Rött lag · anfall nedåt</label>
+        <select id="formationRed" aria-label="Röda lagets formation"></select>
+        <div class="formationPreview" id="formationPreviewRed" aria-hidden="true"></div>
+      </div>
+    </div>
+    <div class="formationActions">
+      <button id="formationApplyBoth" class="primary" type="button">Ställ upp båda lagen</button>
+      <button id="formationApplyBlue" type="button">Ändra bara blått</button>
+      <button id="formationApplyRed" type="button">Ändra bara rött</button>
+    </div>
+    <p class="formationHint" id="formationExplanation">Båda lagens formationer kan väljas oberoende. Byte av båda lagen ersätter befintliga spelare och animationer efter bekräftelse. Koner, tränare och andra markeringar behålls. Ångra fungerar.</p>
+  </section>
+</div>
+
 <footer class="flowPanel">
   <div class="flowWrap"><div class="flowHeader"><b>Övningsflöde</b><span class="flowHint">Skapas automatiskt av det du ritar – inga faser behöver sparas.</span><span class="row"><button id="toggleFlow" class="mini" title="Visa/dölj övningsflöde">▴ Flöde</button><button id="syncReceivers" class="mini" title="Synka passningarna med rimlig fart och senare start. Ändrar aldrig passningspunkterna.">⏱ Synka</button><button id="undo" class="mini">↶ Ångra</button></span></div><div id="flowItems" class="flowItems"></div></div>
   <div class="transport"><button id="restart" class="icon" title="Starta om">↺</button><button id="play" class="primary icon" title="Spela">▶</button><button id="pause" class="icon" title="Paus">Ⅱ</button><span id="timeLabel" class="timeLabel">0,0 / 0,0 s</span><div class="progressTrack" aria-hidden="true"><div id="progressFill" class="progressFill"></div></div><select id="speed" class="speed" title="Hastighet"><option value="0.25">0,25×</option><option value="0.30">0,30×</option><option value="0.35">0,35×</option><option value="0.40">0,40×</option><option value="0.45">0,45×</option><option value="0.50">0,50×</option><option value="0.60">0,60×</option><option value="0.75">0,75×</option><option value="1" selected>1×</option><option value="1.25">1,25×</option><option value="1.5">1,5×</option></select><select id="playView" class="playView" title="Visning under uppspelning"><option value="clean" selected>Ren Play – dölj linjer</option><option value="lines">Play – visa linjer</option></select><label class="checkLabel"><input id="loop" type="checkbox"><span>Loop</span></label><button id="toggleProps" class="icon" title="Egenskaper">⚙</button></div>
@@ -513,6 +574,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
       <button data-add="coach"><span class="toolIcon coachIcon">TR</span><span>Tränare</span></button>
       <button data-add="ball"><span class="toolIcon"><i class="ballIcon"></i></span><span>Boll</span></button>
       <button data-add="text"><span class="toolIcon textIcon">T</span><span>Text</span></button>
+      <button id="formationMobile" type="button"><span class="toolIcon" style="font-size:22px">♟</span><span>Laguppställning</span></button>
     </div>
   </div>
   <div id="mobileMorePopover" class="mobilePopover" hidden>
@@ -1053,18 +1115,153 @@ function findOpenSpawn(type,center,r){
   }
   return best;
 }
+// Formationerna avser UTESPELARE. Exempel: 3–5–2 = 3+5+2 = 10, plus målvakt = 11.
+// Varianterna inom parentes väljs separat eftersom de har andra positioner på planen.
+const FORMATION_TYPES={
+  9:[{key:'242',label:'2–4–2',rows:[2,4,2]},
+     {key:'1142',label:'1–1–4–2',rows:[1,1,4,2]},
+     {key:'332',label:'3–3–2',rows:[3,3,2]},
+     {key:'1232',label:'1–2–3–2',rows:[1,2,3,2]},
+     {key:'233',label:'2–3–3',rows:[2,3,3]}],
+  11:[{key:'352',label:'3–5–2',rows:[3,5,2]},
+      {key:'433',label:'4–3–3 (tidigare standard)',rows:[4,3,3]},
+      {key:'1342',label:'1–3–4–2',rows:[1,3,4,2]},
+      {key:'343',label:'3–4–3',rows:[3,4,3]},
+      {key:'1333',label:'1–3–3–3',rows:[1,3,3,3]},
+      {key:'4411',label:'4–4–1–1',rows:[4,4,1,1]},
+      {key:'1441',label:'1–4–4–1',rows:[1,4,4,1]}]
+};
+const DEFAULT_FORMATION={9:'332',11:'352'};
+let formationSize=9;
+let formationPreferred={9:{A:'332',B:'332'},11:{A:'352',B:'352'}};
+function formationByKey(size,key){return FORMATION_TYPES[size]?.find(f=>f.key===key)||FORMATION_TYPES[size]?.[0]}
+function teamFormationRows(size,key){
+  const f=formationByKey(size,key);if(!f)return[];
+  const count=f.rows.length;
+  // Från egen målvakt mot motståndarnas mål, med jämnt fördelade lagdelar.
+  const ys=count===3?[885,755,635]:[903,818,729,635];
+  return f.rows.map((n,i)=>{
+    const width={1:[],2:[-102,102],3:[-174,0,174],4:[-215,-72,72,215],5:[-256,-128,0,128,256]}[n];
+    if(!width)throw new Error('Ogiltig formationsrad: '+n);
+    return{xs:n===1?[350]:width.map(dx=>350+dx),y:ys[i]};
+  });
+}
+function formationMiniPreview(teamId,size,key){
+  const rows=teamFormationRows(size,key),color=teamId==='A'?'#1769e8':'#e31818';
+  const circles=[];
+  circles.push(`<circle cx="60" cy="103" r="4" fill="${color}" stroke="#fff" stroke-width="1.5"/>`);
+  for(const row of rows)for(const x of row.xs){
+    const y=teamId==='A'?row.y:1100-row.y;
+    // Miniatyrerna visar båda lagen med det egna målet närmast nedre kanten.
+    const localY=teamId==='A'?y:1100-y;
+    circles.push(`<circle cx="${(60+(x-350)*.16).toFixed(1)}" cy="${(103-(1000-localY)*.26).toFixed(1)}" r="4" fill="${color}" stroke="#fff" stroke-width="1.3"/>`);
+  }
+  // Samma riktning på respektive lags individuella förhandsvisning (eget mål nederst).
+  return `<svg viewBox="0 0 120 110" role="img" aria-label="${formationByKey(size,key).label} med målvakt"><rect x="3" y="3" width="114" height="104" rx="6" fill="#fff" stroke="#cad6e4"/><line x1="4" y1="55" x2="116" y2="55" stroke="#dce4ee" stroke-width="1"/>${circles.join('')}</svg>`;
+}
+function formationTeamIds(teamId){return project.objects.filter(o=>o.teamId===teamId&&(o.type==='player'||o.type==='goalkeeper'))}
+function availableSingleTeamChange(size){
+  return ['A','B'].every(teamId=>formationTeamIds(teamId).length===size);
+}
+function refreshFormationUI(){
+  $('formationNine').setAttribute('aria-pressed',String(formationSize===9));
+  $('formationEleven').setAttribute('aria-pressed',String(formationSize===11));
+  for(const [teamId,elId,previewId] of [['A','formationBlue','formationPreviewBlue'],['B','formationRed','formationPreviewRed']]){
+    const select=$(elId),choice=formationPreferred[formationSize][teamId];
+    select.innerHTML=FORMATION_TYPES[formationSize].map(f=>`<option value="${f.key}"${f.key===choice?' selected':''}>${f.label}</option>`).join('');
+    $(previewId).innerHTML=formationMiniPreview(teamId,formationSize,select.value);
+  }
+  const allow=availableSingleTeamChange(formationSize);
+  $('formationApplyBlue').disabled=!allow;$('formationApplyRed').disabled=!allow;
+  $('formationApplyBlue').title=$('formationApplyRed').title=allow?'Byter endast detta lags positioner. Andra lagets rörelser behålls.':'Ställ först upp båda lagen med samma lagstorlek.';
+}
+function openFormationMenu(){closeMobilePopovers();
+  if(!project.formationSelection){
+    const blueCount=formationTeamIds('A').length,redCount=formationTeamIds('B').length;
+    if(blueCount===redCount&&[9,11].includes(blueCount)){
+      formationSize=blueCount;
+      // Äldre versioner hade ingen formationsmetadata. Läs tillbaka den
+      // sparade radfördelningen utan att flytta någon spelare.
+      for(const teamId of ['A','B']){
+        const players=formationTeamIds(teamId).filter(o=>o.type==='player');
+        const ys=[...new Set(players.map(o=>Math.round(o.y*10)/10))].sort((a,b)=>teamId==='A'?b-a:a-b);
+        const sizes=ys.map(y=>players.filter(o=>Math.abs(o.y-y)<.1).length);
+        const candidate=FORMATION_TYPES[formationSize].find(f=>f.rows.join(',')===sizes.join(','));
+        if(candidate)formationPreferred[formationSize][teamId]=candidate.key;
+      }
+    }
+  }
+  if(project.formationSelection&&[9,11].includes(project.formationSelection.size)){
+    formationSize=project.formationSelection.size;
+    for(const id of ['A','B']){
+      const key=project.formationSelection[id];
+      if(formationByKey(formationSize,key)?.key===key)formationPreferred[formationSize][id]=key;
+    }
+  }
+  refreshFormationUI();$('formationBackdrop').hidden=false;
+}
+function closeFormationMenu(){$('formationBackdrop').hidden=true}
+function chooseFormationSize(size){if(![9,11].includes(size))return;formationSize=size;refreshFormationUI()}
+function chooseTeamFormation(teamId,key){if(!formationByKey(formationSize,key)||formationByKey(formationSize,key).key!==key)return;formationPreferred[formationSize][teamId]=key;$('formationPreview'+(teamId==='A'?'Blue':'Red')).innerHTML=formationMiniPreview(teamId,formationSize,key)}
+function buildTeamFormation(size,which='both'){
+  if(![9,11].includes(size)||!['both','A','B'].includes(which))return;
+  if(which!=='both'&&!availableSingleTeamChange(size)){
+    setStatus('Ställ först upp båda lagen i samma lagstorlek.',true);return;
+  }
+  const affected=project.objects.filter(o=>(o.type==='player'||o.type==='goalkeeper')&&(which==='both'||o.teamId===which));
+  const changedIds=new Set(affected.map(o=>o.id));
+  const affectedActions=project.actions.filter(a=>changedIds.has(a.from)||changedIds.has(a.to));
+  const hasPlayData=affected.length>0||affectedActions.length>0||affected.some(o=>(project.tracks[o.id]||[]).length);
+  const message=which==='both'?`Ersätta nuvarande spelare, målvakter och animationer med 9/11-lag (${size} spelare i varje)?`: `Ändra ${which==='A'?'blått':'rött'} lags formation? Lagets tidigare rörelser och passningar som berör dessa spelare tas bort.`;
+  if(hasPlayData&&!confirm((which==='both'?`Ersätta nuvarande spelare, målvakter och animationer med två nya ${size}-mannalag?` :message)+' Koner och andra markeringar blir kvar.'))return;
+  stopPlayback();cancelModes();groupMode=false;directAnimateMode=false;
+  pushUndo();
+  project.objects=project.objects.filter(o=>!changedIds.has(o.id));
+  if(which==='both'){project.tracks={};project.actions=[];project.eventNodes={};project.linkedGroups=[];project.ballOwnerStart=null;}
+  else{
+    for(const id of changedIds)delete project.tracks[id];
+    for(const a of affectedActions){if(a.fromNodeId)delete project.eventNodes[a.fromNodeId];if(a.toNodeId)delete project.eventNodes[a.toNodeId];}
+    project.actions=project.actions.filter(a=>!affectedActions.includes(a));
+    project.linkedGroups=(project.linkedGroups||[]).filter(g=>!changedIds.has(g.leader)&&!(g.members||[]).some(id=>changedIds.has(id)));
+    if(changedIds.has(project.ballOwnerStart))project.ballOwnerStart=null;
+  }
+  lastPassReceiverId=null;lastPassReceiverHit=null;selectedId=null;drawTargetId=null;
+  const teams=[{teamId:'A',color:'#1769e8',goalSide:'bottom',mirror:false},
+               {teamId:'B',color:'#e31818',goalSide:'top',mirror:true}].filter(t=>which==='both'||t.teamId===which);
+  for(const team of teams){
+    project.objects.push({id:nextId(),type:'goalkeeper',x:350,y:team.goalSide==='top'?58:1042,r:23,
+      color:team.color,label:'MV',followBall:true,goalSide:team.goalSide,teamId:team.teamId});
+    let number=1;
+    const choice=formationPreferred[size][team.teamId];
+    for(const row of teamFormationRows(size,choice))for(const x of row.xs){
+      project.objects.push({id:nextId(),type:'player',x,y:team.mirror?1100-row.y:row.y,
+        r:22,color:team.color,label:String(number++),teamId:team.teamId});
+    }
+  }
+  project.formationSelection={size,A:formationPreferred[size].A,B:formationPreferred[size].B};
+  project.rinkMode='full';project.orientation='up';
+  closeFormationMenu();render();fitEverything();
+  const desc=which==='both'?`Blått ${formationByKey(size,formationPreferred[size].A).label} mot rött ${formationByKey(size,formationPreferred[size].B).label}`:`${which==='A'?'Blått':'Rött'} lag ändrat till ${formationByKey(size,formationPreferred[size][which]).label}`;
+  setStatus(`${desc} – ${size}-manna. Dra spelarna för att justera positionerna.`,true);
+}
 function addObject(type,label=null,color=null){
   stopPlayback();cancelModes();groupMode=false;directAnimateMode=false;
   if(type==='ball'&&firstBall()){selectedId=firstBall().id;render();setStatus('Övningen använder en huvudboll. Den befintliga bollen är markerad.');return}
+  // En målvakt i varje mål. Äldre JSON kan sakna goalSide – då avgör positionen.
+  const keepers=project.objects.filter(o=>o.type==='goalkeeper');
+  if(type==='goalkeeper'&&keepers.length>=2){selectedId=keepers[keepers.length-1].id;render();setStatus('Båda målen har redan en målvakt. Markera en av dem för att justera eller ta bort.',true);return}
   pushUndo();const c=visibleCenter(),d=defaults[type];if(!d)return;
-  const count=project.objects.filter(o=>o.type==='player').length+1,isGK=type==='goalkeeper',goalSide=project.orientation==='up'?'top':'bottom';
+  const count=project.objects.filter(o=>o.type==='player').length+1,isGK=type==='goalkeeper';
+  const defaultSide=project.orientation==='up'?'top':'bottom';
+  const occupied=keepers.map(o=>o.goalSide||((o.y||550)<550?'top':'bottom'));
+  const goalSide=isGK?(occupied.includes(defaultSide)?(defaultSide==='top'?'bottom':'top'):defaultSide):defaultSide;
   const spawn=isGK?{x:350,y:goalSide==='top'?58:1042}:findOpenSpawn(type,c,d.r);
   const o={id:nextId(),type,x:spawn.x,y:spawn.y,r:d.r,color:color||d.color,label:label??(type==='player'?String(count):d.label)};
   if(isGK){o.followBall=true;o.goalSide=goalSide}
   project.objects.push(o);
   if(type==='ball'&&!firstBall(project.objects.slice(0,-1)))project.ballOwnerStart=null;
   selectedId=o.id;render();
-  setStatus('Objekt tillagt. Flytta är aktivt: dra markören till rätt plats. Rita används bara för åkvägar.',true)
+  setStatus(isGK?`Målvakt tillagd i ${goalSide==='top'?'övre':'nedre'} målet. Båda målen kan ha varsin målvakt.`:'Objekt tillagt. Flytta är aktivt: dra markören till rätt plats. Rita används bara för åkvägar.',true)
 }
 function translatePlayerTrack(id,dx,dy){for(const seg of playerTracks(id))for(const p of seg.points){p.x+=dx;p.y+=dy}}
 function boundsFor(o){return{minX:28+o.r,maxX:672-o.r,minY:28+o.r,maxY:1072-o.r}}
@@ -1646,6 +1843,19 @@ function newProject(){if(!confirm('Skapa en ny tom övning?'))return;resetPlan(t
 function resetPlan(skipConfirm=false){lastPassReceiverId=null;lastPassReceiverHit=null;editingPassId=null;actionFirst=null;if(!skipConfirm&&!confirm('Nollställ hela planen och börja om från scratch?'))return;stopPlayback();project={version:10,name:'Ny bandyövning',note:'',rinkMode:$('rinkMode').value,orientation:$('orientation').value,objects:[],tracks:{},actions:[],linkedGroups:[],ballOwnerStart:null,eventNodes:{},libraryId:null};selectedId=null;drawTargetId=null;groupSelection.clear();groupMode=false;recordMode=false;pathMode=false;actionMode=null;actionFirst=null;idCounter=1;undoStack=[];render();fitEverything();setStatus('Planen är nollställd och helt tom.')}
 
 for(const b of document.querySelectorAll('[data-add]'))b.addEventListener('click',()=>addObject(b.dataset.add));
+$('formationDesktop').onclick=openFormationMenu;
+$('formationMobile').onclick=openFormationMenu;
+$('formationClose').onclick=closeFormationMenu;
+$('formationBackdrop').addEventListener('click',e=>{if(e.target===$('formationBackdrop'))closeFormationMenu()});
+$('formationNine').onclick=()=>chooseFormationSize(9);
+$('formationEleven').onclick=()=>chooseFormationSize(11);
+$('formationBlue').onchange=e=>chooseTeamFormation('A',e.target.value);
+$('formationRed').onchange=e=>chooseTeamFormation('B',e.target.value);
+$('formationApplyBoth').onclick=()=>buildTeamFormation(formationSize,'both');
+$('formationApplyBlue').onclick=()=>buildTeamFormation(formationSize,'A');
+$('formationApplyRed').onclick=()=>buildTeamFormation(formationSize,'B');
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('formationBackdrop').hidden)closeFormationMenu()});
+
 $('pathMode').onclick=()=>pathMode?cancelModes():beginPathMode();$('pathModeDesktop').onclick=toggleDrawMenu;$('mobilePath').onclick=toggleDrawMenu;$('redrawPath').onclick=()=>beginPathMode(true);$('deleteLastPath').onclick=deleteLastPath;
 $('drawMenu').addEventListener('click',e=>{const p=e.target.closest('[data-draw-preset]');if(p){startPresetFromDrawMenu(p.dataset.drawPreset);return}if(e.target.closest('[data-draw-freehand]')){closeDrawMenu();beginPathMode(false);return}if(e.target.closest('[data-draw-more]')){closeDrawMenu();openPresetPanel();return}if(e.target.closest('[data-draw-close]')){closeDrawMenu();setStatus('Ritverktyget stängt.')}});
 $('presetInlineConfirm').onclick=()=>addPreset();$('presetInlineCancel').onclick=()=>cancelPresetDraft(true);$('presetInlineMore').onclick=()=>{openProperties();setStatus('Justera parametrar och stäng sedan panelen genom att dra ned den eller trycka utanför.',true)};$('recordMode').onclick=beginRecordMode;$('recordModeDesktop').onclick=beginRecordMode;$('mobileRecord').onclick=beginRecordMode;$('presetModeDesktop').onclick=openPresetPanel;$('mobilePreset').onclick=openPresetPanel;$('applyPreset').onclick=addPreset;$('cancelPreset').onclick=()=>cancelPresetDraft(true);$('editLastPreset').onclick=editLastPreset;$('presetFit').onclick=()=>{$('presetLength').value=180;$('presetWidth').value=90;$('presetBend').value=0;$('presetRotation').value=0;if(presetDraft)syncPresetDraftFromControls()};$('groupMode').onclick=toggleGroupMode;$('groupModeDesktop').onclick=toggleGroupMode;$('mobileGroup').onclick=toggleGroupMode;$('clearGroup').onclick=clearGroupSelection;$('duplicateGroup').onclick=duplicateSelection;$('mirrorGroup').onclick=mirrorSelection;$('linkGroup').onclick=createRubberBand;$('unlinkGroup').onclick=unlinkRubberBand;
@@ -1719,7 +1929,7 @@ if(window.ResizeObserver){new ResizeObserver(()=>fitRinkCard()).observe($('rinkV
 window.addEventListener('resize',updateAppHeight);window.visualViewport?.addEventListener('resize',updateAppHeight);window.visualViewport?.addEventListener('scroll',updateAppHeight);updateAppHeight();
 window.addEventListener('keydown',e=>{if((e.key==='Delete'||e.key==='Backspace')&&!/INPUT|TEXTAREA/.test(document.activeElement?.tagName))deleteSelected();if(e.key===' '&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)){e.preventDefault();play()}if(e.key==='Escape'){if(!$('libraryBackdrop').hidden){hideLibrary();return;}if(presentation)exitPresentationMode();else cancelModes();}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo()}});
 
-render();$('undo').disabled=true;updateAppHeight();setTimeout(fitEverything,30);setStatus('v1.0-alpha.9.7: snabbverktygen är samlade – objekt och extrafunktioner finns under Objekt och Mer.');
+render();$('undo').disabled=true;updateAppHeight();setTimeout(fitEverything,30);setStatus('v1.0-alpha.9.9: välj olika grundformationer för blått och rött lag under Objekt → Laguppställning.');
 })();
 </script>
 </body>
