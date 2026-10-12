@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f8fafc">
-<title>Bandyövningar v1.0-alpha.9.6 – mobilmenyer</title>
+<title>Bandyövningar v1.0-alpha.9.7 – förenklade menyer</title>
 <style>
 :root{
   --bg:#eef3f8;--panel:#fff;--panel2:#f8fafc;--line:#d7e0ea;--text:#0f172a;--muted:#64748b;
@@ -328,12 +328,40 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
   .app.presentation .drawTargetBar,.app.presentation .drawMenu,.app.presentation .presetInlineBar,
   .app.presentation .recordingBadge{display:none!important}
 }
+
+/* v1.0-alpha.9.7: ett fåtal permanenta snabbverktyg. Fler funktioner finns kvar vid behov. */
+.paletteMore{margin:8px 0 0;border:1px solid var(--line);background:#f8fafc;border-radius:10px;overflow:hidden}
+.paletteMore>summary{padding:9px 8px;cursor:pointer;font-size:12px;font-weight:750;list-style:none;color:#334155}
+.paletteMore>summary::-webkit-details-marker{display:none}
+.paletteMore>summary::after{content:'⌄';float:right}
+.paletteMore[open]>summary::after{content:'⌃'}
+.paletteMore[open] .paletteGrid{padding:0 7px 8px}
+@media(max-width:760px){
+ .mobilePalette{position:relative;z-index:35;display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));align-items:stretch;gap:4px;overflow:visible!important;max-height:none!important;min-height:55px;padding:5px 6px max(5px,env(safe-area-inset-bottom))!important}
+ .mobilePalette>.dockBtn{display:flex!important;flex-direction:column;align-items:center;justify-content:center;min-width:0!important;max-width:none!important;width:100%;min-height:47px!important;padding:5px 0!important;gap:2px;line-height:1.15;font-size:10px!important}
+ .mobilePalette>.dockBtn .toolIcon{flex:0 0 24px}
+ #mobileToolsToggle{display:none!important}
+ .mobilePopover[hidden],.mobilePalette [hidden]{display:none!important}
+ .mobilePopover{position:absolute;bottom:calc(100% + 6px);left:6px;right:6px;z-index:50;background:#fff;border:1px solid #c8d6e5;border-radius:15px;box-shadow:0 9px 32px rgba(15,23,42,.18);padding:10px;max-height:min(40dvh,330px);overflow-y:auto}
+ .mobilePopover h3{font-size:13px;margin:0 0 9px;font-weight:800;display:flex;justify-content:space-between;align-items:center}
+ .mobilePopover .mobilePopoverClose{flex:none;display:block!important;width:32px;height:30px;min-height:30px!important;padding:3px;font-size:15px}
+ .mobilePopoverGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+ .mobilePopoverGrid>button{display:flex!important;flex-direction:column;gap:5px;align-items:center;justify-content:center;flex:none!important;min-width:0!important;width:100%;padding:8px 3px!important;min-height:58px!important;font-size:11px!important;line-height:1.2}
+ .mobilePopoverGrid>button:disabled{opacity:.4}
+ .mobileQuickColors{gap:6px;justify-content:space-between}
+ .mobileQuickColors .swatches{display:none}
+ .mobileQuickColors.colors-expanded{max-height:none;flex-wrap:wrap}
+ .mobileQuickColors.colors-expanded .swatches{display:flex;width:100%}
+ .mobileQuickColors #mobileColorsToggle{padding:6px 8px;font-size:11px;margin-left:auto;white-space:nowrap}
+ .mobileQuickColors #quickBallOwnerMobile{padding:6px 9px;font-size:11px}
+ .app.presentation .mobilePopover{display:none!important}
+}
 </style>
 </head>
 <body>
 <div class="app">
 <header class="topbar">
-  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.9.6 · mobil arbetsyta</small></div></div>
+  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.9.7 · renare verktyg</small></div></div>
   <div class="topControls">
     <select id="rinkMode" aria-label="Planvy"><option value="full">Helplan</option><option value="half">Halvplan</option></select>
     <select id="orientation" aria-label="Anfallsriktning"><option value="up">Anfall uppåt</option><option value="down">Anfall nedåt</option></select>
@@ -346,28 +374,36 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
 
 <main class="workspace">
   <aside class="palette">
-    <h2 class="panelTitle">Objekt</h2>
+    <h2 class="panelTitle">Lägg till</h2>
     <div class="paletteGrid">
       <button class="tool" data-add="player"><span class="toolIcon playerIcon">1</span><span>Spelare</span></button>
-      <button class="tool" data-add="goalkeeper"><span class="toolIcon goalieIcon">MV</span><span>Målvakt</span></button>
       <button class="tool" data-add="cone"><span class="toolIcon"><i class="coneIcon"></i></span><span>Kon</span></button>
-      <button class="tool" data-add="ball"><span class="toolIcon"><i class="ballIcon"></i></span><span>Boll</span></button>
-      <button class="tool" data-add="text"><span class="toolIcon textIcon">T</span><span>Text</span></button>
     </div>
+    <details class="paletteMore"><summary>＋ Fler objekt</summary>
+      <div class="paletteGrid">
+        <button class="tool" data-add="goalkeeper"><span class="toolIcon goalieIcon">MV</span><span>Målvakt</span></button>
+        <button id="quickCoach" class="tool" data-add="coach"><span class="toolIcon coachIcon">TR</span><span>Tränare</span></button>
+        <button class="tool" data-add="ball"><span class="toolIcon"><i class="ballIcon"></i></span><span>Boll</span></button>
+        <button class="tool" data-add="text"><span class="toolIcon textIcon">T</span><span>Text</span></button>
+        <button id="quickBallOwnerDesktop" class="tool"><span class="toolIcon" style="font-size:20px">🔴</span><span>Fäst boll vid vald spelare/tränare</span></button>
+      </div>
+    </details>
     <div class="divider"></div>
-    <button id="quickCoach" class="tool" data-add="coach"><span class="toolIcon coachIcon">TR</span><span>Tränare</span></button>
-    <button id="quickBallOwnerDesktop" class="tool"><span class="toolIcon" style="font-size:20px">🔴</span><span>Fäst boll vid vald spelare/tränare</span></button>
-    <div class="divider"></div>
-    <h2 class="panelTitle">Rita övningen</h2>
+    <h2 class="panelTitle">Verktyg</h2>
     <div class="paletteGrid">
-      <button id="selectModeDesktop" class="tool active"><span class="toolIcon" style="font-size:25px">✥</span><span>Markera / flytta</span></button><button id="pathModeDesktop" class="tool"><span class="toolIcon pathIcon">〰</span><span>Rita / presets</span></button>
-      <button id="passModeDesktop" class="tool"><span class="toolIcon passIcon">⇢</span><span>Passning</span></button>
+      <button id="selectModeDesktop" class="tool active"><span class="toolIcon" style="font-size:25px">✥</span><span>Flytta</span></button>
+      <button id="pathModeDesktop" class="tool"><span class="toolIcon pathIcon">〰</span><span>Rita</span></button>
+      <button id="passModeDesktop" class="tool"><span class="toolIcon passIcon">⇢</span><span>Pass</span></button>
       <button id="shotModeDesktop" class="tool"><span class="toolIcon shotIcon">➜</span><span>Skott</span></button>
-      <button id="recordModeDesktop" class="tool"><span class="toolIcon recIcon">●</span><span>REC / overdub</span></button>
-      <button id="presetModeDesktop" class="tool" hidden><span class="toolIcon presetIcon">⌁</span><span>Rörelsepresets</span></button>
-      <button id="groupModeDesktop" class="tool"><span class="toolIcon groupIcon">◫</span><span>Gruppmarkering</span></button>
     </div>
-    <p class="hint">Rita direkt på samma tavla. En ny väg på samma spelare fortsätter automatiskt från den senaste slutpunkten.</p>
+    <details class="paletteMore"><summary>⋯ Fler verktyg</summary>
+      <div class="paletteGrid">
+        <button id="recordModeDesktop" class="tool"><span class="toolIcon recIcon">●</span><span>REC / overdub</span></button>
+        <button id="presetModeDesktop" class="tool" hidden><span class="toolIcon presetIcon">⌁</span><span>Rörelsepresets</span></button>
+        <button id="groupModeDesktop" class="tool"><span class="toolIcon groupIcon">◫</span><span>Gruppmarkering</span></button>
+      </div>
+    </details>
+    <p class="hint" style="margin-top:14px">I <b>Animera</b> drar du spelarna direkt på planen. Pass och Skott avslutas automatiskt.</p>
   </aside>
 
   <section class="stageArea">
@@ -460,9 +496,38 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
   <div class="transport"><button id="restart" class="icon" title="Starta om">↺</button><button id="play" class="primary icon" title="Spela">▶</button><button id="pause" class="icon" title="Paus">Ⅱ</button><span id="timeLabel" class="timeLabel">0,0 / 0,0 s</span><div class="progressTrack" aria-hidden="true"><div id="progressFill" class="progressFill"></div></div><select id="speed" class="speed" title="Hastighet"><option value="0.25">0,25×</option><option value="0.30">0,30×</option><option value="0.35">0,35×</option><option value="0.40">0,40×</option><option value="0.45">0,45×</option><option value="0.50">0,50×</option><option value="0.60">0,60×</option><option value="0.75">0,75×</option><option value="1" selected>1×</option><option value="1.25">1,25×</option><option value="1.5">1,5×</option></select><select id="playView" class="playView" title="Visning under uppspelning"><option value="clean" selected>Ren Play – dölj linjer</option><option value="lines">Play – visa linjer</option></select><label class="checkLabel"><input id="loop" type="checkbox"><span>Loop</span></label><button id="toggleProps" class="icon" title="Egenskaper">⚙</button></div>
 </footer>
 
-<div id="mobileQuickColors" class="mobileQuickColors"><button id="quickBallOwnerMobile" class="mini">🔴 Fäst boll</button><span class="miniLabel">Spelarfärg</span><div id="mobileSwatches" class="swatches"></div></div>
-<nav id="mobilePalette" class="mobilePalette" aria-label="Objekt och ritverktyg">
-  <button id="mobileToolsToggle" class="mobileToolsToggle" title="Fäll ihop verktyg"><span class="toolIcon">⌄</span><span>Verktyg</span></button><button id="mobileSelect" class="active"><span class="toolIcon" style="font-size:23px">✥</span><span>Flytta</span></button><button id="mobileDelete" class="deleteTool" title="Ta bort markerat objekt" disabled><span class="toolIcon">✕</span><span>Ta bort</span></button><button data-add="player"><span class="toolIcon playerIcon">1</span><span>Spelare</span></button><button data-add="goalkeeper"><span class="toolIcon goalieIcon">MV</span><span>MV</span></button><button data-add="coach"><span class="toolIcon coachIcon">TR</span><span>Tränare</span></button><button data-add="cone"><span class="toolIcon"><i class="coneIcon"></i></span><span>Kon</span></button><button data-add="ball"><span class="toolIcon"><i class="ballIcon"></i></span><span>Boll</span></button><button id="mobilePath"><span class="toolIcon pathIcon">〰</span><span>Rita</span></button><button id="mobilePass"><span class="toolIcon passIcon">⇢</span><span>Pass</span></button><button id="mobileShot"><span class="toolIcon shotIcon">➜</span><span>Skott</span></button><button id="mobileRecord"><span class="toolIcon recIcon">●</span><span>REC</span></button><button id="mobilePreset" hidden><span class="toolIcon presetIcon">⌁</span><span>Preset</span></button><button id="mobileGroup"><span class="toolIcon groupIcon">◫</span><span>Grupp</span></button><button id="mobileProps"><span class="toolIcon" style="font-size:22px">⚙</span><span>Val</span></button>
+<div id="mobileQuickColors" class="mobileQuickColors"><button id="quickBallOwnerMobile" class="mini">🔴 Fäst boll</button><button id="mobileColorsToggle" class="mini" type="button" aria-expanded="false">🎨 Färg ▾</button><div id="mobileSwatches" class="swatches"></div></div>
+<nav id="mobilePalette" class="mobilePalette" aria-label="Snabbverktyg">
+  <button id="mobileSelect" class="dockBtn active"><span class="toolIcon" style="font-size:23px">✥</span><span>Flytta</span></button>
+  <button id="mobilePath" class="dockBtn"><span class="toolIcon pathIcon">〰</span><span>Rita</span></button>
+  <button id="mobilePass" class="dockBtn"><span class="toolIcon passIcon">⇢</span><span>Pass</span></button>
+  <button id="mobileShot" class="dockBtn"><span class="toolIcon shotIcon">➜</span><span>Skott</span></button>
+  <button id="mobileAddMenu" class="dockBtn" type="button" aria-expanded="false" aria-controls="mobileAddPopover"><span class="toolIcon" style="font-size:24px">＋</span><span>Objekt</span></button>
+  <button id="mobileMoreMenu" class="dockBtn" type="button" aria-expanded="false" aria-controls="mobileMorePopover"><span class="toolIcon" style="font-size:24px">⋯</span><span>Mer</span></button>
+  <div id="mobileAddPopover" class="mobilePopover" hidden>
+    <h3>Placera objekt <button class="mobilePopoverClose" data-close-mobile-menu type="button" aria-label="Stäng">✕</button></h3>
+    <div class="mobilePopoverGrid">
+      <button data-add="player"><span class="toolIcon playerIcon">1</span><span>Spelare</span></button>
+      <button data-add="cone"><span class="toolIcon"><i class="coneIcon"></i></span><span>Kon</span></button>
+      <button data-add="goalkeeper"><span class="toolIcon goalieIcon">MV</span><span>Målvakt</span></button>
+      <button data-add="coach"><span class="toolIcon coachIcon">TR</span><span>Tränare</span></button>
+      <button data-add="ball"><span class="toolIcon"><i class="ballIcon"></i></span><span>Boll</span></button>
+      <button data-add="text"><span class="toolIcon textIcon">T</span><span>Text</span></button>
+    </div>
+  </div>
+  <div id="mobileMorePopover" class="mobilePopover" hidden>
+    <h3>Fler funktioner <button class="mobilePopoverClose" data-close-mobile-menu type="button" aria-label="Stäng">✕</button></h3>
+    <div class="mobilePopoverGrid">
+      <button id="mobileDelete" class="deleteTool" title="Ta bort markerat objekt" disabled><span class="toolIcon">✕</span><span>Ta bort</span></button>
+      <button id="mobileRecord"><span class="toolIcon recIcon">●</span><span>REC</span></button>
+      <button id="mobileGroup"><span class="toolIcon groupIcon">◫</span><span>Grupp</span></button>
+      <button id="mobileProps"><span class="toolIcon" style="font-size:22px">⚙</span><span>Val</span></button>
+      <button id="mobileLibraryQuick"><span class="toolIcon" style="font-size:22px">▤</span><span>Bibliotek</span></button>
+      <button id="mobileExportQuick"><span class="toolIcon" style="font-size:22px">⇩</span><span>Export</span></button>
+      <button id="mobilePreset" hidden><span class="toolIcon presetIcon">⌁</span><span>Preset</span></button>
+    </div>
+  </div>
+  <button id="mobileToolsToggle" hidden aria-hidden="true" type="button"></button>
 </nav>
 </div>
 <script>
@@ -1612,7 +1677,32 @@ for(const id of ['presentMode','presentTop'])$(id).onclick=enterPresentation;$('
 const desktopAdvancedButton=$('toggleAdvancedProps');
 desktopAdvancedButton.onclick=()=>{const isOpen=properties.classList.toggle('showAdvanced');desktopAdvancedButton.textContent=isOpen?'Dölj extra ▴':'Fler inställningar ▾';desktopAdvancedButton.setAttribute('aria-expanded',String(isOpen));requestAnimationFrame(fitRinkCard)};
 const flowPanel=document.querySelector('.flowPanel');if(matchMedia('(max-width:760px)').matches){flowPanel.classList.add('collapsed');$('toggleFlow').textContent='▾ Flöde'}$('toggleFlow').onclick=()=>{flowPanel.classList.toggle('collapsed');$('toggleFlow').textContent=flowPanel.classList.contains('collapsed')?'▾ Flöde':'▴ Flöde';requestAnimationFrame(fitRinkCard)};
-const mobilePalette=$('mobilePalette');$('mobileToolsToggle').onclick=()=>{mobilePalette.classList.toggle('tools-collapsed');$('mobileToolsToggle').querySelector('.toolIcon').textContent=mobilePalette.classList.contains('tools-collapsed')?'⌃':'⌄';requestAnimationFrame(fitRinkCard)};
+const mobilePalette=$('mobilePalette');
+const mobileAddPopover=$('mobileAddPopover'),mobileMorePopover=$('mobileMorePopover');
+function closeMobilePopovers(){
+  mobileAddPopover.hidden=true;mobileMorePopover.hidden=true;
+  for(const id of ['mobileAddMenu','mobileMoreMenu']){$(id).classList.remove('active');$(id).setAttribute('aria-expanded','false')}
+}
+function toggleMobilePopover(name){
+  const panel=name==='add'?mobileAddPopover:mobileMorePopover,wasOpen=!panel.hidden;
+  closeMobilePopovers();panel.hidden=wasOpen;
+  const trigger=$(name==='add'?'mobileAddMenu':'mobileMoreMenu');trigger.classList.toggle('active',!wasOpen);trigger.setAttribute('aria-expanded',String(!wasOpen));
+}
+$('mobileAddMenu').onclick=()=>toggleMobilePopover('add');
+$('mobileMoreMenu').onclick=()=>toggleMobilePopover('more');
+mobilePalette.querySelectorAll('[data-close-mobile-menu]').forEach(b=>b.onclick=closeMobilePopovers);
+mobilePalette.addEventListener('click',e=>{
+  const target=e.target.closest('button');if(!target)return;
+  if(target.dataset.add||['mobileDelete','mobileRecord','mobileGroup','mobileProps','mobileLibraryQuick','mobileExportQuick'].includes(target.id))closeMobilePopovers();
+});
+for(const id of ['mobilePath','mobileSelect','mobilePass','mobileShot'])$(id).addEventListener('click',closeMobilePopovers);
+$('mobileLibraryQuick').onclick=showLibrary;$('mobileExportQuick').onclick=exportJson;
+$('mobileColorsToggle').onclick=()=>{
+ const expanded=$('mobileQuickColors').classList.toggle('colors-expanded');
+ $('mobileColorsToggle').setAttribute('aria-expanded',String(expanded));$('mobileColorsToggle').textContent=expanded?'🎨 Stäng färger ▴':'🎨 Färg ▾';
+ requestAnimationFrame(fitRinkCard);
+};
+document.addEventListener('pointerdown',e=>{if(!mobilePalette.contains(e.target))closeMobilePopovers()});
 
 $('passQuickContinue').onclick=()=>{
  if(!lastPassReceiverId||!lastPassReceiverHit)return;
@@ -1629,7 +1719,7 @@ if(window.ResizeObserver){new ResizeObserver(()=>fitRinkCard()).observe($('rinkV
 window.addEventListener('resize',updateAppHeight);window.visualViewport?.addEventListener('resize',updateAppHeight);window.visualViewport?.addEventListener('scroll',updateAppHeight);updateAppHeight();
 window.addEventListener('keydown',e=>{if((e.key==='Delete'||e.key==='Backspace')&&!/INPUT|TEXTAREA/.test(document.activeElement?.tagName))deleteSelected();if(e.key===' '&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)){e.preventDefault();play()}if(e.key==='Escape'){if(!$('libraryBackdrop').hidden){hideLibrary();return;}if(presentation)exitPresentationMode();else cancelModes();}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo()}});
 
-render();$('undo').disabled=true;updateAppHeight();setTimeout(fitEverything,30);setStatus('v1.0-alpha.9.6: passläget avslutas efter en färdig passning.');
+render();$('undo').disabled=true;updateAppHeight();setTimeout(fitEverything,30);setStatus('v1.0-alpha.9.7: snabbverktygen är samlade – objekt och extrafunktioner finns under Objekt och Mer.');
 })();
 </script>
 </body>
