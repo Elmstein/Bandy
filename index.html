@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f8fafc">
-<title>Bandyövningar v1.0-alpha.9.3 – desktoparbetsyta</title>
+<title>Bandyövningar v1.0-alpha.9.5 – mobilmenyer</title>
 <style>
 :root{
   --bg:#eef3f8;--panel:#fff;--panel2:#f8fafc;--line:#d7e0ea;--text:#0f172a;--muted:#64748b;
@@ -247,12 +247,93 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
   .app:not(.presentation) .properties .card{padding:9px;margin-bottom:8px}
 }
 @media(max-width:760px){.desktopPropsTitle #toggleAdvancedProps{display:none}}
+
+/* Alpha 9.5 – mobilens arbetsyta har egna, icke-överlappande kontrollrader.
+   Ingen ändring av rinkens linjer, färg, rörelsetider eller passningslogik. */
+.rinkViewport{display:contents}
+@media(max-width:760px){
+  .app:not(.presentation) .stageArea{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) auto;
+    grid-template-rows:37px auto minmax(0,1fr) 23px;
+    align-content:stretch;align-items:center;justify-items:stretch;
+    column-gap:4px;row-gap:3px;
+    padding:4px 5px!important;
+    min-height:0!important;overflow:hidden;
+  }
+  .app:not(.presentation) .directModeBar{
+    grid-column:1;grid-row:1;
+    position:static;transform:none;left:auto;top:auto;
+    justify-self:start;align-self:center;max-width:100%;
+    box-shadow:none;padding:2px;z-index:5;
+  }
+  .app:not(.presentation) .directModeBar button{min-height:31px;padding:5px 8px}
+  .app:not(.presentation) .canvasControls{
+    grid-column:2;grid-row:1;
+    position:static;transform:none;right:auto;top:auto;
+    box-shadow:none;justify-self:end;align-self:center;
+    padding:2px;gap:2px;z-index:5;
+  }
+  .app:not(.presentation) .canvasControls button{width:32px;height:32px}
+  .app:not(.presentation) .rinkViewport{
+    display:flex;grid-column:1/-1;grid-row:3;
+    min-width:0;min-height:0;width:100%;height:100%;
+    align-items:center;justify-content:center;overflow:hidden;
+  }
+  .app:not(.presentation) .rinkCard{flex:0 0 auto}
+  .app:not(.presentation) .passQuickBar,
+  .app:not(.presentation) .passEditBar,
+  .app:not(.presentation) .drawTargetBar,
+  .app:not(.presentation) .drawMenu,
+  .app:not(.presentation) .presetInlineBar{
+    grid-column:1/-1;grid-row:2;
+    position:static;transform:none;inset:auto;
+    justify-self:stretch;align-self:center;
+    width:100%;max-width:100%;min-width:0;
+    box-shadow:none;border-radius:10px;
+    margin:0;padding:3px 5px;
+    overflow-x:auto;overscroll-behavior-x:contain;
+    white-space:nowrap;
+    z-index:7;
+  }
+  .app:not(.presentation) .passQuickBar>span,
+  .app:not(.presentation) .passEditBar>span{
+    flex:1 1 auto;min-width:38px;font-size:10px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .app:not(.presentation) .passQuickBar button,
+  .app:not(.presentation) .passEditBar button{
+    min-height:30px;padding:5px 6px;font-size:10px;flex:0 0 auto;
+  }
+  .app:not(.presentation) .drawTargetButtons button{min-height:33px;padding:4px 8px}
+  .app:not(.presentation) .drawMenu button{min-height:33px;padding:4px 8px}
+  .app:not(.presentation) .drawMenu:not(.open){display:none}
+  .app:not(.presentation) .stageArea:has(.drawMenu.open)>.drawTargetBar{display:none!important}
+  .app:not(.presentation) .stageStatus{
+    grid-column:1/-1;grid-row:4;position:static;
+    align-self:center;justify-self:stretch;
+    width:100%;max-width:100%;min-width:0;
+    height:23px;padding:4px 7px;margin:0;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    border-radius:6px;box-shadow:none;
+    font-size:10px;line-height:15px;
+  }
+  .app:not(.presentation) .recordingBadge{
+    grid-column:1/-1;grid-row:2;position:static;
+    justify-self:center;z-index:8;
+  }
+  .app.presentation .stageArea{display:flex!important;align-items:center;justify-content:center}
+  .app.presentation .rinkViewport{display:flex;width:100%;height:100%;min-width:0;min-height:0;align-items:center;justify-content:center}
+  .app.presentation .directModeBar,.app.presentation .passQuickBar,.app.presentation .passEditBar,
+  .app.presentation .drawTargetBar,.app.presentation .drawMenu,.app.presentation .presetInlineBar,
+  .app.presentation .recordingBadge{display:none!important}
+}
 </style>
 </head>
 <body>
 <div class="app">
 <header class="topbar">
-  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.9.3 · fokuserad arbetsyta</small></div></div>
+  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.9.5 · mobil arbetsyta</small></div></div>
   <div class="topControls">
     <select id="rinkMode" aria-label="Planvy"><option value="full">Helplan</option><option value="half">Halvplan</option></select>
     <select id="orientation" aria-label="Anfallsriktning"><option value="up">Anfall uppåt</option><option value="down">Anfall nedåt</option></select>
@@ -292,7 +373,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
   <section class="stageArea">
     <div class="directModeBar" role="group" aria-label="Arbetsläge"><button id="directSetup" class="active" type="button" aria-pressed="true">✥ Uppställning</button><button id="directAnimate" type="button" aria-pressed="false">▶ Animera</button></div>
     <div id="recordingBadge" class="recordingBadge">● REC · dra vald spelare</div>
-    <div id="rinkCard" class="rinkCard">
+    <div id="rinkViewport" class="rinkViewport"><div id="rinkCard" class="rinkCard">
       <svg id="stage" viewBox="0 0 700 1100" aria-label="Bandyplan" role="img">
         <defs>
           <filter id="objShadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity=".22"/></filter>
@@ -302,7 +383,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
         </defs>
         <g id="rink"></g><g id="pathLayer"></g><g id="actionLayer"></g><g id="ghostLayer"></g><g id="objects"></g><g id="draftLayer"></g>
       </svg>
-    </div>
+    </div></div>
     <div class="canvasControls" aria-label="Vyverktyg"><button id="zoomOut" title="Zooma ut" aria-label="Zooma ut">−</button><button id="fitView" title="Passa in hela planen" aria-label="Passa in plan">⌗</button><button id="zoomIn" title="Zooma in" aria-label="Zooma in">＋</button><button id="presentMode" title="Presentationsläge" aria-label="Presentationsläge">⛶</button></div>
     <div id="passQuickBar" class="passQuickBar" hidden><span id="passQuickLabel">Pass: välj avsändarpunkt</span><button id="passQuickContinue" type="button" hidden>↪ Fortsätt från mottagare</button><button id="passQuickReset" type="button">↺ Byt avsändare</button></div>
     <div id="passEditBar" class="passEditBar" hidden><span id="passEditLabel">Justera passning</span><button id="passEditDone" type="button">✓ Klar</button><button id="passEditDelete" type="button">Ta bort</button></div>
@@ -375,7 +456,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
 </div>
 
 <footer class="flowPanel">
-  <div class="flowWrap"><div class="flowHeader"><b>Övningsflöde</b><span class="flowHint">Skapas automatiskt av det du ritar – inga faser behöver sparas.</span><span class="row"><button id="toggleFlow" class="mini" title="Visa/dölj övningsflöde">▴ Flöde</button><button id="syncReceivers" class="mini" title="Synka åkningen med bollmottagning – bevara passningspunkterna">⏱ Synka</button><button id="undo" class="mini">↶ Ångra</button></span></div><div id="flowItems" class="flowItems"></div></div>
+  <div class="flowWrap"><div class="flowHeader"><b>Övningsflöde</b><span class="flowHint">Skapas automatiskt av det du ritar – inga faser behöver sparas.</span><span class="row"><button id="toggleFlow" class="mini" title="Visa/dölj övningsflöde">▴ Flöde</button><button id="syncReceivers" class="mini" title="Synka passningarna med rimlig fart och senare start. Ändrar aldrig passningspunkterna.">⏱ Synka</button><button id="undo" class="mini">↶ Ångra</button></span></div><div id="flowItems" class="flowItems"></div></div>
   <div class="transport"><button id="restart" class="icon" title="Starta om">↺</button><button id="play" class="primary icon" title="Spela">▶</button><button id="pause" class="icon" title="Paus">Ⅱ</button><span id="timeLabel" class="timeLabel">0,0 / 0,0 s</span><div class="progressTrack" aria-hidden="true"><div id="progressFill" class="progressFill"></div></div><select id="speed" class="speed" title="Hastighet"><option value="0.25">0,25×</option><option value="0.30">0,30×</option><option value="0.35">0,35×</option><option value="0.40">0,40×</option><option value="0.45">0,45×</option><option value="0.50">0,50×</option><option value="0.60">0,60×</option><option value="0.75">0,75×</option><option value="1" selected>1×</option><option value="1.25">1,25×</option><option value="1.5">1,5×</option></select><select id="playView" class="playView" title="Visning under uppspelning"><option value="clean" selected>Ren Play – dölj linjer</option><option value="lines">Play – visa linjer</option></select><label class="checkLabel"><input id="loop" type="checkbox"><span>Loop</span></label><button id="toggleProps" class="icon" title="Egenskaper">⚙</button></div>
 </footer>
 
@@ -410,8 +491,10 @@ function clampCamera(){const b=baseView(),w=b.w/camera.zoom,h=b.h/camera.zoom;ca
 function applyCamera(){const b=baseView();camera.zoom=Math.max(1,Math.min(4,camera.zoom));clampCamera();const w=b.w/camera.zoom,h=b.h/camera.zoom;stage.setAttribute('viewBox',`${(camera.cx-w/2).toFixed(2)} ${(camera.cy-h/2).toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)}`)}
 function zoomBy(factor){const b=baseView();camera.zoom=Math.max(1,Math.min(4,camera.zoom*factor));clampCamera();applyCamera();setStatus(camera.zoom===1?'Hela planen visas.':`Zoom ${camera.zoom.toFixed(2)}×. Nyp med två fingrar eller använd +/−.`)}
 function fitRinkCard(){
-  const area=document.querySelector('.stageArea');if(!area)return;const r=area.getBoundingClientRect();if(r.width<20||r.height<20)return;
-  const cs=getComputedStyle(area),px=(parseFloat(cs.paddingLeft)||0)+(parseFloat(cs.paddingRight)||0),py=(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
+  const area=document.querySelector('.stageArea');if(!area)return;
+  const holder=$('rinkViewport'),usable=holder&&getComputedStyle(holder).display!=='contents'?holder:area;
+  const r=usable.getBoundingClientRect();if(r.width<20||r.height<20)return;
+  const cs=getComputedStyle(usable),px=(parseFloat(cs.paddingLeft)||0)+(parseFloat(cs.paddingRight)||0),py=(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
   const b=baseView(),ratio=b.w/b.h,wAvail=Math.max(50,r.width-px-4),hAvail=Math.max(50,r.height-py-4);let w=Math.min(wAvail,hAvail*ratio),h=w/ratio;if(h>hAvail){h=hAvail;w=h*ratio}
   rinkCard.style.width=`${Math.max(50,Math.floor(w))}px`;rinkCard.style.height=`${Math.max(50,Math.floor(h))}px`;
 }
@@ -620,71 +703,106 @@ function normalizeActionTimeline(){
     if(a.timingConflict)timingWarnings.push(`${getObj(a.from)?.label||a.from} → ${getObj(a.to)?.label||'mål'}: ${a.timingNote||'Kontrollera vald punkt'}`);
   }
 }
-// v1.0-alpha.9.2: Synka utan att skriva om passningsankare eller åkbanans punkter.
-// Till skillnad från den löpande normaliseringen är detta en uttrycklig, ångringsbar
-// handling. Vi fördelar väntan mellan måttlig fartjustering och senare start.
+// v1.0-alpha.9.5: Passningskedjan synkroniseras som en helhet.
+// Testa olika justeringar på kopior och acceptera bara förbättringar.
+// Därmed skapar upprepade tryck aldrig nya fördröjningar i ett redan synkat flöde.
+function synchronizationScore(reference){
+  let score=0;
+  for(const a of project.actions.filter(a=>a.type==='pass'&&!a.ownershipMismatch&&a.toSegId&&a.toAnchorType!=='start')){
+    const target=a.start+a.duration;
+    const arrival=anchorTime(a.to,a.toSegId,a.toFraction,a.toAnchorType||'track');
+    const delta=arrival-target; // positiv: mottagaren kommer för sent
+    score+=9*Math.pow(Math.max(0,delta-.10),2);
+    score+=1.5*Math.pow(Math.max(0,-delta-.50),2);
+    const old=reference.actions.find(e=>e.id===a.id);
+    if(old)score+=.005*Math.pow(a.start-old.start,2);
+  }
+  // Undvik nya stopp mitt under spelarens pågående åkkedja.
+  for(const o of project.objects.filter(o=>o.type==='player')){
+    const ts=playerTracks(o.id),ref=reference.tracks[o.id]||[];
+    for(let i=1;i<ts.length;i++){
+      const previous=ts[i-1],oldPrev=ref[i-1],oldSeg=ref[i];
+      const gap=ts[i].start-(previous.start+segmentDuration(previous));
+      const oldGap=oldPrev&&oldSeg?oldSeg.start-(oldPrev.start+segmentDuration(oldPrev)):0;
+      score+=3*Math.pow(Math.max(0,gap-Math.max(0,oldGap)-.12),2);
+    }
+    for(const seg of ts){const v=+seg.speed||1;if(v>.01)score+=.02*Math.pow(Math.max(0,v-1.25),2)}
+  }
+  return score;
+}
 function synchronizePassReceivers(){
   stopPlayback(true);
   normalizeActionTimeline();
-  const valid=project.actions.filter(a=>a.type==='pass'&&!a.ownershipMismatch&&a.toSegId);
-  if(!valid.length){setStatus('Inga giltiga passningar till åkbanor att synkronisera.',true);return;}
-  const before=JSON.stringify(project),notes=[];
-  // Passningsordningen är kausal: ändra en mottagare, beräkna om framtida
-  // avsändare och synka därefter nästa mottagare.
-  for(let iteration=0;iteration<3;iteration++){
-    let any=false;
-    const passes=[...project.actions].filter(a=>a.type==='pass'&&!a.ownershipMismatch).sort((a,b)=>(a.order??0)-(b.order??0));
-    for(const a of passes){
-      if(!a.toSegId||a.toAnchorType==='start')continue;
-      const tracks=playerTracks(a.to),index=tracks.findIndex(s=>s.id===a.toSegId);
-      if(index<0)continue;
-      const seg=tracks[index],target=a.start+a.duration;
-      const current=anchorTime(a.to,a.toSegId,a.toFraction,a.toAnchorType||'track');
-      const wait=target-current;
-      if(wait<=.12)continue;
-      // Manuell händelsestyrning och REC ska inte skrivas över.
-      if(seg.startMode&&seg.startMode!=='auto')continue;
-      const originalSpeed=+seg.speed||1;
-      let speedChange=false;
-      if(!seg.recorded&&originalSpeed>.65){
-        const offset=anchorOffset(seg,a.toFraction,a.toAnchorType||'track');
-        const minSpeed=.65;
-        // Försök fylla en del av väntan med jämnare tempo, utan att få
-        // åkningen att krypa fram onaturligt långsamt.
-        if(offset>.10){
-          const ideal=originalSpeed*offset/(offset+wait);
-          const adjusted=Math.max(minSpeed,Math.min(originalSpeed,ideal));
-          if(adjusted<originalSpeed-.01){seg.speed=adjusted;speedChange=true;}
+  const passes=project.actions.filter(a=>a.type==='pass'&&!a.ownershipMismatch&&a.toSegId&&a.toAnchorType!=='start');
+  if(!passes.length){setStatus('Inga giltiga passningar till åkbanor att synkronisera.',true);return;}
+  const before=JSON.stringify(project),reference=clone(project),initialScore=synchronizationScore(reference);
+  const originalProject=project;
+  let best=null,bestScore=initialScore,changedPasses=[];
+  // "lateOnly" ger minsta möjliga ingrepp. "balanced" provar även att
+  // långsammare åkning/senare start kan ersätta väntan vid en mottagningspunkt.
+  // Om ett föreslaget avstamp försenar nästa passning för mycket väljs lateOnly.
+  for(const strategy of ['lateOnly','balanced','speedOnly']){
+    project=clone(reference);
+    const touched=new Set();
+    for(let iteration=0;iteration<3;iteration++){
+      let changed=false;
+      const ordered=[...project.actions].filter(a=>a.type==='pass'&&!a.ownershipMismatch).sort((a,b)=>(a.order??0)-(b.order??0));
+      for(const a of ordered){
+        if(!a.toSegId||a.toAnchorType==='start')continue;
+        const ts=playerTracks(a.to),index=ts.findIndex(s=>s.id===a.toSegId),seg=ts[index];
+        if(!seg||seg.recorded||(seg.startMode&&seg.startMode!=='auto'))continue;
+        const anchorType=a.toAnchorType||'track',current=anchorTime(a.to,a.toSegId,a.toFraction,anchorType);
+        const target=a.start+a.duration,gap=target-current; // positiv: mottagaren kommer för tidigt
+        const oldSpeed=+seg.speed||1,offset=anchorOffset(seg,a.toFraction,anchorType);
+        if(gap<-.12){
+          // För sen mottagare: låt samma åkväg köras lite snabbare.
+          // Beräkna målfarten från exakt kvarvarande tid, inte via upprepade påslag.
+          if(oldSpeed>=1.60||offset<=.05)continue;
+          const available=Math.max(.01,target-seg.start);
+          const required=oldSpeed*offset/available;
+          const nextSpeed=Math.min(1.60,Math.max(oldSpeed,required));
+          if(nextSpeed>oldSpeed+.008){seg.speed=nextSpeed;changed=true;touched.add(a.id);normalizeActionTimeline()}
+          continue;
         }
+        if(strategy==='lateOnly'||gap<=.56)continue;
+        if(oldSpeed>.75&&offset>.12){
+          // Endast moderat långsammare fart. Stora tidsskillnader löses hellre
+          // med lite senare start än med att spelaren kryper över planen.
+          const wanted=oldSpeed*offset/(offset+gap);
+          const nextSpeed=Math.max(.75,Math.min(oldSpeed,wanted));
+          if(nextSpeed<oldSpeed-.008){seg.speed=nextSpeed;changed=true;touched.add(a.id);normalizeActionTimeline()}
+        }
+        if(strategy==='speedOnly')continue;
+        const newGap=a.start+a.duration-anchorTime(a.to,a.toSegId,a.toFraction,anchorType);
+        if(newGap<=.55)continue;
+        // Startfördröjning får bara läggas FÖRE den första åkdelen och aldrig
+        // före en redan skapad passning från/till samma spelare.
+        // Det hindrar den cirkel som tidigare flyttade hela tidslinjen på nytt.
+        const previousEvents=project.actions.some(b=>b.id!==a.id&&(b.order??0)<(a.order??0)&&(b.from===a.to||b.to===a.to));
+        if(previousEvents)continue;
+        const first=ts[0];if(!first||(first.startMode&&first.startMode!=='auto'))continue;
+        first.baseDelay=Math.max(0,+first.baseDelay||0)+newGap;
+        changed=true;touched.add(a.id);normalizeActionTimeline();
       }
-      // Om tidigare delbanor finns: flytta hela kedjan med samma startfördröjning
-      // när den saknar en tidigare passning, så ingen ny paus införs mitt i banan.
-      normalizeActionTimeline();
-      const afterSpeed=anchorTime(a.to,a.toSegId,a.toFraction,a.toAnchorType||'track');
-      const remaining=Math.max(0,(a.start+a.duration)-afterSpeed);
-      if(remaining>.12){
-        const hasPriorPass=project.actions.some(p=>p.type==='pass'&&p.to===a.to&&(p.order??0)<(a.order??0));
-        let baseIndex=(!hasPriorPass&&index>0)?0:index;
-        const chosen=tracks[baseIndex];
-        if((chosen.startMode||'auto')==='auto')chosen.baseDelay=(+chosen.baseDelay||0)+remaining;
-        else seg.baseDelay=(+seg.baseDelay||0)+remaining;
-      }
-      normalizeActionTimeline();
-      const after=anchorTime(a.to,a.toSegId,a.toFraction,a.toAnchorType||'track');
-      const finalGap=(a.start+a.duration)-after;
-      if(Math.abs(finalGap)<=.2||speedChange||remaining>.12){
-        const label=getObj(a.to)?.label||a.to;
-        if(!notes.some(n=>n.id===a.id))notes.push({id:a.id,label,wait,speed:seg.speed});
-        any=true;
-      }
+      if(!changed)break;
     }
-    if(!any)break;
+    normalizeActionTimeline();
+    const score=synchronizationScore(reference);
+    if(score<bestScore-.0005){bestScore=score;best=clone(project);changedPasses=[...touched]}
   }
-  if(JSON.stringify(project)===before){setStatus('Inget kunde synkas automatiskt. Kontrollera inställningarna för åkstart.',true);return;}
+  project=originalProject;
+  if(!best){
+    normalizeActionTimeline();
+    const late=passes.filter(a=>anchorTime(a.to,a.toSegId,a.toFraction,a.toAnchorType||'track')>a.start+a.duration+.18);
+    setStatus(late.length?'Synka hittar ingen ytterligare förbättring inom rimliga hastigheter. Kontrollera markerade tidskonflikter.':'Redan synkat. Inga tider eller passningar ändrades.',true);
+    return;
+  }
+  project=best;
   undoStack.push(before);if(undoStack.length>30)undoStack.shift();$('undo').disabled=false;
-  render();
-  const done=notes.map(n=>`spelare ${n.label}`).filter((x,i,a)=>a.indexOf(x)===i);
-  setStatus(`Synkat ${done.join(' och ')} mot passningarna. Åkbanor och mottagningspunkter är oförändrade. Ångra om du vill återställa.`,true);
+  normalizeActionTimeline();render();
+  const unresolved=project.actions.filter(a=>a.type==='pass'&&a.timingConflict&&!a.ownershipMismatch).length;
+  const names=changedPasses.map(id=>{const a=project.actions.find(x=>x.id===id);return a?getObj(a.to)?.label||a.to:null}).filter(Boolean).filter((v,i,x)=>x.indexOf(v)===i);
+  setStatus(`Synkat ${names.map(n=>'spelare '+n).join(' och ')}. ${unresolved?'Kvarvarande tidskonflikter: '+unresolved+'. ':'Inga tidskonflikter. '}Åkbanor och fasta passningspunkter är oförändrade.`,true);
 }
 function pointAtDistance(pts,d){if(!pts?.length)return null;if(pts.length===1)return pts[0];let remain=d;for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i],seg=Math.hypot(b.x-a.x,b.y-a.y);if(remain<=seg||i===pts.length-1){const u=seg?Math.max(0,Math.min(1,remain/seg)):0;return{x:a.x+(b.x-a.x)*u,y:a.y+(b.y-a.y)*u}}remain-=seg}return pts.at(-1)}
 function playerPos(id,t){const o=getObj(id);if(!o)return null;let pos={x:o.x,y:o.y};for(const seg of playerTracks(id)){const dur=segmentDuration(seg);if(t<seg.start)break;if(t>=seg.start+dur){pos={...seg.points.at(-1)};continue}const u=Math.max(0,Math.min(1,(t-seg.start)/dur));if(seg.recorded&&seg.samples?.length>1){const ms=u*(seg.samples.at(-1).t||1);let a=seg.samples[0],b=seg.samples.at(-1);for(let i=1;i<seg.samples.length;i++){if(seg.samples[i].t>=ms){a=seg.samples[i-1];b=seg.samples[i];break}}const span=Math.max(1,b.t-a.t),v=Math.max(0,Math.min(1,(ms-a.t)/span));return{x:a.x+(b.x-a.x)*v,y:a.y+(b.y-a.y)*v}}return pointAtDistance(seg.points,polyLength(seg.points)*u)||pos}return pos}
@@ -1485,10 +1603,11 @@ $('passQuickReset').onclick=()=>{actionFirst=null;passGesture=null;passHover=nul
 $('passEditDone').onclick=()=>{finishEditPass();setStatus('Passningen uppdaterad. Tryck på en grön passningslinje för att ändra igen.')};
 $('passEditDelete').onclick=()=>{const idx=project.actions.findIndex(a=>a.id===editingPassId);if(idx<0)return;pushUndo();project.actions.splice(idx,1);editingPassId=null;passEditGesture=null;normalizeActionTimeline();render();setStatus('Passningen borttagen. Ångra finns under Övningsflöde.')};
 $('propertyBackdrop').addEventListener('click',closeProperties);let sheetDrag=null;$('sheetHandle').addEventListener('pointerdown',e=>{sheetDrag={y:e.clientY};properties.classList.add('sheetDragging');$('sheetHandle').setPointerCapture?.(e.pointerId)});$('sheetHandle').addEventListener('pointermove',e=>{if(!sheetDrag)return;const dy=Math.max(0,e.clientY-sheetDrag.y);properties.style.transform=`translateY(${dy}px)`});$('sheetHandle').addEventListener('pointerup',e=>{if(!sheetDrag)return;const dy=Math.max(0,e.clientY-sheetDrag.y);sheetDrag=null;properties.classList.remove('sheetDragging');if(dy>70)closeProperties();else properties.style.transform=''});$('sheetHandle').addEventListener('pointercancel',()=>{sheetDrag=null;properties.classList.remove('sheetDragging');properties.style.transform=''});
+if(window.ResizeObserver){new ResizeObserver(()=>fitRinkCard()).observe($('rinkViewport'))}
 window.addEventListener('resize',updateAppHeight);window.visualViewport?.addEventListener('resize',updateAppHeight);window.visualViewport?.addEventListener('scroll',updateAppHeight);updateAppHeight();
 window.addEventListener('keydown',e=>{if((e.key==='Delete'||e.key==='Backspace')&&!/INPUT|TEXTAREA/.test(document.activeElement?.tagName))deleteSelected();if(e.key===' '&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)){e.preventDefault();play()}if(e.key==='Escape'){if(!$('libraryBackdrop').hidden){hideLibrary();return;}if(presentation)exitPresentationMode();else cancelModes();}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo()}});
 
-render();$('undo').disabled=true;updateAppHeight();setTimeout(fitEverything,30);setStatus('v1.0-alpha.9.3: Välj Animera. Dra spelaren längs hela vägen, runt koner och vidare, så ritas åkbanan.');
+render();$('undo').disabled=true;updateAppHeight();setTimeout(fitEverything,30);setStatus('v1.0-alpha.9.5: mobilens kontroller ligger utanför planritningen.');
 })();
 </script>
 </body>
