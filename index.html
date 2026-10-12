@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f8fafc">
-<title>Bandyövningar v1.0-alpha.9.5 – mobilmenyer</title>
+<title>Bandyövningar v1.0-alpha.9.6 – mobilmenyer</title>
 <style>
 :root{
   --bg:#eef3f8;--panel:#fff;--panel2:#f8fafc;--line:#d7e0ea;--text:#0f172a;--muted:#64748b;
@@ -333,7 +333,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
 <body>
 <div class="app">
 <header class="topbar">
-  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.9.5 · mobil arbetsyta</small></div></div>
+  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.9.6 · mobil arbetsyta</small></div></div>
   <div class="topControls">
     <select id="rinkMode" aria-label="Planvy"><option value="full">Helplan</option><option value="half">Halvplan</option></select>
     <select id="orientation" aria-label="Anfallsriktning"><option value="up">Anfall uppåt</option><option value="down">Anfall nedåt</option></select>
@@ -703,7 +703,7 @@ function normalizeActionTimeline(){
     if(a.timingConflict)timingWarnings.push(`${getObj(a.from)?.label||a.from} → ${getObj(a.to)?.label||'mål'}: ${a.timingNote||'Kontrollera vald punkt'}`);
   }
 }
-// v1.0-alpha.9.5: Passningskedjan synkroniseras som en helhet.
+// v1.0-alpha.9.6: Passningskedjan synkroniseras som en helhet.
 // Testa olika justeringar på kopior och acceptera bara förbättringar.
 // Därmed skapar upprepade tryck aldrig nya fördröjningar i ett redan synkat flöde.
 function synchronizationScore(reference){
@@ -1112,7 +1112,8 @@ function handleActionTrackPick(hit){
   }
   // Samma spelare två gånger är typiskt ett feltryck. Skapa inte en oavsiktlig självpassning.
   if(actionFirst.id===hit.playerId){if(suggestedPassSource){actionFirst=passHitClone(hit);suggestedPassSource=false;updatePassQuickBar();setStatus('Passpunkten flyttad längs samma spelares åkbana. Välj nu mottagare.');renderPassPickDraft();return}setStatus('Passare och mottagare kan inte vara samma spelare. Välj en annan bana, eller börja om.',true);renderPassPickDraft();return;}
-  addPassTrack(actionFirst,hit);lastPassReceiverId=hit.playerId;lastPassReceiverHit=receiverAsNextPasser(hit);actionFirst=null;suggestedPassSource=false;passHover=null;draftG.innerHTML='';updatePassQuickBar();syncModeButtons();
+  // addPassTrack avslutar passläget så att nästa dragning blir åkning, inte ännu en passning.
+  addPassTrack(actionFirst,hit);
 }
 function addPassTrack(fromHit,toHit){
   pushUndo();ensureBall();if(!project.ballOwnerStart&&project.actions.length===0)project.ballOwnerStart=fromHit.id;
@@ -1125,9 +1126,17 @@ function addPassTrack(fromHit,toHit){
   const insertAt=project.actions.findIndex(ev=>ev.type==='shot'&&(ev.start||0)>proposedTime+.15);
   if(insertAt>=0)project.actions.splice(insertAt,0,a);else project.actions.push(a);
   project.actions.forEach((ev,i)=>ev.order=i);
-  normalizeActionTimeline();render();
-  if(a.ownershipMismatch)setStatus(`⚠ Pass ${fromObj?.label||''} → ${toObj?.label||''} ritat, men ${fromObj?.label||'passaren'} har inte bollen vid passningen. Kontrollera bollinnehav och händelseordning.`,true);
-  else setStatus(`Pass ${fromObj?.label||''} → ${toObj?.label||''} skapad. Passverktyget är kvar – välj nästa passare och mottagare.`);
+  normalizeActionTimeline();
+  // En passning är ett avslutat moment. Lämna passläget automatiskt, utan att
+  // ändra Uppställning/Animera. Behåll mottagaren som nästa möjliga passare.
+  lastPassReceiverId=toHit.playerId;
+  lastPassReceiverHit=receiverAsNextPasser(toHit);
+  actionMode=null;actionFirst=null;passGesture=null;passHover=null;suggestedPassSource=false;
+  selectedId=toHit.playerId;drawTargetId=toHit.playerId;
+  draftG.innerHTML='';
+  render();
+  if(a.ownershipMismatch)setStatus(`⚠ Pass ${fromObj?.label||''} → ${toObj?.label||''} skapad, men bollinnehavet stämmer inte. Passläget avslutat; kontrollera händelseordningen.`,true);
+  else setStatus(`Pass ${fromObj?.label||''} → ${toObj?.label||''} klar. Fortsätt åka genom att dra spelaren i Animera, eller tryck Pass igen för nästa passning.`,true);
 }
 function closeDrawMenu(){if(!drawMenu)return;drawMenu.classList.remove('open');drawMenu.setAttribute('aria-hidden','true')}
 function drawingPlayers(){return project.objects.filter(o=>o.type==='player')}
@@ -1286,7 +1295,20 @@ function lockPassTargetsBeforeNewPath(playerId){
   return count;
 }
 function finishDrawPath(){if(!drawingPath)return;const d=drawingPath;drawingPath=null;draftG.innerHTML='';const pts=smoothPoints(d.points);if(pts.length<2||Math.hypot(pts.at(-1).x-pts[0].x,pts.at(-1).y-pts[0].y)<18){const o=getObj(d.playerId);selectedId=d.playerId;drawTargetId=d.playerId;renderObjects();syncSelectedControls();updateDrawTargetUI();setStatus(`Spelare ${o?.label||''} markerad för ritning. Dra med fingret för att skapa åkbanan.`,true);return}pushUndo();lockPassTargetsBeforeNewPath(d.playerId);const seg={id:nextId('s'),points:pts,speed:d.speed,start:d.start,baseDelay:Math.max(0,defaultPathDelay)};playerTracks(d.playerId).push(seg);selectedId=d.playerId;drawTargetId=d.playerId;normalizeActionTimeline();render();pathMode=true;syncModeButtons();setStatus('Åkbanan tillagd. Befintliga passningspunkter ligger kvar. Dra vidare eller välj en annan spelare.',true)}
-function setActionMode(mode){closeDrawMenu();stopPlayback();if(editingPassId)finishEditPass();cancelPresetDraft(false);pathMode=false;actionMode=actionMode===mode?null:mode;actionFirst=null;draftG.innerHTML='';syncModeButtons();setStatus(actionMode==='pass'?'Passning: välj start på spelare eller tränare, eller valfri punkt på en spelares åkbana. Välj sedan mottagaren. Händelse på en start-/slutplupp utförs innan spelaren lämnar punkten; klick mitt på linjen ger pass i rörelse.':'Skott: tryck på spelarens startposition eller åkbana där skottet ska gå.',!!actionMode)}
+function setActionMode(mode){
+  closeDrawMenu();stopPlayback();if(editingPassId)finishEditPass();cancelPresetDraft(false);
+  pathMode=false;actionMode=actionMode===mode?null:mode;actionFirst=null;suggestedPassSource=false;passHover=null;passGesture=null;draftG.innerHTML='';
+  // Vid nästa passning föreslås den senaste mottagaren. Tryck på samma spelares
+  // åkbana för att välja en senare passpunkt, eller välj Ny passare.
+  const latest=project.actions.at(-1);
+  if(actionMode==='pass'&&latest?.type==='pass'&&latest.to===lastPassReceiverId&&lastPassReceiverHit?.id===latest.to){
+    actionFirst=clone(lastPassReceiverHit);suggestedPassSource=true;
+  }
+  syncModeButtons();renderPassPickDraft();
+  if(actionMode==='pass')setStatus(actionFirst?`Pass från spelare ${getObj(actionFirst.id)?.label||''} föreslagen. Välj mottagare, tryck på en senare punkt på samma åkbana eller välj Ny passare.`:'Pass: välj avsändarpunkt och sedan mottagare. Efter passningen återgår appen automatiskt till åkning.',true);
+  else if(actionMode==='shot')setStatus('Skott: tryck på spelarens startposition eller åkbana där skottet ska gå.',true);
+  else setStatus('Verktyget avslutat. I Animera kan du dra en spelare för att fortsätta åkbanan.',true);
+}
 function actionAnchorFor(id,explicit=null){return explicit?clone(explicit):clone(lastTrackEndPoint(id))}
 function addPass(from,to,fromAnchor=null,toAnchor=null){
   const fh={id:from,anchor:actionAnchorFor(from,fromAnchor),time:trackEndTime(from),segId:playerTracks(from).at(-1)?.id||null,fraction:1};
@@ -1460,7 +1482,7 @@ function finishPassDrag(e){
   if(!g.moved){renderPassPickDraft();return true;}
   const p=clampPoint(getSvgPoint(e)),target=passCandidate(p,e);
   if(!target||target.playerId===g.from.id){setStatus('Välj en annan spelares åkbana eller start-/slutpunkt som mottagare.',true);renderPassPickDraft();return true;}
-  addPassTrack(g.from,target);lastPassReceiverId=target.playerId;lastPassReceiverHit=receiverAsNextPasser(target);actionFirst=null;suggestedPassSource=false;passHover=null;draftG.innerHTML='';updatePassQuickBar();syncModeButtons();return true;
+  addPassTrack(g.from,target);return true;
 }
 stage.addEventListener('pointerdown',e=>{if(cameraGesture||touchPoints.size>=2)return;if(playing)return;
   const handle=e.target.closest?.('[data-pass-handle]');
@@ -1607,7 +1629,7 @@ if(window.ResizeObserver){new ResizeObserver(()=>fitRinkCard()).observe($('rinkV
 window.addEventListener('resize',updateAppHeight);window.visualViewport?.addEventListener('resize',updateAppHeight);window.visualViewport?.addEventListener('scroll',updateAppHeight);updateAppHeight();
 window.addEventListener('keydown',e=>{if((e.key==='Delete'||e.key==='Backspace')&&!/INPUT|TEXTAREA/.test(document.activeElement?.tagName))deleteSelected();if(e.key===' '&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)){e.preventDefault();play()}if(e.key==='Escape'){if(!$('libraryBackdrop').hidden){hideLibrary();return;}if(presentation)exitPresentationMode();else cancelModes();}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo()}});
 
-render();$('undo').disabled=true;updateAppHeight();setTimeout(fitEverything,30);setStatus('v1.0-alpha.9.5: mobilens kontroller ligger utanför planritningen.');
+render();$('undo').disabled=true;updateAppHeight();setTimeout(fitEverything,30);setStatus('v1.0-alpha.9.6: passläget avslutas efter en färdig passning.');
 })();
 </script>
 </body>
