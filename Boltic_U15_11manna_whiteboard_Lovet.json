@@ -1,0 +1,308 @@
+{
+  "version": 10,
+  "name": "Boltic U15 – 11-manna – uppställning från whiteboard",
+  "note": "BOLTIC U15 – 11-MANNA, TURNERING 17–18 OKTOBER 2026\nUtgångspositionerna motsvarar lagets handritade taktiktavla (foto IMG_0326.jpeg), tolkade schematiskt. Avstånd och placering är ungefärliga och kan justeras direkt på planen.\n3–2–2–2–1; även benämnt 5–2–2–1 eller 1–4–2–2–1 (samma uppställning).\n\nMÅLVAKT: #1 Petter\nLIBERO: #48 Loie\nBACKAR: #44 Johan vänster, #40 Oscar L (”Lövet”) höger\nYTTRAR: #47 Manne vänster, #38 Sixten höger. Manne fyller oftare på framåt, Sixten håller oftare sin position; båda täcker upp efter spelets behov.\nINNERMITTFÄLT: #46 Elliot vänster, #41 Oscar N höger\nANFALLSTRIANGEL: #36 Anton som högsta centrala topp/target. #55 Elton vänster och #50 Lucas höger snett bakom Anton. Anfallstrion flyttar sig med bibehållna inbördes avstånd (”gummisnodd”).\nAVBYTARE TILL HÖGER VID SIDLINJEN: #37 Theo (allmänt) och #35 Nils (topp-topp). Avbytarmarkörerna är grå och placerade innanför den digitala planens kant eftersom appen inte har en separat bänkyta.\n\nOBS: Placeringarna avspeglar ett statiskt utgångsläge, inte animerade rörelser. Tröjnummer visas på planmarkörerna. Namn finns i spelarnas uppgifter.",
+  "rinkMode": "full",
+  "orientation": "up",
+  "objects": [
+    {
+      "id": "o1",
+      "type": "goalkeeper",
+      "x": 350,
+      "y": 1042,
+      "r": 23,
+      "color": "#1769e8",
+      "label": "1",
+      "teamId": "A",
+      "playerName": "Petter",
+      "jerseyNumber": 1,
+      "role": "Mv",
+      "isSubstitute": false,
+      "followBall": true,
+      "goalSide": "bottom",
+      "tacticalGroup": "Målvakt"
+    },
+    {
+      "id": "o2",
+      "type": "player",
+      "x": 350,
+      "y": 919,
+      "r": 22,
+      "color": "#1769e8",
+      "label": "48",
+      "teamId": "A",
+      "playerName": "Loie",
+      "jerseyNumber": 48,
+      "role": "Libero",
+      "isSubstitute": false,
+      "tacticalGroup": "Försvar – libero"
+    },
+    {
+      "id": "o3",
+      "type": "player",
+      "x": 235,
+      "y": 836,
+      "r": 22,
+      "color": "#1769e8",
+      "label": "44",
+      "teamId": "A",
+      "playerName": "Johan",
+      "jerseyNumber": 44,
+      "role": "Back, vänster",
+      "isSubstitute": false,
+      "tacticalGroup": "Försvar – back"
+    },
+    {
+      "id": "o4",
+      "type": "player",
+      "x": 460,
+      "y": 836,
+      "r": 22,
+      "color": "#1769e8",
+      "label": "40",
+      "teamId": "A",
+      "playerName": "Oscar L",
+      "jerseyNumber": 40,
+      "role": "Back, höger",
+      "isSubstitute": false,
+      "tacticalGroup": "Försvar – back",
+      "nickname": "Lövet"
+    },
+    {
+      "id": "o5",
+      "type": "player",
+      "x": 267,
+      "y": 658,
+      "r": 22,
+      "color": "#1769e8",
+      "label": "46",
+      "teamId": "A",
+      "playerName": "Elliot",
+      "jerseyNumber": 46,
+      "role": "Mitt, vänster",
+      "isSubstitute": false,
+      "tacticalGroup": "Innermittfält"
+    },
+    {
+      "id": "o6",
+      "type": "player",
+      "x": 440,
+      "y": 658,
+      "r": 22,
+      "color": "#1769e8",
+      "label": "41",
+      "teamId": "A",
+      "playerName": "Oscar N",
+      "jerseyNumber": 41,
+      "role": "Mitt, höger",
+      "isSubstitute": false,
+      "tacticalGroup": "Innermittfält"
+    },
+    {
+      "id": "o7",
+      "type": "player",
+      "x": 90,
+      "y": 742,
+      "r": 22,
+      "color": "#1769e8",
+      "label": "47",
+      "teamId": "A",
+      "playerName": "Manne",
+      "jerseyNumber": 47,
+      "role": "Ytter, vänster",
+      "isSubstitute": false,
+      "tacticalGroup": "Försvar – ytter",
+      "tacticalNote": "Rörlig vänsterytter; fyller oftare på framåt, balanseras av övriga försvarare."
+    },
+    {
+      "id": "o8",
+      "type": "player",
+      "x": 608,
+      "y": 742,
+      "r": 22,
+      "color": "#1769e8",
+      "label": "38",
+      "teamId": "A",
+      "playerName": "Sixten",
+      "jerseyNumber": 38,
+      "role": "Ytter, höger",
+      "isSubstitute": false,
+      "tacticalGroup": "Försvar – ytter",
+      "tacticalNote": "Högerytter; stannar oftare kvar och säkrar balansen."
+    },
+    {
+      "id": "o9",
+      "type": "player",
+      "x": 270,
+      "y": 501,
+      "r": 22,
+      "color": "#1769e8",
+      "label": "55",
+      "teamId": "A",
+      "playerName": "Elton",
+      "jerseyNumber": 55,
+      "role": "Vinge, vänster",
+      "isSubstitute": false,
+      "tacticalGroup": "Anfall – vinge",
+      "tacticalNote": "Anfallstriangel: flytta tillsammans med bibehållna avstånd (gummisnodd)."
+    },
+    {
+      "id": "o10",
+      "type": "player",
+      "x": 430,
+      "y": 501,
+      "r": 22,
+      "color": "#1769e8",
+      "label": "50",
+      "teamId": "A",
+      "playerName": "Lucas",
+      "jerseyNumber": 50,
+      "role": "Vinge, höger",
+      "isSubstitute": false,
+      "tacticalGroup": "Anfall – vinge",
+      "tacticalNote": "Anfallstriangel: flytta tillsammans med bibehållna avstånd (gummisnodd)."
+    },
+    {
+      "id": "o11",
+      "type": "player",
+      "x": 350,
+      "y": 354,
+      "r": 22,
+      "color": "#1769e8",
+      "label": "36",
+      "teamId": "A",
+      "playerName": "Anton",
+      "jerseyNumber": 36,
+      "role": "Topp-topp / targetspelare",
+      "isSubstitute": false,
+      "tacticalGroup": "Anfall – target",
+      "tacticalNote": "Anfallstriangel: flytta tillsammans med bibehållna avstånd (gummisnodd)."
+    },
+    {
+      "id": "o12",
+      "type": "player",
+      "x": 660,
+      "y": 661,
+      "r": 19,
+      "color": "#64748b",
+      "label": "35",
+      "teamId": "bench",
+      "playerName": "Nils",
+      "jerseyNumber": 35,
+      "role": "Topp-topp, avbytare",
+      "isSubstitute": true,
+      "tacticalGroup": "Avbytare – höger sidlinje"
+    },
+    {
+      "id": "o13",
+      "type": "player",
+      "x": 660,
+      "y": 596,
+      "r": 19,
+      "color": "#64748b",
+      "label": "37",
+      "teamId": "bench",
+      "playerName": "Theo",
+      "jerseyNumber": 37,
+      "role": "Avbytare, allmänt",
+      "isSubstitute": true,
+      "tacticalGroup": "Avbytare – höger sidlinje"
+    }
+  ],
+  "tracks": {},
+  "actions": [],
+  "linkedGroups": [],
+  "ballOwnerStart": null,
+  "eventNodes": {},
+  "libraryId": null,
+  "teamLineup": {
+    "team": "Boltic U15",
+    "format": "11-manna",
+    "date": "2026-10-17/2026-10-18",
+    "status": "rekonstruerad från handritad tavla – schematisk",
+    "starters": [
+      1,
+      48,
+      44,
+      40,
+      46,
+      41,
+      47,
+      38,
+      55,
+      50,
+      36
+    ],
+    "substitutes": [
+      35,
+      37
+    ],
+    "formation": "3-2-2-2-1",
+    "alternativeFormations": [
+      "5-2-2-1",
+      "1-4-2-2-1"
+    ],
+    "formationMeaning": "Alternativa sätt att beskriva samma uppställning, inte separata spelsystem",
+    "lines": [
+      {
+        "group": "Målvakt",
+        "players": [
+          1
+        ]
+      },
+      {
+        "group": "Försvar – tre centrala",
+        "players": [
+          44,
+          48,
+          40
+        ]
+      },
+      {
+        "group": "Försvar – två yttrar",
+        "players": [
+          47,
+          38
+        ]
+      },
+      {
+        "group": "Innermittfält",
+        "players": [
+          46,
+          41
+        ]
+      },
+      {
+        "group": "Anfall – två vingar",
+        "players": [
+          55,
+          50
+        ]
+      },
+      {
+        "group": "Anfall – target",
+        "players": [
+          36
+        ]
+      },
+      {
+        "group": "Avbytare",
+        "players": [
+          35,
+          37
+        ]
+      }
+    ],
+    "source": "Handritad uppställning, IMG_0326.jpeg",
+    "nicknames": {
+      "40": "Lövet"
+    },
+    "attackingTriangle": {
+      "tip": 36,
+      "leftWing": 55,
+      "rightWing": 50,
+      "principle": "Gemensam förflyttning med osynlig gummisnodd"
+    },
+    "substituteSide": "Höger kant; markörer innanför digital planbegränsning"
+  }
+}
