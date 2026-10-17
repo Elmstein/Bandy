@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f8fafc">
-<title>Bandyövningar v1.0-alpha.9.7 – förenklade menyer</title>
+<title>Bandyövningar v1.0-alpha.9.17</title>
 <style>
 :root{
   --bg:#eef3f8;--panel:#fff;--panel2:#f8fafc;--line:#d7e0ea;--text:#0f172a;--muted:#64748b;
@@ -453,7 +453,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
 <body>
 <div class="app">
 <header class="topbar">
-  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.9.16 · Match → Animation</small></div></div>
+  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.9.17 · Match → Animation</small></div></div>
   <div class="topControls">
     <select id="rinkMode" aria-label="Planvy"><option value="full">Helplan</option><option value="half">Halvplan</option></select>
     <select id="orientation" aria-label="Anfallsriktning"><option value="up">Anfall uppåt</option><option value="down">Anfall nedåt</option></select><button id="matchOpenTop" type="button">⚑ Match</button>
@@ -2212,7 +2212,7 @@ window.bandyMatchCreateExercise=(lineup)=>{
      const no=String(p.number??'').slice(0,3),name=String(p.name??'').slice(0,60),role=String(p.role??'').slice(0,70);
      const subs=bench.filter(b=>b.subFor===p.id).map(b=>String(b.name||b.number||'Avbytare').slice(0,35));
      return {id:'o'+(i+1),type:p.goalkeeper?'goalkeeper':'player',
-       x:Math.max(50,Math.min(650,Number(p.x)||350)),y:Math.max(50,Math.min(1050,Number(p.y)||550)),
+       x:Math.max(36,Math.min(662,Number.isFinite(Number(p.x))?Number(p.x):350)),y:Math.max(55,Math.min(1045,Number.isFinite(Number(p.y))?Number(p.y):550)),
        r:p.goalkeeper?23:22,color:'#0A244B',label:no||String(i+1),
        jerseyNumber:no,playerName:name,role,teamId:'A',lineupStyle:true,lineupMatchId:String(p.id||''),
        ...(subs.length?{lineupSubs:'('+subs.join(', ')+')'}:{}),
