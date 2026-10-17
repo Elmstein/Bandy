@@ -5,11 +5,13 @@
   "description": "Automatiska regressionstester för Bandy Animator",
   "scripts": {
     "check:syntax": "node scripts/check-scripts.mjs",
-    "test": "playwright test",
-    "test:smoke": "playwright test --grep @smoke",
-    "test:ui": "playwright test --ui"
+    "test": "node scripts/prepare-visual-reference.mjs && playwright test",
+    "test:smoke": "node scripts/prepare-visual-reference.mjs && playwright test --grep @smoke",
+    "test:ui": "node scripts/prepare-visual-reference.mjs && playwright test --ui"
   },
   "devDependencies": {
-    "@playwright/test": "1.56.1"
+    "@playwright/test": "1.56.1",
+    "pixelmatch": "7.1.0",
+    "pngjs": "7.0.0"
   }
 }
