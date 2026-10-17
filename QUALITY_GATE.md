@@ -55,3 +55,13 @@ Testsviten kompletteras med tre riskområden:
 - **Data:** JSON-export/import med bevarade punkter och händelseordning, avvisning av ogiltig JSON utan dataförlust, samt spara/ladda lokal övning efter sidomladdning.
 
 Det här är regressionstester av specifika flöden, inte en fullständig simulering av alla möjliga spelrörelser eller en kontroll på fysisk hårdvara. Nya tester måste passera i GitHub Actions innan PR slås samman.
+
+## Quality Gate v3 – kompletta redigeringsflöden
+
+De nya testerna genomför ändringar **genom appens synliga kontroller och pek-/musgester**. Appens snapshot läses bara för att verifiera resultatet, aldrig för att skapa övningsdata.
+
+- **Dator/Chromium:** Lägg till två spelare, dra åkbana i Animera, välj passare/mottagare, skjut och spela upp hela övningen. Verifiera bollkedja och att vägen inte förändras efter uppspelning.
+- **Dator/Chromium:** Lägg till spelare, välj frihandsritning i ritmenyn, skapa en bana och ångra utan att förlora spelaren.
+- **Mobil/Chromium och iPhone/WebKit-emulering:** Lägg till två spelare med touch, skapa passning och skott med touch och spela upp.
+
+Nyttan är att testerna kontrollerar samspelet mellan UI, pekhantering, datamodell och uppspelning, som tidigare testats mest var för sig. En fysisk iPhone kan inte testas från GitHub Actions; den sista kontrollen kräver manuell provning på en riktig enhet. Inga ändringar i appens produktionkod i denna PR.
