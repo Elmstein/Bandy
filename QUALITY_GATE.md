@@ -45,3 +45,13 @@ Testprojekten är Chromium på dator, mobil Chromium-emulering och iPhone-emuler
 - Simulering av passningsordning och bollägande.
 - Touchgester och visuella regressionsbilder på iPhone.
 - Utökad kodanalys, reproducerbar dependency lockfile och skyddad huvudgren.
+
+## Quality Gate v2 – beröring, tid och beständighet
+
+Testsviten kompletteras med tre riskområden:
+
+- **Pekskärm:** Playwrights riktiga touch-tap i Android/Chromium och iPhone/WebKit; Android-svep och tvåfingerszoom med Chromium DevTools Protocol (CDP). Testar diagonal skiss, selektiv radering och ångra. CDP är webbläsaremulering – inget fysiskt iPhone-test.
+- **Bollhändelser:** deterministiskt pass → pass → skott med tidsordning och fasta mottagningspunkter; en omöjlig passning ska inte stjäla bollägandet. Övningarna laddas via appens ordinarie JSON-import.
+- **Data:** JSON-export/import med bevarade punkter och händelseordning, avvisning av ogiltig JSON utan dataförlust, samt spara/ladda lokal övning efter sidomladdning.
+
+Det här är regressionstester av specifika flöden, inte en fullständig simulering av alla möjliga spelrörelser eller en kontroll på fysisk hårdvara. Nya tester måste passera i GitHub Actions innan PR slås samman.
