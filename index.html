@@ -2212,7 +2212,7 @@ window.bandyMatchCreateExercise=(lineup)=>{
      const no=String(p.number??'').slice(0,3),name=String(p.name??'').slice(0,60),role=String(p.role??'').slice(0,70);
      const subs=bench.filter(b=>b.subFor===p.id).map(b=>String(b.name||b.number||'Avbytare').slice(0,35));
      return {id:'o'+(i+1),type:p.goalkeeper?'goalkeeper':'player',
-       x:Math.max(50,Math.min(650,Number(p.x)||350)),y:Math.max(50,Math.min(1050,Number(p.y)||550)),
+       x:Math.max(36,Math.min(662,Number.isFinite(Number(p.x))?Number(p.x):350)),y:Math.max(55,Math.min(1045,Number.isFinite(Number(p.y))?Number(p.y):550)),
        r:p.goalkeeper?23:22,color:'#0A244B',label:no||String(i+1),
        jerseyNumber:no,playerName:name,role,teamId:'A',lineupStyle:true,lineupMatchId:String(p.id||''),
        ...(subs.length?{lineupSubs:'('+subs.join(', ')+')'}:{}),
