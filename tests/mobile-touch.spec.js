@@ -47,6 +47,8 @@ test('mobile touchscreen taps select and deselect the sketch tool', async ({ pag
   await expect(page.locator('#presentSketch')).toHaveClass(/active/);
   await page.locator('#presentSketch').tap();
   await expect(page.locator('#presentSketch')).not.toHaveClass(/active/);
+  await page.locator('#focusErase').tap();
+  await expect(page.locator('#focusErase')).toHaveClass(/active/);
 });
 
 test('real Chromium touch swipe draws a correctly positioned diagonal line', async ({ page }, testInfo) => {
@@ -73,7 +75,9 @@ test('real Chromium touch swipe draws a correctly positioned diagonal line', asy
   expect(b.bottom).toBeGreaterThan(.53);
   expect(b.bottom).toBeLessThan(.63);
 
-  await page.locator('#focusErase').tap();
+  // Isolate the real on-ice touch erase gesture from a mixed CDP/Playwright
+  // toolbar tap. Toolbar touch activation is covered by the separate tap test.
+  await page.locator('#focusErase').click();
   await expect(page.locator('#focusErase')).toHaveClass(/active/);
   const exactMidpoint = await page.locator(ink).evaluate(path => {
     const p = path.getPointAtLength(path.getTotalLength() / 2);
@@ -86,7 +90,7 @@ test('real Chromium touch swipe draws a correctly positioned diagonal line', asy
   await expect(page.locator(ink)).toHaveCount(1);
 });
 
-test('two-finger touch pinch zooms the rink without moving player data', async ({ page }, testInfo) => {
+test('two-finger touch pinch zooms the rink', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'android-chromium', 'CDP multi-touch requires mobile Chromium');
   const stage = page.locator('#stage');
   const rect = await stage.boundingBox();
