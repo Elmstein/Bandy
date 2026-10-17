@@ -103,3 +103,49 @@ test('focus toolbar remains on screen in a mobile viewport', async ({ page }) =>
   await expect(page.locator('#focusErase')).toBeVisible();
   await expect(page.locator('#focusUndo')).toBeVisible();
 });
+
+test('diagonal focus sketch stays where it was drawn', async ({ page }) => {
+  await focusMode(page);
+  await page.locator('#presentSketch').click();
+
+  const rect = await page.locator(rink).boundingBox();
+  if (!rect) throw new Error('Bandyplanen är inte synlig');
+  const start = point(rect, 0.30, 0.58);
+  const end = point(rect, 0.62, 0.30);
+  await page.mouse.move(start.x, start.y);
+  await page.mouse.down();
+  await page.mouse.move(end.x, end.y, { steps: 18 });
+  await page.mouse.up();
+
+  await expect(page.locator(ink)).toHaveCount(1);
+  const bounds = await page.locator(ink).evaluate(path => {
+    const b = path.getBBox();
+    const v = document.querySelector('#stage').viewBox.baseVal;
+    return {
+      left: (b.x - v.x) / v.width,
+      right: (b.x + b.width - v.x) / v.width,
+      top: (b.y - v.y) / v.height,
+      bottom: (b.y + b.height - v.y) / v.height,
+    };
+  });
+  expect(bounds.left).toBeGreaterThan(0.25);
+  expect(bounds.left).toBeLessThan(0.35);
+  expect(bounds.right).toBeGreaterThan(0.57);
+  expect(bounds.right).toBeLessThan(0.67);
+  expect(bounds.top).toBeGreaterThan(0.25);
+  expect(bounds.top).toBeLessThan(0.35);
+  expect(bounds.bottom).toBeGreaterThan(0.53);
+  expect(bounds.bottom).toBeLessThan(0.63);
+});
+
+test('focus sketches survive switching back to editing mode', async ({ page }) => {
+  await focusMode(page);
+  await page.locator('#presentSketch').click();
+  await sketchLine(page);
+  await expect(page.locator(ink)).toHaveCount(1);
+
+  await page.locator('#exitPresent').click();
+  await expect(page.locator('.app')).not.toHaveClass(/presentation/);
+  await focusMode(page);
+  await expect(page.locator(ink)).toHaveCount(1);
+});
