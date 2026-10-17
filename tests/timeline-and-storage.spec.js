@@ -45,11 +45,17 @@ test('an impossible pass cannot steal possession or delay a valid pass', async (
   expect(p.actions[3].start).toBeGreaterThanOrEqual(p.actions[2].start + p.actions[2].duration - .001);
 });
 
-test('export and re-import preserve the pass sequence and exact fixed points', async ({ page }) => {
+test('export and re-import preserve the pass sequence and exact fixed points', async ({ page }, testInfo) => {
   await importProject(page, exampleProject());
   const before = await snapshot(page);
   const downloadPromise = page.waitForEvent('download');
-  await page.locator('#exportJson').click();
+  if (testInfo.project.name !== 'desktop-chromium') {
+    await page.locator('#toggleProps').click();
+    await expect(page.locator('#exportMobileJson')).toBeVisible();
+    await page.locator('#exportMobileJson').click();
+  } else {
+    await page.locator('#exportJson').click();
+  }
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toMatch(/\.json$/);
   const exported = JSON.parse(await readFile(await download.path(), 'utf8'));
