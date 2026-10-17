@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f8fafc">
-<title>Bandyövningar v1.0-alpha.9.19</title>
+<title>Bandyövningar v1.0-alpha.9.20</title>
 <style>
 :root{
   --bg:#eef3f8;--panel:#fff;--panel2:#f8fafc;--line:#d7e0ea;--text:#0f172a;--muted:#64748b;
@@ -453,6 +453,12 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
 .matchBenchRow .matchSubLink select{flex:1;min-width:0;width:100%;height:32px;padding:4px 6px;font-size:12px}
 @media(max-width:760px){#matchBench{grid-template-columns:1fr}.matchBenchRow .matchSubLink label{flex-basis:84px}}
 
+
+/* v9.20: Fokusverktygen dockas vid skärmens nederkant, utanför planens arbetsyta. */
+.app.presentation .presentationBar{position:fixed;left:0;right:0;bottom:0;transform:none;width:100%;max-width:none;box-sizing:border-box;border-radius:12px 12px 0 0;padding:7px 6px max(9px,env(safe-area-inset-bottom));box-shadow:0 -4px 18px rgba(0,0,0,.25);align-content:center}
+.app.presentation .stageArea{padding-bottom:calc(116px + env(safe-area-inset-bottom))!important;box-sizing:border-box}
+.app.presentation.focusEditing .stageStatus{bottom:calc(118px + env(safe-area-inset-bottom))}
+@media(max-width:760px){.app.presentation .presentationBar{bottom:0;gap:4px;padding:5px 4px max(7px,env(safe-area-inset-bottom))}.app.presentation .presentationBar button{height:36px;min-width:38px;font-size:12px}.app.presentation #focusInkStyle{max-width:104px}.app.presentation .stageArea{padding-bottom:calc(122px + env(safe-area-inset-bottom))!important}}
 </style>
 </head>
 <body>
