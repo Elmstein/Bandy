@@ -453,7 +453,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
 <body>
 <div class="app">
 <header class="topbar">
-  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.9.15 · Avbytare under spelare</small></div></div>
+  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.9.16 · Smart JSON-import</small></div></div>
   <div class="topControls">
     <select id="rinkMode" aria-label="Planvy"><option value="full">Helplan</option><option value="half">Halvplan</option></select>
     <select id="orientation" aria-label="Anfallsriktning"><option value="up">Anfall uppåt</option><option value="down">Anfall nedåt</option></select><button id="matchOpenTop" type="button">⚑ Match</button>
@@ -661,6 +661,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
     <div class="matchHeadActions">
       <button id="matchLoadExercise" class="matchSmallOptional" type="button" title="Hämta spelare från den öppna övningen">Från övning</button>
       <button id="matchOpenSaved" type="button">Öppna</button>
+      <button id="matchImportTop" type="button" title="Importera matchuppställning eller övning från JSON">↑ JSON</button>
       <button id="matchSave" class="matchGold" type="button">Spara</button>
       <button id="matchSaveCopy" class="matchSmallOptional" type="button">Spara kopia</button>
       <button id="matchPng" type="button">PNG ↓</button>
@@ -2116,13 +2117,21 @@ $('importJson').addEventListener('change',async e=>{
   const f=e.target.files?.[0];if(!f)return;
   const previous=clone(project);
   try{
-    const incoming=validateImportedProject(JSON.parse(await f.text()));
+    const parsed=JSON.parse(await f.text());
+    // Matchuppställningar har ett separat filformat. Öppna dem direkt i Matchläge
+    // i stället för att försöka läsa dem som animationsövningar.
+    if(parsed?.kind==='bandy-match-v1'){
+      if(typeof window.bandyMatchImportFromExercise!=='function')throw new Error('Matchläget är inte tillgängligt. Öppna ⚑ Match och försök igen.');
+      window.bandyMatchImportFromExercise(parsed);
+      e.target.value='';return;
+    }
+    const incoming=validateImportedProject(parsed);
     stopPlayback(true);project=incoming;project.libraryId=null;rebuildProject();
     selectedId=null;undoStack=[];render();setStatus('Projekt importerat.');
   }catch(err){
     console.warn('Avvisad import:',err);project=previous;
     try{rebuildProject();render()}catch(e2){console.error('Återställning misslyckades:',e2)}
-    setStatus('Importen avvisades. Originalövningen finns kvar. Kontrollera JSON-filens format.',true);
+    setStatus('Importen avvisades: '+String(err?.message||'Felaktig JSON-fil').slice(0,140)+'. Originalövningen finns kvar.',true);
   }
   e.target.value='';
 });
@@ -2482,7 +2491,23 @@ el('matchAddBench').onclick=()=>{model.players.push({id:id(),name:'',number:'',r
 el('matchSave').onclick=()=>save(false);el('matchSaveCopy').onclick=()=>save(true);el('matchMobileCopy').onclick=()=>save(true);el('matchMobileFrom').onclick=importExercise;el('matchOpenSaved').onclick=openSaved;
 el('matchNew').onclick=createNew;el('matchLoadExercise').onclick=importExercise;el('matchJson').onclick=exportJson;el('matchPng').onclick=exportPng;
 el('matchImportBtn').onclick=()=>el('matchFile').click();
-el('matchFile').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;try{const parsed=JSON.parse(await f.text());const m=parsed.kind==='bandy-match-v1'?fixModel(parsed):fromProject(parsed);if(!validModel(m))throw new Error('Felaktigt antal startspelare eller målvakter');if(confirm(`Importera "${m.title}" i Matchläge? Den öppna övningen påverkas inte.`)){stash();model=m;model.id=null;selectedId=null;renderAll();stash();message('Matchuppställning importerad.')}}catch(err){message('Kan inte importera: '+err.message)}finally{e.target.value=''}});
+el('matchImportTop').onclick=()=>el('matchFile').click();
+function importMatchData(parsed,activate=false){
+ if(!parsed||typeof parsed!=='object'||Array.isArray(parsed))throw new Error('Ogiltig JSON-fil.');
+ if(parsed.kind==='bandy-match-v1'&&!Array.isArray(parsed.players))throw new Error('Matchfilen saknar spelare.');
+ const m=parsed.kind==='bandy-match-v1'?fixModel(parsed):fromProject(parsed);
+ if(!validModel(m))throw new Error('Felaktigt antal startspelare eller målvakter.');
+ if(!confirm(`Importera "${m.title}" i Matchläge? Den öppna övningen påverkas inte.`))return false;
+ if(activate)open();
+ stash();model=m;model.id=null;selectedId=null;renderAll();stash();
+ message('Matchuppställning importerad. Tryck Spara för att lägga den i ditt matchbibliotek.');
+ return true;
+}
+// Delad, tydlig importerare: matchfilen får väljas även från Övningslägets import.
+window.bandyMatchImportFromExercise=parsed=>{
+ try{return importMatchData(parsed,true)}catch(err){open();message('Kan inte importera: '+err.message);return false}
+};
+el('matchFile').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;try{importMatchData(JSON.parse(await f.text()))}catch(err){message('Kan inte importera: '+err.message)}finally{e.target.value=''}});
 document.addEventListener('keydown',e=>{
  if(el('matchOverlay').hidden)return;
  if(e.key==='Escape'){
