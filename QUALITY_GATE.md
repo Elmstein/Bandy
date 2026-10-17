@@ -65,3 +65,13 @@ De nya testerna genomför ändringar **genom appens synliga kontroller och pek-/
 - **Mobil/Chromium och iPhone/WebKit-emulering:** Lägg till två spelare med touch, skapa passning och skott med touch och spela upp.
 
 Nyttan är att testerna kontrollerar samspelet mellan UI, pekhantering, datamodell och uppspelning, som tidigare testats mest var för sig. En fysisk iPhone kan inte testas från GitHub Actions; den sista kontrollen kräver manuell provning på en riktig enhet. Inga ändringar i appens produktionkod i denna PR.
+
+## Quality Gate v4 – visuell regression
+
+Playwright jämför nu **faktiska skärmbilder** av den aktuella versionen med en referens hämtad från versionshistoriken. För en Pull Request används den aktuella basgrenen vid teststart; efter merge till main används föregående commit. Baslinjen skapas **inte** från ändrad applikationskod och uppdateras aldrig tyst så att en felaktig ändring passerar.
+
+Skärmbilder jämförs för (1) desktop med två spelare och sidopaneler, (2) halva bandyplanens markeringar, (3) Fokuslägets verktygsfält på alla tre testplattformar och (4) objektmenyn på mobil Android/Chromium respektive iPhone/WebKit-emulering. Mobilmenyn kontrolleras också geometriskt mot skärmens vänstra och högra kant.
+
+Toleransen är max 0,25 % av bildpixlarna, med viss kantutjämningstolerans. Större avvikelser stoppar GitHub-kontrollen och sparar tre felsökningsbilder: tidigare version, aktuell version och pixel-differens. Avsiktliga designändringar kräver kodgranskning och en medveten uppdatering av testerna, inte en automatisk acceptans. Jämförelsen görs i samma CI-webbläsare och behöver därför inga incheckade PNG-bilder.
+
+Kör lokalt med npm test. Då jämförs med HEAD^; sätt miljövariabeln VISUAL_REFERENCE_SHA till en specifik äldre commit om det behövs. Testerna kan inte ersätta en kontroll på en fysisk iPhone.
