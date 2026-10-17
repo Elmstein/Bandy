@@ -453,7 +453,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
 <body>
 <div class="app">
 <header class="topbar">
-  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.9.16 · Smart JSON-import</small></div></div>
+  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.9.16 · Match → Animation</small></div></div>
   <div class="topControls">
     <select id="rinkMode" aria-label="Planvy"><option value="full">Helplan</option><option value="half">Halvplan</option></select>
     <select id="orientation" aria-label="Anfallsriktning"><option value="up">Anfall uppåt</option><option value="down">Anfall nedåt</option></select><button id="matchOpenTop" type="button">⚑ Match</button>
@@ -664,6 +664,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
       <button id="matchImportTop" type="button" title="Importera matchuppställning eller övning från JSON">↑ JSON</button>
       <button id="matchSave" class="matchGold" type="button">Spara</button>
       <button id="matchSaveCopy" class="matchSmallOptional" type="button">Spara kopia</button>
+      <button id="matchAnimate" class="matchGold" type="button" title="Överför uppställningen till en ny animationsövning">▶ Animera uppställning</button>
       <button id="matchPng" type="button">PNG ↓</button>
       <button id="matchClose" type="button" title="Tillbaka till övningen">✕ Övning</button>
     </div>
@@ -1073,7 +1074,20 @@ function applyGoalkeeperTracking(objects){const ball=firstBall(objects);if(!ball
 
 function rinkMarkup(){const R='#e31818';return `<rect x="18" y="18" width="664" height="1064" rx="4" fill="#fff" stroke="${R}" stroke-width="4"/><line x1="18" y1="550" x2="682" y2="550" stroke="${R}" stroke-width="4"/><circle cx="350" cy="550" r="56" fill="none" stroke="${R}" stroke-width="4"/><circle cx="350" cy="550" r="5" fill="${R}"/><path d="M95 18 A255 255 0 0 0 605 18" fill="none" stroke="${R}" stroke-width="4"/><path d="M95 1082 A255 255 0 0 1 605 1082" fill="none" stroke="${R}" stroke-width="4"/><circle cx="255" cy="254.65" r="58" fill="none" stroke="${R}" stroke-width="4"/><circle cx="445" cy="254.65" r="58" fill="none" stroke="${R}" stroke-width="4"/><circle cx="255" cy="845.35" r="58" fill="none" stroke="${R}" stroke-width="4"/><circle cx="445" cy="845.35" r="58" fill="none" stroke="${R}" stroke-width="4"/><circle cx="255" cy="254.65" r="5" fill="${R}"/><circle cx="445" cy="254.65" r="5" fill="${R}"/><circle cx="350" cy="130" r="5" fill="${R}"/><circle cx="255" cy="845.35" r="5" fill="${R}"/><circle cx="445" cy="845.35" r="5" fill="${R}"/><circle cx="350" cy="970" r="5" fill="${R}"/><line x1="18" y1="104" x2="86" y2="104" stroke="${R}" stroke-width="4" stroke-dasharray="10 8"/><line x1="614" y1="104" x2="682" y2="104" stroke="${R}" stroke-width="4" stroke-dasharray="10 8"/><line x1="18" y1="996" x2="86" y2="996" stroke="${R}" stroke-width="4" stroke-dasharray="10 8"/><line x1="614" y1="996" x2="682" y2="996" stroke="${R}" stroke-width="4" stroke-dasharray="10 8"/><g stroke="${R}" fill="none" stroke-width="4"><rect x="315" y="0" width="70" height="28"/><line x1="326" y1="2" x2="326" y2="26"/><line x1="338" y1="2" x2="338" y2="26"/><line x1="350" y1="2" x2="350" y2="26"/><line x1="362" y1="2" x2="362" y2="26"/><line x1="374" y1="2" x2="374" y2="26"/><line x1="316" y1="10" x2="384" y2="10"/><line x1="316" y1="19" x2="384" y2="19"/></g><g transform="translate(0 1072)" stroke="${R}" fill="none" stroke-width="4"><rect x="315" y="0" width="70" height="28"/><line x1="326" y1="2" x2="326" y2="26"/><line x1="338" y1="2" x2="338" y2="26"/><line x1="350" y1="2" x2="350" y2="26"/><line x1="362" y1="2" x2="362" y2="26"/><line x1="374" y1="2" x2="374" y2="26"/><line x1="316" y1="10" x2="384" y2="10"/><line x1="316" y1="19" x2="384" y2="19"/></g>`}
 function setView(){const key=project.rinkMode+'|'+project.orientation;if(project.rinkMode==='full')rinkCard.classList.remove('half');else rinkCard.classList.add('half');if(key!==lastViewKey){lastViewKey=key;const b=baseView();camera={zoom:1,cx:b.x+b.w/2,cy:b.y+b.h/2}}applyCamera();requestAnimationFrame(fitRinkCard)}
-function objectMarkup(o,selected=false){const sel=selected?'#0f172a':'#fff',sw=selected?5:2;if(o.type==='cone'){const s=o.r;return `<g class="obj" data-id="${o.id}" transform="translate(${o.x} ${o.y})" filter="url(#objShadow)" style="cursor:grab"><circle r="${Math.max(37,s+18)}" fill="rgba(255,122,0,.001)" pointer-events="all"/><path d="M0 ${-s}L${s*.68} ${s*.72}L${-s*.68} ${s*.72}Z" fill="${o.color}" stroke="${sel}" stroke-width="${sw}"/><rect x="${-s*.9}" y="${s*.58}" width="${s*1.8}" height="${Math.max(5,s*.28)}" rx="3" fill="${o.color}" stroke="${sel}" stroke-width="${sw/1.5}"/>${o.label?`<text y="${s*1.55}" text-anchor="middle" font-size="${Math.max(11,s*.7)}" font-weight="800" fill="#0f172a">${esc(o.label)}</text>`:''}</g>`}if(o.type==='text')return `<g class="obj" data-id="${o.id}" transform="translate(${o.x} ${o.y})" style="cursor:grab"><rect x="-${Math.max(32,(o.label||'').length*8)}" y="-${o.r}" width="${Math.max(64,(o.label||'').length*16)}" height="${o.r*2}" rx="8" fill="${selected?'#e8f1ff':'rgba(255,255,255,.82)'}" stroke="${selected?'#1769e8':'transparent'}"/><text text-anchor="middle" dominant-baseline="central" font-size="${Math.max(14,o.r)}" font-weight="800" fill="${o.color}">${esc(o.label||'Text')}</text></g>`;const hit=o.type==='ball'&&!o._lockedBall?`<circle r="${Math.max(23,o.r+14)}" fill="rgba(223,31,45,.001)" pointer-events="all"/>`:o.type==='player'||o.type==='coach'||o.type==='goalkeeper'?`<circle r="${Math.max(36,o.r+15)}" fill="rgba(15,23,42,.001)" pointer-events="all"/>`:'';const halo=o.type==='ball'&&selected?`<circle r="${Math.max(34,o.r+24)}" fill="none" stroke="#1769e8" stroke-width="4" stroke-dasharray="5 4" pointer-events="none"/>`:'';const goalieRing=o.type==='goalkeeper'?`<circle r="${o.r+5}" fill="none" stroke="${selected?'#0f172a':'#fff'}" stroke-width="3" pointer-events="none"/>`:'';const label=o.label?`<text text-anchor="middle" dominant-baseline="central" font-size="${o.type==='ball'?Math.max(8,o.r):Math.max(12,o.r*.8)}" font-weight="800" fill="#fff" pointer-events="none">${esc(o.label)}</text>`:'';return `<g class="obj" data-id="${o.id}" transform="translate(${o.x} ${o.y})" filter="url(#objShadow)" style="cursor:grab">${hit}${halo}${goalieRing}<circle r="${o.r}" fill="${o.color}" stroke="${sel}" stroke-width="${sw}" pointer-events="${o.type==='ball'&&o._lockedBall?'none':'all'}"/>${label}</g>`}
+function objectMarkup(o,selected=false){
+ if(o.lineupStyle&&(o.type==='player'||o.type==='goalkeeper')){
+   const name=String(o.playerName||'').slice(0,60),subs=String(o.lineupSubs||'').slice(0,75);
+   const nr=esc(o.jerseyNumber||o.label||'?'),r=o.r||22;
+   const w=Math.max(60,Math.min(195,Math.max(name.length*8+17,subs.length*6.7+17)));
+   return `<g class="obj" data-id="${o.id}" transform="translate(${o.x} ${o.y})" filter="url(#objShadow)" style="cursor:grab">
+     <circle r="${Math.max(36,r+15)}" fill="rgba(15,23,42,.001)" pointer-events="all"/>
+     ${o.type==='goalkeeper'?`<circle r="${r+5}" fill="none" stroke="#E9BF45" stroke-width="2" stroke-dasharray="4 2" pointer-events="none"/>`:''}
+     <circle r="${r}" fill="#0A244B" stroke="${selected?'#fff':'#E9BF45'}" stroke-width="${selected?5:3.5}" pointer-events="none"/>
+     <text y="8" text-anchor="middle" font-size="${Math.max(15,r*.9)}" font-weight="900" fill="#E9BF45" pointer-events="none">${nr}</text>
+     ${name?`<rect x="${-w/2}" y="${r+5}" width="${w}" height="${subs?38:21}" rx="5" fill="#0A244B" stroke="#E9BF45" stroke-width=".8" pointer-events="none"/><text text-anchor="middle" y="${r+20}" fill="#E9BF45" font-size="14" font-weight="750" pointer-events="none">${esc(name)}</text>${subs?`<text y="${r+34}" text-anchor="middle" font-size="11" fill="#f4d982" pointer-events="none" ${subs.length>22?`textLength="${w-8}" lengthAdjust="spacingAndGlyphs"`:''}>${esc(subs)}</text>`:''}`:''}
+   </g>`;
+ }
+const sel=selected?'#0f172a':'#fff',sw=selected?5:2;if(o.type==='cone'){const s=o.r;return `<g class="obj" data-id="${o.id}" transform="translate(${o.x} ${o.y})" filter="url(#objShadow)" style="cursor:grab"><circle r="${Math.max(37,s+18)}" fill="rgba(255,122,0,.001)" pointer-events="all"/><path d="M0 ${-s}L${s*.68} ${s*.72}L${-s*.68} ${s*.72}Z" fill="${o.color}" stroke="${sel}" stroke-width="${sw}"/><rect x="${-s*.9}" y="${s*.58}" width="${s*1.8}" height="${Math.max(5,s*.28)}" rx="3" fill="${o.color}" stroke="${sel}" stroke-width="${sw/1.5}"/>${o.label?`<text y="${s*1.55}" text-anchor="middle" font-size="${Math.max(11,s*.7)}" font-weight="800" fill="#0f172a">${esc(o.label)}</text>`:''}</g>`}if(o.type==='text')return `<g class="obj" data-id="${o.id}" transform="translate(${o.x} ${o.y})" style="cursor:grab"><rect x="-${Math.max(32,(o.label||'').length*8)}" y="-${o.r}" width="${Math.max(64,(o.label||'').length*16)}" height="${o.r*2}" rx="8" fill="${selected?'#e8f1ff':'rgba(255,255,255,.82)'}" stroke="${selected?'#1769e8':'transparent'}"/><text text-anchor="middle" dominant-baseline="central" font-size="${Math.max(14,o.r)}" font-weight="800" fill="${o.color}">${esc(o.label||'Text')}</text></g>`;const hit=o.type==='ball'&&!o._lockedBall?`<circle r="${Math.max(23,o.r+14)}" fill="rgba(223,31,45,.001)" pointer-events="all"/>`:o.type==='player'||o.type==='coach'||o.type==='goalkeeper'?`<circle r="${Math.max(36,o.r+15)}" fill="rgba(15,23,42,.001)" pointer-events="all"/>`:'';const halo=o.type==='ball'&&selected?`<circle r="${Math.max(34,o.r+24)}" fill="none" stroke="#1769e8" stroke-width="4" stroke-dasharray="5 4" pointer-events="none"/>`:'';const goalieRing=o.type==='goalkeeper'?`<circle r="${o.r+5}" fill="none" stroke="${selected?'#0f172a':'#fff'}" stroke-width="3" pointer-events="none"/>`:'';const label=o.label?`<text text-anchor="middle" dominant-baseline="central" font-size="${o.type==='ball'?Math.max(8,o.r):Math.max(12,o.r*.8)}" font-weight="800" fill="#fff" pointer-events="none">${esc(o.label)}</text>`:'';return `<g class="obj" data-id="${o.id}" transform="translate(${o.x} ${o.y})" filter="url(#objShadow)" style="cursor:grab">${hit}${halo}${goalieRing}<circle r="${o.r}" fill="${o.color}" stroke="${sel}" stroke-width="${sw}" pointer-events="${o.type==='ball'&&o._lockedBall?'none':'all'}"/>${label}</g>`}
 function pathD(pts){
   if(!pts?.length)return'';
   if(pts.length===1)return`M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
@@ -2186,6 +2200,39 @@ if(window.ResizeObserver){new ResizeObserver(()=>fitRinkCard()).observe($('rinkV
 window.addEventListener('resize',updateAppHeight);window.visualViewport?.addEventListener('resize',updateAppHeight);window.visualViewport?.addEventListener('scroll',updateAppHeight);updateAppHeight();
 window.addEventListener('keydown',e=>{if((e.key==='Delete'||e.key==='Backspace')&&!/INPUT|TEXTAREA/.test(document.activeElement?.tagName))deleteSelected();if(e.key===' '&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)){e.preventDefault();play()}if(e.key==='Escape'){if(!$('libraryBackdrop').hidden){hideLibrary();return;}if(presentation)exitPresentationMode();else cancelModes();}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo()}});
 
+// Alpha 9.16: Endast en explicit överföring från Matchläge får skapa ny övning.
+// Noll ändringar i rörelse- och passningsalgoritmer; båda biblioteken förblir separata.
+window.bandyMatchCreateExercise=(lineup)=>{
+ if(!lineup||lineup.kind!=='bandy-match-v1'||![9,11].includes(lineup.size)||!Array.isArray(lineup.players))throw new Error('Ogiltig matchuppställning');
+ const starting=lineup.players.filter(p=>!p.bench),bench=lineup.players.filter(p=>p.bench);
+ if(starting.length!==lineup.size||starting.filter(p=>p.goalkeeper).length!==1)throw new Error('Matchuppställningen behöver rätt antal spelare och en målvakt.');
+ const previous=clone(project);
+ try{
+   const objs=starting.map((p,i)=>{
+     const no=String(p.number??'').slice(0,3),name=String(p.name??'').slice(0,60),role=String(p.role??'').slice(0,70);
+     const subs=bench.filter(b=>b.subFor===p.id).map(b=>String(b.name||b.number||'Avbytare').slice(0,35));
+     return {id:'o'+(i+1),type:p.goalkeeper?'goalkeeper':'player',
+       x:Math.max(50,Math.min(650,Number(p.x)||350)),y:Math.max(50,Math.min(1050,Number(p.y)||550)),
+       r:p.goalkeeper?23:22,color:'#0A244B',label:no||String(i+1),
+       jerseyNumber:no,playerName:name,role,teamId:'A',lineupStyle:true,lineupMatchId:String(p.id||''),
+       ...(subs.length?{lineupSubs:'('+subs.join(', ')+')'}:{}),
+       ...(p.goalkeeper?{followBall:true,goalSide:'bottom'}:{})};
+   });
+   // Avbytarna sparas i informationen om grunduppställningen utan att bli
+   // animerade isspelare eller störa rörelseverktygens identifiering av laget.
+   const meta={size:lineup.size,formation:String(lineup.formation||''),substitutes:clone(bench),title:String(lineup.title||'')};
+   stopPlayback(true);cancelModes();
+   pushUndo();
+   project={version:10,name:String(lineup.title||'Matchuppställning').slice(0,70)+' – Animation',note:'Skapad från Matchläge. Matchuppställningen är oförändrad.',
+     rinkMode:'full',orientation:'up',objects:objs,tracks:{},actions:[],linkedGroups:[],ballOwnerStart:null,eventNodes:{},libraryId:null,teamLineup:meta};
+   selectedId=null;drawTargetId=null;directAnimateMode=true;groupMode=false;groupSelection.clear();
+   idCounter=objs.length+1;
+   render();fitEverything();
+   setStatus('Ny animationsövning skapad. Dra spelarna för åkvägar, lägg till boll för passningar och välj Spara för att behålla övningen.',true);
+   return true;
+ }catch(e){project=previous;rebuildProject();render();throw e;}
+};
+
 window.bandyMatchSnapshot=()=>clone(project);
 render();$('undo').disabled=true;updateAppHeight();setTimeout(fitEverything,30);setStatus('v1.0-alpha.9.11: passningar följer rätt åkdel, utan att äldre mottagningspunkter flyttas.');
 })();
@@ -2390,6 +2437,12 @@ function fromProject(proj){
  const len=act.length;if(![9,11].includes(len))throw new Error('Övningen behöver 9 eller 11 startspelare inklusive målvakt; hittade '+len+'.');
  if(act.filter(o=>o.type==='goalkeeper').length!==1)throw new Error('Övningen behöver exakt en målvakt i laget.');
  const converted=source.map((o,i)=>({id:id(),number:numeric(o.jerseyNumber??o.label??''),name:textVal(o.playerName||o.nickname||'',60),role:textVal(o.role||'',70),x:+o.x||350,y:+o.y||550,bench:!!o.isSubstitute||o.teamId==='bench',goalkeeper:o.type==='goalkeeper'}));
+ // Återskapa bänkspelare som metadata vid rundtur Match → Animation → Match.
+ for(const b of proj.teamLineup?.substitutes||[]){
+   if(converted.some(p=>p.bench&&p.number===numeric(b.number||'')))continue;
+   const other=converted.find(p=>!p.bench&&p.number===source.find(o=>o.lineupMatchId===b.subFor)?.jerseyNumber);
+   converted.push({id:id(),name:textVal(b.name||'',60),number:numeric(b.number||''),role:textVal(b.role||'Avbytare',70),bench:true,goalkeeper:false,x:350,y:600,subFor:other?.id||null});
+ }
  const form=proj.teamLineup?.formation||'32221';const chosen=bySize(len).some(f=>f.key===form)?form:bySize(len)[0].key;
  return fixModel({kind:'bandy-match-v1',id:null,title:textVal(proj.name||titleFor(len),70),size:len,formation:chosen,players:converted});
 }
@@ -2489,6 +2542,15 @@ el('matchBench').addEventListener('change',e=>{
 });
 el('matchAddBench').onclick=()=>{model.players.push({id:id(),name:'',number:'',role:'Avbytare',goalkeeper:false,bench:true,subFor:null,x:350,y:600});renderAll();stash();message('Avbytare tillagd. Fyll i namn och nummer.')};
 el('matchSave').onclick=()=>save(false);el('matchSaveCopy').onclick=()=>save(true);el('matchMobileCopy').onclick=()=>save(true);el('matchMobileFrom').onclick=importExercise;el('matchOpenSaved').onclick=openSaved;
+el('matchAnimate').onclick=()=>{
+ if(!validModel(model)){message('Uppställningen behöver rätt antal spelare och en målvakt.');return;}
+ if(typeof window.bandyMatchCreateExercise!=='function'){message('Animationsläget är inte tillgängligt.');return;}
+ if(!confirm('Skapa en NY animationsövning från denna matchuppställning? En pågående osparad övning ersätts. Matchuppställningen påverkas inte.'))return;
+ try{
+   model.title=el('matchTitle').value.trim()||titleFor(model.size);stash();
+   window.bandyMatchCreateExercise(copy(model));close();
+ }catch(err){message('Kunde inte överföra uppställningen: '+err.message)}
+};
 el('matchNew').onclick=createNew;el('matchLoadExercise').onclick=importExercise;el('matchJson').onclick=exportJson;el('matchPng').onclick=exportPng;
 el('matchImportBtn').onclick=()=>el('matchFile').click();
 el('matchImportTop').onclick=()=>el('matchFile').click();
