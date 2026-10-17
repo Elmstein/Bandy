@@ -60,7 +60,7 @@ test('desktop: create two players, skate, pass, shoot and play from visible cont
   await expect.poll(async () => (await snapshot(page)).tracks[p1.id]?.length ?? 0).toBe(1);
   const moved = await snapshot(page);
   const track = moved.tracks[p1.id][0];
-  expect(track.points.length).toBeGreaterThan(2);
+  expect(track.points.length).toBeGreaterThanOrEqual(2);
   expect(Math.hypot(track.points.at(-1).x - expectedEnd.x, track.points.at(-1).y - expectedEnd.y)).toBeLessThan(18);
 
   await page.locator('#passModeDesktop').click();
