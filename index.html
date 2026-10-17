@@ -393,15 +393,48 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
 .mobileExerciseSave label{display:block;font-weight:700;font-size:11px;margin:0 0 4px;color:#334155}
 .mobileExerciseSave input{display:block;width:100%;min-width:0;height:36px;padding:7px 9px;font-size:14px;border:1px solid #b9cadf;border-radius:8px;background:#fff;color:#142034}
 .mobileExerciseSave button{height:36px;white-space:nowrap;padding:6px 10px;background:#1769e8;color:#fff;border:1px solid #1769e8;border-radius:9px;font-weight:800}
+
+/* Alpha 9.13: separat Matchläge. Ingen ändring av övningsmotorns styling. */
+#matchOpenTop{white-space:nowrap;background:#0a244b;color:#eac24b;border:1px solid #eac24b;font-weight:850}
+.matchMobileOnly{display:none!important}
+.matchOverlay[hidden]{display:none!important}
+.matchOverlay{position:fixed;inset:0;z-index:260;background:#edf2f8;color:#12213b;display:grid;grid-template-rows:auto minmax(0,1fr);overflow:hidden}
+.matchHeader{background:#092345;color:#f0c54f;display:flex;gap:9px;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:3px solid #d7a928;flex-wrap:wrap}
+.matchHeader strong{font-size:16px}.matchHeader small{font-size:11px;display:block;color:#c4d1e1}
+.matchHeadActions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.matchHeader button{border:1px solid #8f9db3;background:#173761;color:#fff;font-weight:750;padding:8px 10px;white-space:nowrap}
+.matchHeader button.matchGold{background:#eac24b;border-color:#eac24b;color:#092345}
+.matchWrap{min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(286px,330px);gap:12px;padding:12px;overflow:hidden}
+.matchPitchArea{min-height:0;background:linear-gradient(160deg,#e4ecf4,#cfdce9);border:1px solid #c5d5e4;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;overflow:auto;padding:9px}
+.matchSvg{height:100%;max-height:100%;width:auto;max-width:100%;display:block;touch-action:none;filter:drop-shadow(0 2px 9px rgba(16,36,73,.17))}
+.matchSidebar{min-height:0;overflow:auto;background:#fff;border:1px solid #ccd7e5;border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:12px}
+.matchSidebar>*{flex:0 0 auto}
+.matchSidebar label{font-size:12px;font-weight:750;color:#243858;display:block;margin-bottom:4px}
+.matchSidebar select,.matchSidebar input{width:100%;min-width:0;border:1px solid #bcc9da;border-radius:9px;padding:8px;background:#fff;font-size:13px;box-shadow:none}
+.matchSidebar h3{font-size:14px;margin:4px 0 6px}.matchSideNote{font-size:11px;color:#52647b;line-height:1.4}
+.matchSizeButtons{display:flex;gap:6px}.matchSizeButtons button{flex:1;background:#f1f4f9;border:1px solid #bfcde0;color:#152a4b;padding:9px 4px}
+.matchSizeButtons button[aria-pressed=true]{background:#0a244b;color:#eac24b;border-color:#eac24b}
+.matchSettings{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.matchRosterSection{min-height:0}.matchRosterList{display:grid;gap:6px}
+.matchRow{display:grid;grid-template-columns:35px minmax(0,1fr) 49px;gap:6px;align-items:center;border:1px solid #e1e7ef;border-radius:10px;padding:6px;background:#fff}
+.matchRow[aria-selected=true]{border-color:#dab43f;background:#fff9e8}
+.matchRow .matchPick{padding:5px 1px;background:#0a244b;border:2px solid #eac24b;color:#eac24b;border-radius:50%;width:34px;height:34px;font-size:11px}
+.matchRow input{height:34px;padding:5px 6px;font-size:12px}.matchRow .matchNumber{font-size:12px;text-align:center}
+.matchBenchRow{grid-template-columns:35px minmax(0,1fr) 49px auto auto}.matchBenchRow button.matchSwap,.matchBenchRow button.matchRemove{padding:7px 6px;font-size:10px}
+.matchSideButtons{display:flex;gap:6px;flex-wrap:wrap}.matchSideButtons button{flex:1;font-size:11px}
+.matchMsg{font-size:11px;font-weight:700;min-height:16px;color:#126044;line-height:1.35}
+.matchOverlay button:focus-visible,.matchOverlay input:focus-visible,.matchOverlay select:focus-visible{outline:2px solid #e6b72b;outline-offset:2px}
+@media(max-width:760px){.matchMobileOnly{display:flex!important}.matchMobileOnly button{flex:1;font-size:12px;padding:8px 5px}#matchOpenTop{padding:7px 9px;font-size:12px}.topControls select{min-width:0;padding:7px 5px;font-size:12px}.matchOverlay{grid-template-rows:auto minmax(0,1fr)}.matchHeader{gap:6px;padding:7px 8px}.matchHeader strong{font-size:14px}.matchHeader button{font-size:11px;padding:7px 8px}.matchHeadActions{gap:5px}.matchWrap{display:flex;flex-direction:column;gap:5px;padding:5px;overflow-y:auto}.matchPitchArea{flex:none;height:min(66dvh,680px);overflow:hidden;padding:5px}.matchSvg{height:100%;max-width:100%}.matchSidebar{overflow:visible;flex:none;padding:9px;gap:9px}.matchRosterList{grid-template-columns:repeat(2,minmax(0,1fr))}.matchRow{grid-template-columns:28px minmax(0,1fr) 37px;gap:3px;padding:4px}.matchRow .matchPick{width:28px;height:28px;font-size:10px}.matchRow input{padding:3px;font-size:11px}.matchBenchRow{grid-template-columns:28px minmax(0,1fr) 37px 25px}.matchBenchRow button.matchSwap{grid-column:2/4}}
+@media(max-width:400px){.matchPitchArea{height:min(61dvh,575px)}.matchHeader .matchSmallOptional{display:none}.matchHeader button{padding:6px 7px}}
 </style>
 </head>
 <body>
 <div class="app">
 <header class="topbar">
-  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.9.12 · namnge övningar på mobil</small></div></div>
+  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.9.13 · Matchläge 9/11-manna</small></div></div>
   <div class="topControls">
     <select id="rinkMode" aria-label="Planvy"><option value="full">Helplan</option><option value="half">Halvplan</option></select>
-    <select id="orientation" aria-label="Anfallsriktning"><option value="up">Anfall uppåt</option><option value="down">Anfall nedåt</option></select>
+    <select id="orientation" aria-label="Anfallsriktning"><option value="up">Anfall uppåt</option><option value="down">Anfall nedåt</option></select><button id="matchOpenTop" type="button">⚑ Match</button>
   </div>
   <div class="fileControls">
     <button id="newProject">Ny</button><button id="openProject">Öppna senaste</button><button id="openLibraryTop">Bibliotek</button><button id="resetPlan" class="icon" title="Nollställ planen" aria-label="Nollställ planen">↺</button><button id="fitTop" class="icon" title="Passa in plan">⌗</button><button id="presentTop" class="icon" title="Presentationsläge">⛶</button><button id="saveProject" class="primary">Spara</button>
@@ -599,6 +632,37 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
   <button id="mobileToolsToggle" hidden aria-hidden="true" type="button"></button>
 </nav>
 </div>
+
+<section id="matchOverlay" class="matchOverlay" role="dialog" aria-modal="true" aria-label="Matchläge – laguppställning" hidden>
+  <header class="matchHeader">
+    <div><strong>⚑ MATCHLÄGE</strong><small>Laguppställning · separat från övningarna</small></div>
+    <div class="matchHeadActions">
+      <button id="matchLoadExercise" class="matchSmallOptional" type="button" title="Hämta spelare från den öppna övningen">Från övning</button>
+      <button id="matchOpenSaved" type="button">Öppna</button>
+      <button id="matchSave" class="matchGold" type="button">Spara</button>
+      <button id="matchSaveCopy" class="matchSmallOptional" type="button">Spara kopia</button>
+      <button id="matchPng" type="button">PNG ↓</button>
+      <button id="matchClose" type="button" title="Tillbaka till övningen">✕ Övning</button>
+    </div>
+  </header>
+  <div class="matchWrap">
+    <section class="matchPitchArea" aria-label="Matchuppställningens plan">
+      <svg id="matchSvg" class="matchSvg" viewBox="0 0 700 1250" role="img" aria-label="Laguppställning, dra spelare för att ändra position" xmlns="http://www.w3.org/2000/svg"></svg>
+    </section>
+    <aside class="matchSidebar" aria-label="Redigera laguppställning">
+      <div class="matchSizeButtons" role="group" aria-label="Lagstorlek"><button type="button" id="matchSize11" aria-pressed="true">11-manna</button><button type="button" id="matchSize9" aria-pressed="false">9-manna</button></div>
+      <div><label for="matchTitle">Rubrik på laguppställningen</label><input id="matchTitle" maxlength="70" value="Boltic U15 – Startelva"></div>
+      <div><label for="matchFormation">Grundformation</label><select id="matchFormation"></select></div>
+      <div class="matchSideButtons matchMobileOnly"><button id="matchMobileFrom" type="button">Hämta från övning</button><button id="matchMobileCopy" type="button">Spara som ny</button></div>
+      <div class="matchSideNote">Flytta spelarna med fingret eller musen. Tröjnumret visas i den mörkblå figuren, namnet under i gult. Formation ändrar endast placeringen.</div>
+      <div class="matchRosterSection"><h3>Startspelare</h3><div id="matchStarters" class="matchRosterList"></div></div>
+      <div class="matchRosterSection"><h3>Avbytare</h3><div id="matchBench" class="matchRosterList"></div><button id="matchAddBench" type="button" class="mini" style="margin-top:7px">＋ Lägg till avbytare</button></div>
+      <div class="matchSideButtons"><button id="matchNew" type="button">Ny tom uppställning</button><button id="matchJson" type="button">Exportera JSON</button><button id="matchImportBtn" type="button">Importera JSON</button><input id="matchFile" type="file" accept=".json,application/json" hidden></div>
+      <div id="matchMessage" class="matchMsg" role="status" aria-live="polite"></div>
+      <div class="matchSideNote">Matchuppställningarna sparas separat på denna enhet. Exportera JSON som säkerhetskopia. Övningsbibliotek och animationer påverkas inte.</div>
+    </aside>
+  </div>
+</section>
 <script>
 (()=>{
 'use strict';
@@ -2084,7 +2148,194 @@ if(window.ResizeObserver){new ResizeObserver(()=>fitRinkCard()).observe($('rinkV
 window.addEventListener('resize',updateAppHeight);window.visualViewport?.addEventListener('resize',updateAppHeight);window.visualViewport?.addEventListener('scroll',updateAppHeight);updateAppHeight();
 window.addEventListener('keydown',e=>{if((e.key==='Delete'||e.key==='Backspace')&&!/INPUT|TEXTAREA/.test(document.activeElement?.tagName))deleteSelected();if(e.key===' '&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)){e.preventDefault();play()}if(e.key==='Escape'){if(!$('libraryBackdrop').hidden){hideLibrary();return;}if(presentation)exitPresentationMode();else cancelModes();}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo()}});
 
+window.bandyMatchSnapshot=()=>clone(project);
 render();$('undo').disabled=true;updateAppHeight();setTimeout(fitEverything,30);setStatus('v1.0-alpha.9.11: passningar följer rätt åkdel, utan att äldre mottagningspunkter flyttas.');
+})();
+</script>
+<script>
+/* Bandyövningar alpha.9.13 – isolerat Matchläge; vidrör aldrig projektets interna variabler. */
+(()=>{'use strict';
+const el=id=>document.getElementById(id),copy=o=>JSON.parse(JSON.stringify(o));
+const NAVY='#0A244B',GOLD='#E9BF45',ICE='#F6FAFD',LINE='#CF4D4D';
+const formations={
+  11:[{key:'32221',label:'3–2–2–2–1 (Boltic)',rows:[3,2,2,2,1]},
+    {key:'352',label:'3–5–2 (1–3–4–2)',rows:[3,5,2]},
+    {key:'343',label:'3–4–3 (1–3–3–3)',rows:[3,4,3]},
+    {key:'4411',label:'4–4–1–1 (1–4–4–1)',rows:[4,4,1,1]},
+    {key:'433',label:'4–3–3',rows:[4,3,3]}],
+  9:[{key:'242',label:'2–4–2 (1–1–4–2)',rows:[2,4,2]},
+     {key:'332',label:'3–3–2 (1–2–3–2)',rows:[3,3,2]},
+     {key:'233',label:'2–3–3',rows:[2,3,3]}]
+};
+const STORE='bandy_match_lineups_v1',DRAFT='bandy_match_draft_v1';
+const seed=[{"id":"o1","name":"Petter","number":"1","role":"Mv","x":350,"y":1042,"bench":false,"goalkeeper":true},{"id":"o2","name":"Loie","number":"48","role":"Libero","x":350,"y":919,"bench":false,"goalkeeper":false},{"id":"o3","name":"Johan","number":"44","role":"Back, vänster","x":235,"y":836,"bench":false,"goalkeeper":false},{"id":"o4","name":"Oscar L","number":"40","role":"Back, höger","x":460,"y":836,"bench":false,"goalkeeper":false},{"id":"o5","name":"Elliot","number":"46","role":"Mitt, vänster","x":267,"y":658,"bench":false,"goalkeeper":false},{"id":"o6","name":"Oscar N","number":"41","role":"Mitt, höger","x":440,"y":658,"bench":false,"goalkeeper":false},{"id":"o7","name":"Manne","number":"47","role":"Ytter, vänster","x":90,"y":742,"bench":false,"goalkeeper":false},{"id":"o8","name":"Sixten","number":"38","role":"Ytter, höger","x":608,"y":742,"bench":false,"goalkeeper":false},{"id":"o9","name":"Elton","number":"55","role":"Vinge, vänster","x":270,"y":501,"bench":false,"goalkeeper":false},{"id":"o10","name":"Lucas","number":"50","role":"Vinge, höger","x":430,"y":501,"bench":false,"goalkeeper":false},{"id":"o11","name":"Anton","number":"36","role":"Topp-topp / targetspelare","x":350,"y":354,"bench":false,"goalkeeper":false},{"id":"o12","name":"Nils","number":"35","role":"Topp-topp, avbytare","x":660,"y":661,"bench":true,"goalkeeper":false},{"id":"o13","name":"Theo","number":"37","role":"Avbytare, allmänt","x":660,"y":596,"bench":true,"goalkeeper":false}];
+let sizeCache={},model=null,selectedId=null,drag=null;
+let matches=[];
+try{const arr=JSON.parse(localStorage.getItem(STORE)||'[]');if(Array.isArray(arr))matches=arr.filter(m=>m&&[9,11].includes(m.size)&&Array.isArray(m.players)).slice(0,50)}catch{}
+function id(){return 'mu_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8)}
+function bySize(size){return formations[size]||formations[11]}
+function titleFor(size){return size===11?'Boltic U15 – Startelva':'Ny 9-mannauppställning'}
+function numeric(v){return String(v??'').slice(0,3)}
+function textVal(v,len=80){return String(v??'').slice(0,len)}
+function inPlay(p){return !p.bench}
+function createBlank(size){
+ const goalie={id:id(),name:'',number:'1',role:'Målvakt',goalkeeper:true,bench:false,x:350,y:1035};
+ const m={kind:'bandy-match-v1',id:null,title:titleFor(size),size,formation:size===11?'32221':'242',players:[goalie]};
+ for(let i=0;i<size-1;i++)m.players.push({id:id(),name:'',number:String(i+2),role:'Utespelare',goalkeeper:false,bench:false,x:350,y:700});
+ positionFormation(m);return m;
+}
+function createBoltic(){return{kind:'bandy-match-v1',id:null,title:'Boltic U15 – 11-manna',size:11,formation:'32221',players:seed.map(p=>({...p,id:id()}))}}
+function validModel(m){return m&&[9,11].includes(m.size)&&Array.isArray(m.players)&&m.players.length>=m.size&&m.players.length<=40&&m.players.filter(p=>!p.bench).length===m.size&&m.players.filter(p=>!p.bench&&p.goalkeeper).length===1}
+function fixModel(m){const c=copy(m);c.title=textVal(c.title,70);c.kind='bandy-match-v1';c.players=c.players.map(p=>({...p,id:textVal(p.id||id(),50),number:numeric(p.number),name:textVal(p.name,60),role:textVal(p.role,70),goalkeeper:!!p.goalkeeper,bench:!!p.bench,x:Number.isFinite(+p.x)?Math.max(36,Math.min(662,+p.x)):350,y:Number.isFinite(+p.y)?Math.max(55,Math.min(1045,+p.y)):600}));return c}
+function positionFormation(m){
+ const f=bySize(m.size).find(f=>f.key===m.formation)||bySize(m.size)[0];m.formation=f.key;
+ const keeper=m.players.find(p=>!p.bench&&p.goalkeeper);if(keeper){keeper.x=350;keeper.y=1034}
+ const starters=m.players.filter(p=>!p.bench&&!p.goalkeeper);
+ // Från försvar till anfall, med en tydligt markerad anfallstriangel för Boltic.
+ if(f.key==='32221'&&m.size===11){
+  const coord=[[350,914],[232,838],[462,838],[130,695],[570,695],[265,646],[435,646],[235,466],[465,466],[350,340]];
+  // Vid Boltic-mallen är sorteringen handgjord. Vid formationsbyte behåll spelarnas identitet.
+  starters.forEach((p,i)=>{p.x=coord[i][0];p.y=coord[i][1]});return;
+ }
+ const rows=f.rows,n=rows.length;
+ const ys=n===3?[865,685,450]:n===4?[875,735,590,395]:[916,797,668,516,355];
+ let i=0;
+ for(let r=0;r<n;r++){
+  const cnt=rows[r],spacing=Math.min(170,560/Math.max(1,cnt-1));
+  for(let j=0;j<cnt&&i<starters.length;j++){
+    starters[i].x=350+(j-(cnt-1)/2)*spacing;starters[i].y=ys[r];i++;
+  }
+ }
+}
+function message(t){el('matchMessage').textContent=t}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function stash(){sizeCache[model.size]=copy(model);try{localStorage.setItem(DRAFT,JSON.stringify(sizeCache))}catch{}}
+function makePitch(){return `<rect width="700" height="1250" fill="${ICE}"/><rect x="12" y="6" width="676" height="62" rx="10" fill="${NAVY}"/><text x="350" y="36" text-anchor="middle" font-size="26" font-weight="900" fill="${GOLD}">${esc(model.title||'Matchuppställning')}</text><text x="350" y="58" text-anchor="middle" font-size="15" font-weight="650" fill="#f1e2a0">${model.size}-MANNA · ${esc(bySize(model.size).find(f=>f.key===model.formation)?.label||'Formation')}</text>
+<g transform="translate(0 77)"><rect x="18" y="18" width="664" height="1064" rx="7" fill="#f7fbff" stroke="${LINE}" stroke-width="4"/>
+<line x1="18" y1="550" x2="682" y2="550" stroke="${LINE}" stroke-width="3"/><circle cx="350" cy="550" r="56" stroke="${LINE}" stroke-width="3" fill="none"/><circle cx="350" cy="550" r="5" fill="${LINE}"/>
+<path d="M95 18 A255 255 0 0 0 605 18 M95 1082 A255 255 0 0 1 605 1082" stroke="${LINE}" stroke-width="3" fill="none"/>
+<circle cx="255" cy="254.65" r="58" stroke="${LINE}" stroke-width="3" fill="none"/><circle cx="445" cy="254.65" r="58" stroke="${LINE}" stroke-width="3" fill="none"/>
+<circle cx="255" cy="845.35" r="58" stroke="${LINE}" stroke-width="3" fill="none"/><circle cx="445" cy="845.35" r="58" stroke="${LINE}" stroke-width="3" fill="none"/>
+<line x1="18" y1="104" x2="92" y2="104" stroke="${LINE}" stroke-width="3" stroke-dasharray="9 7"/><line x1="608" y1="104" x2="682" y2="104" stroke="${LINE}" stroke-width="3" stroke-dasharray="9 7"/>
+<line x1="18" y1="996" x2="92" y2="996" stroke="${LINE}" stroke-width="3" stroke-dasharray="9 7"/><line x1="608" y1="996" x2="682" y2="996" stroke="${LINE}" stroke-width="3" stroke-dasharray="9 7"/>
+<g fill="none" stroke="${LINE}" stroke-width="3"><rect x="315" y="0" width="70" height="28"/><rect x="315" y="1072" width="70" height="28"/></g></g>
+<rect x="18" y="1177" width="664" height="60" rx="11" fill="${NAVY}"/><text x="35" y="1196" font-size="14" font-weight="800" fill="${GOLD}">AVBYTARE</text>`}
+function figure(p){
+ const x=p.x,y=p.y+77,sel=p.id===selectedId;
+ const name=p.name||'Namn';
+ const w=Math.max(70,Math.min(195,name.length*12+20));
+ return `<g class="matchPlayer" data-mid="${esc(p.id)}" transform="translate(${x} ${y})" style="cursor:grab">
+  ${sel?`<circle r="38" fill="none" stroke="${GOLD}" stroke-width="3" stroke-dasharray="5 4"/>`:''}
+  <circle r="35" fill="transparent" pointer-events="all"/><circle r="29" fill="${NAVY}" stroke="${GOLD}" stroke-width="4" pointer-events="none"/>
+  <text text-anchor="middle" y="9" font-family="Arial,sans-serif" font-size="25" font-weight="900" fill="${GOLD}" pointer-events="none">${esc(p.number||'?')}</text>
+  <rect x="${-w/2}" y="33" width="${w}" height="25" rx="7" fill="${NAVY}" stroke="${GOLD}" stroke-width="1.2" pointer-events="none"/>
+  <text text-anchor="middle" y="51" font-family="Arial,sans-serif" font-size="18" font-weight="750" fill="${GOLD}" pointer-events="none">${esc(name)}</text>
+ </g>`;
+}
+function renderPitch(){
+ const starters=model.players.filter(inPlay),benched=model.players.filter(p=>p.bench);
+ const bench=benched.slice(0,5).map((p,i)=>`<text x="${20+i*135}" y="1223" font-size="15" font-weight="750" fill="${GOLD}">${esc((p.number||'–')+' '+(p.name||'Avbytare')).slice(0,22)}</text>`).join('');
+ el('matchSvg').innerHTML=makePitch()+starters.map(figure).join('')+bench;
+ el('matchSize11').setAttribute('aria-pressed',String(model.size===11));el('matchSize9').setAttribute('aria-pressed',String(model.size===9));
+}
+function renderRoster(){
+ const row=(p,bench=false)=>`<div class="matchRow${bench?' matchBenchRow':''}" data-row="${esc(p.id)}" aria-selected="${p.id===selectedId}">
+ <button class="matchPick" data-select="${esc(p.id)}" type="button" title="Välj spelare">${esc(p.number||'–')}</button>
+ <input data-edit="name" data-pid="${esc(p.id)}" value="${esc(p.name)}" aria-label="Spelarnamn" maxlength="60" placeholder="Namn">
+ <input class="matchNumber" data-edit="number" data-pid="${esc(p.id)}" value="${esc(p.number)}" aria-label="Tröjnummer" maxlength="3" inputmode="numeric" placeholder="Nr">
+ ${bench?`<button class="matchSwap" data-swap="${esc(p.id)}" type="button" title="Välj först en utespelare på planen">Byt in</button><button class="matchRemove" data-remove="${esc(p.id)}" type="button" title="Ta bort avbytare">✕</button>`:''}
+ </div>`;
+ el('matchStarters').innerHTML=model.players.filter(inPlay).map(p=>row(p)).join('');
+ el('matchBench').innerHTML=model.players.filter(p=>p.bench).map(p=>row(p,true)).join('')||'<div class="matchSideNote">Inga avbytare. Lägg till via import av en övning.</div>';
+}
+function renderAll(){
+ el('matchTitle').value=model.title;
+ el('matchFormation').innerHTML=bySize(model.size).map(f=>`<option value="${f.key}">${esc(f.label)}</option>`).join('');
+ el('matchFormation').value=model.formation;renderPitch();renderRoster();
+}
+function open(){
+ const overlay=el('matchOverlay');
+ if(!model){let draft;try{draft=JSON.parse(localStorage.getItem(DRAFT)||'{}')}catch{draft={}};
+  sizeCache=draft&&typeof draft==='object'&&!Array.isArray(draft)?draft:{};
+  model=validModel(sizeCache[11])?fixModel(sizeCache[11]):createBoltic();
+ }
+ overlay.hidden=false;document.body.style.overflow='hidden';renderAll();message('Matchläget är separat. Övningen i bakgrunden är oförändrad.');
+}
+function close(){stash();el('matchOverlay').hidden=true;document.body.style.overflow='';drag=null}
+function setSize(sz){if(model.size===sz)return;stash();model=validModel(sizeCache[sz])?fixModel(sizeCache[sz]):createBlank(sz);selectedId=null;renderAll();message(`${sz}-mannaläge öppnat. Det andra lagets uppställning är kvar.`)}
+function safeFilename(title){return(title||'matchuppstallning').replace(/[^a-z0-9åäö_-]+/gi,'_').replace(/^_|_$/g,'').slice(0,55)||'matchuppstallning'}
+function download(blob,name){const a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),15000)}
+function save(asCopy=false){
+ model.title=el('matchTitle').value.trim()||titleFor(model.size);
+ if(asCopy||!model.id)model.id=id();const existing=matches.findIndex(x=>x.id===model.id);
+ if(existing>=0)matches[existing]=copy(model);else matches.push(copy(model));
+ try{localStorage.setItem(STORE,JSON.stringify(matches));stash();message((asCopy?'Kopia':'Uppställning')+' sparad: '+model.title)}catch(e){message('Kunde inte spara lokalt. Exportera JSON som säkerhetskopia.')}
+}
+function openSaved(){
+ if(!matches.length){message('Inga sparade matchuppställningar ännu.');return}
+ const names=matches.map((m,i)=>`${i+1}. ${m.title} (${m.size}-manna)`).join('\n');
+ const input=prompt('Öppna matchuppställning – skriv numret:\n'+names,'1');if(input===null)return;
+ const ix=Number(input)-1;if(!Number.isInteger(ix)||ix<0||ix>=matches.length){message('Välj ett nummer ur listan.');return}
+ stash();model=fixModel(matches[ix]);selectedId=null;renderAll();message('Öppnade '+model.title);
+}
+function createNew(){if(!confirm('Skapa en tom matchuppställning? Spara eller exportera din nuvarande först.'))return;model=createBlank(model.size);selectedId=null;renderAll();stash();message('Ny tom matchuppställning.')}
+function getProject(){try{return typeof window.bandyMatchSnapshot==='function'?window.bandyMatchSnapshot():null}catch{return null}}
+function fromProject(proj){
+ if(!proj||!Array.isArray(proj.objects))throw new Error('Ingen läsbar övning');
+ const candidates=proj.objects.filter(o=>['player','goalkeeper'].includes(o.type));
+ const own=candidates.filter(o=>o.teamId==='A'||o.teamId==='bench');
+ const source=own.length?own:candidates.filter(o=>o.teamId!=='B');
+ const act=source.filter(o=>!o.isSubstitute&&o.teamId!=='bench');
+ const len=act.length;if(![9,11].includes(len))throw new Error('Övningen behöver 9 eller 11 startspelare inklusive målvakt; hittade '+len+'.');
+ if(act.filter(o=>o.type==='goalkeeper').length!==1)throw new Error('Övningen behöver exakt en målvakt i laget.');
+ const converted=source.map((o,i)=>({id:id(),number:numeric(o.jerseyNumber??o.label??''),name:textVal(o.playerName||o.nickname||'',60),role:textVal(o.role||'',70),x:+o.x||350,y:+o.y||550,bench:!!o.isSubstitute||o.teamId==='bench',goalkeeper:o.type==='goalkeeper'}));
+ const form=proj.teamLineup?.formation||'32221';const chosen=bySize(len).some(f=>f.key===form)?form:bySize(len)[0].key;
+ return fixModel({kind:'bandy-match-v1',id:null,title:textVal(proj.name||titleFor(len),70),size:len,formation:chosen,players:converted});
+}
+function importExercise(){const proj=getProject();try{const imported=fromProject(proj);if(!confirm(`Hämta ${imported.players.length} spelare från den öppna övningen? Din matchuppställning ersätts, inte själva övningen.`))return;stash();model=imported;selectedId=null;renderAll();stash();message('Spelarna hämtade från övningen.')}catch(e){message(e.message)}}
+function exportJson(){model.title=el('matchTitle').value.trim()||titleFor(model.size);download(new Blob([JSON.stringify(model,null,2)],{type:'application/json'}),safeFilename(model.title)+'.match.json');message('Matchuppställning exporterad som JSON.')}
+async function exportPng(){
+ model.title=el('matchTitle').value.trim()||titleFor(model.size);renderPitch();
+ const svg=el('matchSvg').cloneNode(true);svg.setAttribute('xmlns','http://www.w3.org/2000/svg');svg.setAttribute('width','1400');svg.setAttribute('height','2500');
+ const xml=new XMLSerializer().serializeToString(svg);const blob=new Blob([xml],{type:'image/svg+xml;charset=utf-8'}),url=URL.createObjectURL(blob);
+ try{
+  const pic=new Image();await new Promise((resolve,reject)=>{pic.onload=resolve;pic.onerror=reject;pic.src=url});
+  const c=document.createElement('canvas');c.width=1400;c.height=2500;const ctx=c.getContext('2d');if(!ctx)throw new Error('Canvas saknas');ctx.drawImage(pic,0,0,c.width,c.height);
+  const image=await new Promise(resolve=>c.toBlob(resolve,'image/png'));
+  if(image){download(image,safeFilename(model.title)+'.png');message('PNG skapad. Se webbläsarens nedladdningar eller Filer.');}
+  else{const data=c.toDataURL('image/png'),a=document.createElement('a');a.href=data;a.download=safeFilename(model.title)+'.png';a.click();message('PNG skapad.')}
+ }catch(e){console.error(e);message('Bildexport misslyckades i denna webbläsare. Exportera JSON i stället.')}finally{URL.revokeObjectURL(url)}
+}
+function pointerPos(e){const svg=el('matchSvg'),pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const ctm=svg.getScreenCTM();if(!ctm)return null;const p=pt.matrixTransform(ctm.inverse());return{x:p.x,y:p.y-77}}
+el('matchOpenTop').addEventListener('click',open);el('matchClose').addEventListener('click',close);
+el('matchSize11').onclick=()=>setSize(11);el('matchSize9').onclick=()=>setSize(9);
+el('matchTitle').addEventListener('input',e=>{model.title=textVal(e.target.value,70);renderPitch();stash()});
+el('matchFormation').addEventListener('change',e=>{model.formation=e.target.value;positionFormation(model);renderPitch();stash();message('Formation ändrad. Namn, nummer och övningar är orörda.')});
+el('matchSvg').addEventListener('pointerdown',e=>{
+ const hit=e.target.closest('[data-mid]');if(!hit)return;const p=model.players.find(p=>p.id===hit.dataset.mid);if(!p)return;
+ selectedId=p.id;drag={id:p.id,start:pointerPos(e),moved:false};el('matchSvg').setPointerCapture(e.pointerId);renderPitch();renderRoster();e.preventDefault();
+});
+el('matchSvg').addEventListener('pointermove',e=>{
+ if(!drag)return;const p=model.players.find(p=>p.id===drag.id),xy=pointerPos(e);if(!p||!xy)return;
+ p.x=Math.max(60,Math.min(640,xy.x));p.y=Math.max(65,Math.min(1000,xy.y));drag.moved=true;renderPitch();e.preventDefault();
+});
+function endDrag(e){if(!drag)return;if(drag.moved)stash();drag=null;try{el('matchSvg').releasePointerCapture(e.pointerId)}catch{}}
+el('matchSvg').addEventListener('pointerup',endDrag);el('matchSvg').addEventListener('pointercancel',endDrag);
+el('matchStarters').addEventListener('input',editRow);el('matchBench').addEventListener('input',editRow);
+function editRow(e){const key=e.target.dataset.edit,p=model.players.find(p=>p.id===e.target.dataset.pid);if(!p||!['name','number'].includes(key))return;p[key]=textVal(e.target.value,key==='name'?60:3);renderPitch();stash();const row=e.target.closest('.matchRow');if(row)row.querySelector('.matchPick').textContent=p.number||'–'}
+function rosterClick(e){const select=e.target.closest('[data-select]'),swap=e.target.closest('[data-swap]');
+ if(select){selectedId=select.dataset.select;renderPitch();renderRoster();return}
+ const remove=e.target.closest('[data-remove]');if(remove){model.players=model.players.filter(p=>p.id!==remove.dataset.remove);renderAll();stash();message('Avbytaren borttagen.');return}
+ if(swap){const b=model.players.find(p=>p.id===swap.dataset.swap),a=model.players.find(p=>p.id===selectedId&&!p.bench&&!p.goalkeeper);if(!a||!b){message('Välj först en utespelare på planen som ska bytas ut.');return}
+ const x=a.x,y=a.y;a.bench=true;b.bench=false;b.x=x;b.y=y;selectedId=b.id;renderAll();stash();message(`${b.name||b.number} inbytt mot ${a.name||a.number}.`)}
+}
+el('matchStarters').addEventListener('click',rosterClick);el('matchBench').addEventListener('click',rosterClick);
+el('matchAddBench').onclick=()=>{model.players.push({id:id(),name:'',number:'',role:'Avbytare',goalkeeper:false,bench:true,x:350,y:600});renderAll();stash();message('Avbytare tillagd. Fyll i namn och nummer.')};
+el('matchSave').onclick=()=>save(false);el('matchSaveCopy').onclick=()=>save(true);el('matchMobileCopy').onclick=()=>save(true);el('matchMobileFrom').onclick=importExercise;el('matchOpenSaved').onclick=openSaved;
+el('matchNew').onclick=createNew;el('matchLoadExercise').onclick=importExercise;el('matchJson').onclick=exportJson;el('matchPng').onclick=exportPng;
+el('matchImportBtn').onclick=()=>el('matchFile').click();
+el('matchFile').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;try{const parsed=JSON.parse(await f.text());const m=parsed.kind==='bandy-match-v1'?fixModel(parsed):fromProject(parsed);if(!validModel(m))throw new Error('Felaktigt antal startspelare eller målvakter');if(confirm(`Importera "${m.title}" i Matchläge? Den öppna övningen påverkas inte.`)){stash();model=m;model.id=null;selectedId=null;renderAll();stash();message('Matchuppställning importerad.')}}catch(err){message('Kan inte importera: '+err.message)}finally{e.target.value=''}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!el('matchOverlay').hidden){e.stopImmediatePropagation();e.preventDefault();close()}},true);
 })();
 </script>
 </body>
