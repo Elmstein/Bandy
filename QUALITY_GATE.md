@@ -75,3 +75,11 @@ Skärmbilder jämförs för (1) desktop med två spelare och sidopaneler, (2) ha
 Toleransen är max 0,25 % av bildpixlarna, med viss kantutjämningstolerans. Större avvikelser stoppar GitHub-kontrollen och sparar tre felsökningsbilder: tidigare version, aktuell version och pixel-differens. Avsiktliga designändringar kräver kodgranskning och en medveten uppdatering av testerna, inte en automatisk acceptans. Jämförelsen görs i samma CI-webbläsare och behöver därför inga incheckade PNG-bilder.
 
 Kör lokalt med npm test. Då jämförs med HEAD^; sätt miljövariabeln VISUAL_REFERENCE_SHA till en specifik äldre commit om det behövs. Testerna kan inte ersätta en kontroll på en fysisk iPhone.
+
+## Quality Gate v5 – ritpaneler, passningspilar och samtidig animation
+
+Den visuella regressionen omfattar också ritmenyn på dator, Mer → Val på Android och iPhone/WebKit, samt två passningar och ett skott med riktiga SVG-pilar och övningsflödesmarkeringar på samtliga testplattformar. Referensen är samma historiska version som i v4.
+
+Dessutom testas två spelare med parallella åkbanor i samma övning. Uppspelning startas med appens Play-knapp; Playwrights virtuella klocka förs fram 650 ms, därefter pausas spelet. Testet verifierar att båda spelarna faktiskt förflyttats innan skärmbilden jämförs med föregående version.
+
+Testerna gör inga användarsynliga ändringar och kan inte ersätta fysisk iPhone-verifiering.
