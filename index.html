@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f8fafc">
-<title>Bandyövningar v1.0-alpha.9.17</title>
+<title>Bandyövningar v1.0-alpha.9.18</title>
 <style>
 :root{
   --bg:#eef3f8;--panel:#fff;--panel2:#f8fafc;--line:#d7e0ea;--text:#0f172a;--muted:#64748b;
@@ -50,7 +50,11 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
 .app.presentation .rinkCard{border-radius:10px;box-shadow:none}
 .app.presentation .canvasControls{display:none}
 .app.presentation .presentationBar{display:flex}
-.app.presentation .stageStatus{display:none}.app.presentation #pathLayer,.app.presentation #actionLayer,.app.presentation #ghostLayer,.app.presentation #draftLayer{display:none}
+.app.presentation .stageStatus{display:none}.app.presentation #ghostLayer{display:none}
+.app.presentation:not(.focusEditing) #pathLayer,.app.presentation:not(.focusEditing) #actionLayer,.app.presentation:not(.focusEditing) #draftLayer{display:none}
+.app.presentation.focusEditing .stageStatus{display:block;position:absolute;bottom:60px;left:12px;right:12px;z-index:8;pointer-events:none;background:rgba(255,255,255,.88);border-radius:8px;padding:5px;font-size:11px}
+.app.presentation .presentationBar{flex-wrap:wrap;justify-content:center;max-width:calc(100% - 12px)}
+.app.presentation .presentationBar button.active{background:#dbeafe;color:#174ea6;border-color:#93c5fd}
 @media(max-width:760px){
   html,body{height:100%;overflow:hidden}
   body{position:fixed;inset:0;width:100%;}
@@ -453,7 +457,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
 <body>
 <div class="app">
 <header class="topbar">
-  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.9.17 · Match → Animation</small></div></div>
+  <div class="brand"><div class="brandMark">B</div><div><h1>Bandyövningar</h1><small>v1.0-alpha.9.18 · Match → Animation</small></div></div>
   <div class="topControls">
     <select id="rinkMode" aria-label="Planvy"><option value="full">Helplan</option><option value="half">Halvplan</option></select>
     <select id="orientation" aria-label="Anfallsriktning"><option value="up">Anfall uppåt</option><option value="down">Anfall nedåt</option></select><button id="matchOpenTop" type="button">⚑ Match</button>
@@ -519,7 +523,7 @@ button.active,.tool.active{background:#e8f1ff;border-color:#6da3f2;color:#0b56c4
     <div id="presetInlineBar" class="presetInlineBar" hidden><span>Forma pilen på planen</span><button id="presetInlineConfirm" type="button">✓ Bekräfta</button><button id="presetInlineCancel" type="button">× Avbryt</button><button id="presetInlineMore" type="button">Reglage</button></div>
     <div id="drawTargetBar" class="drawTargetBar" hidden><span>Åkbana för:</span><div id="drawTargetButtons" class="drawTargetButtons"></div></div>
     <div id="drawMenu" class="drawMenu" aria-hidden="true" aria-label="Ritverktyg"><div class="drawTargetMenu"><span>Välj spelare:</span><div id="drawMenuTargets" class="drawTargetButtons"></div></div><button class="freehand" data-draw-freehand>✏️ Frihand</button><button data-draw-preset="straight">➜ Pil</button><button data-draw-preset="arcLeft">⌒ Båge</button><button data-draw-preset="semiLeft">◜ Halvc.</button><button data-draw-preset="eightV">8</button><button data-draw-preset="infinity">∞</button><button data-draw-preset="s">S</button><button data-draw-more>Fler…</button><button class="drawMenuClose" data-draw-close aria-label="Stäng">×</button></div>
-    <div class="presentationBar" aria-label="Presentationskontroller"><button id="presentRestart" title="Starta om">↺</button><button id="presentPlay" class="primary" title="Spela">▶</button><button id="presentPause" title="Paus">Ⅱ</button><button id="exitPresent" title="Avsluta presentation">✕</button></div>
+    <div class="presentationBar" aria-label="Presentationskontroller"><button id="presentDraw" title="Rita frihand i fokusläge">✏️ Rita</button><button id="presentAnimate" title="Dra spelare för att animera">↗ Animera</button><button id="presentRestart" title="Starta om">↺</button><button id="presentPlay" class="primary" title="Spela">▶</button><button id="presentPause" title="Paus">Ⅱ</button><button id="exitPresent" title="Avsluta presentation">✕</button></div>
     <div id="stageStatus" class="stageStatus">Rita som på en taktiktavla: dra från en spelare. Rita igen från slutmarkeringen för att bygga vidare.</div>
   </section>
 
@@ -729,8 +733,9 @@ function fitRinkCard(){
 }
 function updateAppHeight(){const h=window.visualViewport?.height||window.innerHeight;document.documentElement.style.setProperty('--app-height',`${Math.round(h)}px`);requestAnimationFrame(fitRinkCard)}
 function fitEverything(){resetCamera();requestAnimationFrame(fitRinkCard)}
-function enterPresentation(){presentation=true;document.querySelector('.app').classList.add('presentation');$('playView').value='clean';closeProperties();requestAnimationFrame(()=>{fitEverything();renderPlaybackGuides()})}
-function exitPresentationMode(){presentation=false;document.querySelector('.app').classList.remove('presentation');render();requestAnimationFrame(fitEverything)}
+function enterPresentation(){presentation=true;document.querySelector('.app').classList.add('presentation');$('playView').value='clean';closeProperties();syncFocusEditing();requestAnimationFrame(()=>{fitEverything();renderPlaybackGuides()})}
+function exitPresentationMode(){presentation=false;document.querySelector('.app').classList.remove('presentation','focusEditing');render();requestAnimationFrame(fitEverything)}
+function syncFocusEditing(){const editing=presentation&&(pathMode||directAnimateMode);document.querySelector('.app').classList.toggle('focusEditing',editing);$('presentDraw').classList.toggle('active',pathMode);$('presentAnimate').classList.toggle('active',directAnimateMode&&!pathMode);if(editing){$('playView').value='lines';renderPaths();renderActions();}else if(presentation){$('playView').value='clean';renderPlaybackGuides();}}
 
 
 function nextId(prefix='o'){return prefix+(idCounter++)}function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
@@ -1210,7 +1215,7 @@ function syncModeButtons(){
   $('directSetup').classList.toggle('active',!directAnimateMode);$('directAnimate').classList.toggle('active',directAnimateMode);
   $('directSetup').setAttribute('aria-pressed',String(!directAnimateMode));$('directAnimate').setAttribute('aria-pressed',String(directAnimateMode));
   rinkCard.classList.toggle('directAnimate',directAnimateMode);
-  for(const id of ['pathMode','pathModeDesktop','mobilePath'])$(id)?.classList.toggle('active',pathMode);for(const id of ['passMode','passModeDesktop','mobilePass'])$(id)?.classList.toggle('active',actionMode==='pass');for(const id of ['shotMode','shotModeDesktop','mobileShot'])$(id)?.classList.toggle('active',actionMode==='shot');for(const id of ['recordMode','recordModeDesktop','mobileRecord'])$(id)?.classList.toggle('active',recordMode);for(const id of ['groupMode','groupModeDesktop','mobileGroup'])$(id)?.classList.toggle('active',groupMode);for(const id of ['mobileSelect','selectModeDesktop'])$(id)?.classList.toggle('active',!pathMode&&!actionMode&&!recordMode&&!groupMode&&!presetDraft);rinkCard.classList.toggle('drawing',pathMode||recordMode);syncGroupState();updatePassQuickBar();updateDrawTargetUI()}
+  for(const id of ['pathMode','pathModeDesktop','mobilePath'])$(id)?.classList.toggle('active',pathMode);for(const id of ['passMode','passModeDesktop','mobilePass'])$(id)?.classList.toggle('active',actionMode==='pass');for(const id of ['shotMode','shotModeDesktop','mobileShot'])$(id)?.classList.toggle('active',actionMode==='shot');for(const id of ['recordMode','recordModeDesktop','mobileRecord'])$(id)?.classList.toggle('active',recordMode);for(const id of ['groupMode','groupModeDesktop','mobileGroup'])$(id)?.classList.toggle('active',groupMode);for(const id of ['mobileSelect','selectModeDesktop'])$(id)?.classList.toggle('active',!pathMode&&!actionMode&&!recordMode&&!groupMode&&!presetDraft);rinkCard.classList.toggle('drawing',pathMode||recordMode);syncGroupState();updatePassQuickBar();updateDrawTargetUI();if(presentation)syncFocusEditing()}
 function render(){setView();rinkG.innerHTML=rinkMarkup();$('rinkMode').value=project.rinkMode;$('orientation').value=project.orientation;$('projectName').value=project.name;$('mobileProjectName').value=project.name;$('projectNote').value=project.note;renderPaths();renderActions();renderObjects();renderActionsList();renderFlow();renderSwatches();syncSelectedControls();syncModeButtons();$('timeLabel').textContent=`0,0 / ${totalDuration().toFixed(1)} s`}
 
 function findOpenSpawn(type,center,r){
@@ -1615,13 +1620,14 @@ function smoothDirectTrace(raw){
 }
 function traceLength(points){let length=0;for(let i=1;i<points.length;i++)length+=Math.hypot(points[i].x-points[i-1].x,points[i].y-points[i-1].y);return length;}
 function directDragPoint(e,d){
-  const p=stage.createSVGPoint();p.x=e.clientX;p.y=e.clientY;
-  return clampPoint(p.matrixTransform(d.screenInverse));
+  // Stabil fingerförflyttning även om verktygsrader ändrar SVG-layouten.
+  const m=d.screenInverse,dx=e.clientX-d.screenX,dy=e.clientY-d.screenY;
+  return {x:d.pointerStart.x+m.a*dx+m.c*dy,y:d.pointerStart.y+m.b*dx+m.d*dy};
 }
 function startDirectDrag(o,e){
   const start=lastTrackEndPoint(o.id),screenInverse=stage.getScreenCTM().inverse(),p=clampPoint(getSvgPoint(e));
   selectedId=o.id;drawTargetId=o.id;
-  directDrag={id:o.id,pointerId:e.pointerId,from:clone(start),to:clone(start),dx:start.x-p.x,dy:start.y-p.y,screenX:e.clientX,screenY:e.clientY,moved:false,points:[clone(start)],screenInverse};
+  directDrag={id:o.id,pointerId:e.pointerId,from:clone(start),to:clone(start),dx:start.x-p.x,dy:start.y-p.y,screenX:e.clientX,screenY:e.clientY,pointerStart:{x:p.x,y:p.y},moved:false,points:[clone(start)],screenInverse};
   stage.setPointerCapture?.(e.pointerId);
   // Ingen SVG-omrendering här: behåll pointer capture hela dragningen.
   syncSelectedControls();syncModeButtons();
@@ -2154,7 +2160,7 @@ $('flowItems').addEventListener('click',e=>{const b=e.target.closest('.flowItem'
 function toggleProps(){properties.classList.contains('open')?closeProperties():openProperties()}
 $('toggleProps').onclick=toggleProps;$('mobileProps').onclick=toggleProps;
 for(const id of ['fitView','fitTop'])$(id).onclick=fitEverything;$('zoomIn').onclick=()=>zoomBy(1.25);$('zoomOut').onclick=()=>zoomBy(0.8);
-for(const id of ['presentMode','presentTop'])$(id).onclick=enterPresentation;$('exitPresent').onclick=exitPresentationMode;$('presentPlay').onclick=play;$('presentPause').onclick=pause;$('presentRestart').onclick=()=>stopPlayback(true);
+for(const id of ['presentMode','presentTop'])$(id).onclick=enterPresentation;$('exitPresent').onclick=exitPresentationMode;$('presentPlay').onclick=play;$('presentPause').onclick=pause;$('presentRestart').onclick=()=>stopPlayback(true);$('presentDraw').onclick=()=>{selectMoveMode();beginPathMode();syncFocusEditing();};$('presentAnimate').onclick=()=>{selectDirectMode('animate');syncFocusEditing();};
 const desktopAdvancedButton=$('toggleAdvancedProps');
 desktopAdvancedButton.onclick=()=>{const isOpen=properties.classList.toggle('showAdvanced');desktopAdvancedButton.textContent=isOpen?'Dölj extra ▴':'Fler inställningar ▾';desktopAdvancedButton.setAttribute('aria-expanded',String(isOpen));requestAnimationFrame(fitRinkCard)};
 const flowPanel=document.querySelector('.flowPanel');if(matchMedia('(max-width:760px)').matches){flowPanel.classList.add('collapsed');$('toggleFlow').textContent='▾ Flöde'}$('toggleFlow').onclick=()=>{flowPanel.classList.toggle('collapsed');$('toggleFlow').textContent=flowPanel.classList.contains('collapsed')?'▾ Flöde':'▴ Flöde';requestAnimationFrame(fitRinkCard)};
