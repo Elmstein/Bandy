@@ -74,7 +74,13 @@ test('real Chromium touch swipe draws a correctly positioned diagonal line', asy
   expect(b.bottom).toBeLessThan(.63);
 
   await page.locator('#focusErase').tap();
-  await page.touchscreen.tap(point(rect, .45, .45).x, point(rect, .45, .45).y);
+  await expect(page.locator('#focusErase')).toHaveClass(/active/);
+  const exactMidpoint = await page.locator(ink).evaluate(path => {
+    const p = path.getPointAtLength(path.getTotalLength() / 2);
+    const xy = p.matrixTransform(path.getScreenCTM());
+    return { x: Math.round(xy.x), y: Math.round(xy.y) };
+  });
+  await page.touchscreen.tap(exactMidpoint.x, exactMidpoint.y);
   await expect(page.locator(ink)).toHaveCount(0);
   await page.locator('#focusUndo').tap();
   await expect(page.locator(ink)).toHaveCount(1);

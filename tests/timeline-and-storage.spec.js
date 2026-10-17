@@ -86,6 +86,8 @@ test('invalid JSON import leaves the existing exercise intact', async ({ page })
 test('saved exercise survives reload and can be opened from local storage', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop-chromium', 'Desktop save/open controls');
   await importProject(page, exampleProject());
+  await page.locator('#toggleAdvancedProps').click();
+  await expect(page.locator('#projectName')).toBeVisible();
   await page.locator('#projectName').fill('Test sparat bibliotek');
   await page.locator('#saveProject').click();
   await expect(page.locator('#stageStatus')).toContainText('Sparade');
