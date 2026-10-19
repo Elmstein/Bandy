@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#0a1723" />
+<title>Airport Control – flygplatssimulator</title>
+<style>
+:root{color-scheme:dark;--bg:#08131e;--panel:#132534;--edge:#314553;--text:#f4f7fa;--sub:#a8becd;--gold:#f8c951;--mint:#59dfb7;--orange:#ffab66}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 60% -10%,#1b3440 0,#0a1723 55%,#07101a 100%);color:var(--text);font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}button{font:inherit;cursor:pointer;touch-action:manipulation}button:disabled{cursor:not-allowed;opacity:.43}button:focus-visible{outline:3px solid #f6d56a;outline-offset:2px}.shell{max-width:1480px;margin:auto;padding:14px clamp(10px,2vw,24px) 28px}.top{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:12px;flex-wrap:wrap}.brand{display:flex;gap:11px;align-items:center}.brand-icon{display:grid;place-items:center;width:39px;height:39px;border-radius:12px;background:#18374a;font-size:23px}.brand strong{font-size:17px;letter-spacing:.02em}.brand small{color:#9db8c7;display:block}.metrics{display:flex;gap:8px;flex-wrap:wrap}.metric{min-width:99px;padding:7px 11px;border:1px solid #304655;background:#132637;border-radius:11px}.metric .value{font-size:17px;font-weight:760}.metric .label{color:#abc2cf;font-size:11px}.metric.money .value{color:#fbd47b}.metric.score .value{color:#63e3bb}.main{display:grid;grid-template-columns:minmax(0,1fr) 270px;align-items:start;gap:13px}.mapWrap{overflow:hidden;position:relative;border:1px solid #475961;background:#528042;border-radius:14px;box-shadow:0 12px 32px #0006}.mapWrap canvas{display:block;width:100%;height:auto;touch-action:manipulation;user-select:none}.map-tip{position:absolute;bottom:11px;left:12px;background:#071923d9;color:#e1f4f6;font-size:11px;border-radius:8px;padding:7px 10px;pointer-events:none}.sidebar{display:flex;flex-direction:column;gap:12px}.panel{border:1px solid var(--edge);border-radius:13px;background:#132636ed;padding:13px;box-shadow:0 5px 12px #0002}.panel h2{font-size:14px;margin:0 0 9px;display:flex;justify-content:space-between;align-items:center}.panel h2 span{font-weight:400;font-size:11px;color:var(--sub)}.arrival{width:100%;text-align:left;border-radius:9px;padding:9px 10px;background:#203746;color:var(--text);border:1px solid #3c5260;margin-bottom:7px}.arrival.selected{border-color:var(--gold);background:#34453c;box-shadow:0 0 0 1px #dcb854 inset}.flight-head{display:flex;align-items:center;justify-content:space-between}.flight-head strong{font-size:14px}.arrival small{display:block;color:#bdd0d8;margin-top:3px}.arrival .time{font-size:12px;font-weight:650}.flight-empty{font-size:12px;color:#a5bdc8;padding:8px 2px}.gateGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.gate{min-height:68px;text-align:left;padding:9px 9px;background:#1a3040;color:#eff5fa;border:1px solid #3b5160;border-radius:9px;display:flex;flex-direction:column;justify-content:center;gap:2px}.gate strong{font-size:13px}.gate small{font-size:11px;color:#b0c3ce}.gate.ready{border-color:#48cdaa;background:#173d3e}.gate.available{border-color:#4d766b}.gate.available:hover{background:#2e574f}.gate.taken{opacity:.80}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.btn{border-radius:9px;border:1px solid #395466;background:#1c3646;color:white;padding:9px 12px;font-weight:650}.btn.primary{background:#f5c85f;color:#212919;border-color:#f5c85f}.btn.green{background:#247a64;border-color:#399681}.btn:hover:not(:disabled){filter:brightness(1.14)}.panel p{font-size:12px;color:#c3d3dc;margin:5px 0 10px}.small{font-size:12px;color:var(--sub)}.status-line{display:flex;justify-content:space-between;gap:12px;color:#d1e1e8;font-size:12px;padding:8px 0;border-top:1px solid #304554}.status-line strong{color:white}.messages{margin-top:12px;min-height:39px;border:1px solid #36525b;background:#102734;padding:10px 13px;border-radius:10px;color:#d8ecf3;font-size:12px;display:flex;justify-content:space-between;gap:10px}.messages span:last-child{color:#8aa8bb;white-space:nowrap}.bottom{margin-top:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.bottom .guide{color:#acc1ce;margin-left:auto;font-size:12px}.upgrade{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px}.upgrade span{font-size:12px;color:#b8cdd8}.tag{font-size:10px;border-radius:5px;padding:2px 6px;background:#284e47;color:#a7edcb}.help{position:absolute;z-index:5;inset:0;display:flex;align-items:center;justify-content:center;background:#07151bd9;backdrop-filter:blur(3px);padding:18px}.help[hidden]{display:none}.help-card{max-width:455px;padding:23px;background:#142d3b;border:1px solid #4c6e7d;border-radius:18px;box-shadow:0 15px 50px #0008}.help-card h2{font-size:22px;margin:0 0 10px}.help-card p{color:#d1e0e7;font-size:14px;line-height:1.6}.help-card ol{padding-left:23px;color:#dbebf0;line-height:1.65}.help-card button{width:100%;font-size:16px;padding:12px}.goal{height:7px;background:#243d4d;overflow:hidden;border-radius:20px;margin-top:9px}.goal>div{height:100%;background:linear-gradient(90deg,#59cca9,#e5e677);width:0;transition:width .3s}.speed{font-weight:700}.legend{display:flex;align-items:center;gap:7px;color:#acc5d0;font-size:11px}.legend i{width:7px;height:7px;border-radius:50%;background:var(--mint)}
+@media(max-width:1050px){.main{grid-template-columns:1fr}.sidebar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.sidebar .panel:last-child{grid-column:1/-1}.map-tip{font-size:10px}}
+@media(max-width:600px){.shell{padding:9px 9px 28px}.top{gap:8px}.brand strong{font-size:15px}.brand small{font-size:11px}.metric{min-width:0;flex:1;padding:5px 7px}.metrics{width:100%;gap:5px}.metric .value{font-size:15px}.metric .label{font-size:10px}.main{gap:10px}.sidebar{grid-template-columns:1fr}.sidebar .panel:last-child{grid-column:auto}.panel{padding:12px}.gateGrid{grid-template-columns:repeat(3,minmax(0,1fr))}.gate{min-height:65px}.map-tip{position:static;border-radius:0;padding:8px 11px}.bottom .guide{margin-left:0}.messages{margin-top:9px}.help{position:fixed;inset:0;z-index:100;overflow:auto;align-items:center;justify-content:center;padding:15px}.help-card{padding:17px;max-height:calc(100dvh - 30px);overflow:auto;width:min(100%,440px)}.help-card h2{font-size:19px}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <div class="brand"><span class="brand-icon">🛫</span><div><strong>AIRPORT CONTROL</strong><small>Din egen flygplats · Startar automatiskt</small></div></div>
+    <div class="metrics">
+      <div class="metric score"><div class="value" id="score">0</div><div class="label">Flygningar klara</div></div>
+      <div class="metric"><div class="value" id="pax">0</div><div class="label">Passagerare</div></div>
+      <div class="metric money"><div class="value" id="cash">25 000 kr</div><div class="label">Kassa</div></div>
+      <div class="metric"><div class="value" id="clock">06:00</div><div class="label">Flygplatstid</div></div>
+    </div>
+  </header>
+  <div class="main">
+    <div>
+      <div class="mapWrap">
+        <canvas id="airport" width="1200" height="690" role="img" aria-label="Flygplats uppifrån med landningsbana, taxibana, terminal, fem gater och flygplan"></canvas>
+        <div class="map-tip">Spelet är igång! Välj ett flyg och tryck på en ledig gate.</div>
+        <div class="help" id="help" hidden>
+          <div class="help-card">
+            <h2>🛬 Välkommen till flygledartornet</h2>
+            <p>Ta emot flygplan, dirigera dem till terminalen och få iväg dem i tid. Flygplanen rör sig över flygplatsen i realtid.</p>
+            <ol><li>Välj ett inkommande flyg.</li><li>Tryck på en <b>ledig gate</b> för att landa och parkera planet.</li><li>När planet har servats, välj <b>Starta avgång</b> för den gaten.</li><li>Tjäna pengar och hantera fler flygningar. Se upp för långa väntetider!</li></ol>
+            <button id="start" class="btn primary">Starta spelet</button>
+          </div>
+        </div>
+      </div>
+      <div class="messages" aria-live="polite"><span id="message">Välkommen! Välj ett inkommande flyg och en ledig gate.</span><span id="messageClock">06:00</span></div>
+      <div class="bottom">
+        <button id="pause" class="btn">⏸ Pausa</button>
+        <button id="speed" class="btn speed">Hastighet ×1</button>
+        <button id="restart" class="btn">↻ Nytt spel</button>
+        <span class="guide">Mål: genomför 10 flygningar utan att tappa kontrollen</span>
+      </div>
+    </div>
+    <aside class="sidebar">
+      <section class="panel"><h2>🛬 Ankommande <span id="incomingCount">0 väntar</span></h2><div id="arrivals"></div><p>Markera ett flyg och välj en ledig gate. Landning sker automatiskt när banan är fri.</p></section>
+      <section class="panel"><h2>🏢 Gater <span>5 platser</span></h2><div class="gateGrid" id="gates"></div><p id="gateActionTip">Tryck på en ledig gate för tilldelning, eller på ett avgångsklart flyg för att skicka iväg det.</p></section>
+      <section class="panel"><h2>📈 Drift & uppgraderingar</h2>
+        <div class="status-line"><span>Landningsbanan</span><strong id="runwayStatus">Ledig</strong></div>
+        <div class="status-line"><span>Markservice</span><strong id="serviceStatus">Nivå 1</strong></div>
+        <div class="upgrade"><span>Snabbare markservice<br><small id="upgradePrice">Kostar 4 000 kr</small></span><button id="upgrade" class="btn green">Uppgradera</button></div>
+        <div class="status-line"><span>Rykte</span><strong id="reputation">100 %</strong></div>
+        <div class="status-line"><span>Mål</span><strong id="goalText">0 / 10</strong></div><div class="goal"><div id="goalProgress"></div></div>
+        <p>Flyg som väntar för länge lämnar flygplatsen och sänker ditt rykte.</p>
+      </section>
+    </aside>
+  </div>
+</div>
+<script>
+(()=>{'use strict';
+const cv=document.getElementById('airport'),cx=cv.getContext('2d');
+const $=id=>document.getElementById(id);
+const W=1200,H=690,GX=[146,370,594,818,1042],GY=440;
+const airlines=[['Nordic','SK','#3b80d3'],['Swan','SW','#e9575b'],['Aurora','AR','#55b99d'],['Coast','CT','#ac74c9'],['Polar','PL','#e5ad47']];
+const state={running:false,paused:false,speed:1,elapsed:0,time:360,score:0,pax:0,cash:25000,missed:0,serviceLevel:1,id:0,arrivals:[],active:[],pending:[],selected:null,gates:GX.map((x,i)=>({id:i+1,x,y:GY,flight:null})),runway:null,nextArrival:21,log:'Välj ett inkommande flyg och en ledig gate.',last:0,logAt:360,winShown:false};
+const fmt=n=>Math.round(n).toLocaleString('sv-SE');
+function clock(){const min=Math.floor(state.time)%1440;return String(Math.floor(min/60)).padStart(2,'0')+':'+String(min%60).padStart(2,'0')}
+function log(msg){state.log=msg;state.logAt=state.time;updateUI()}
+function flightCreate(){const a=airlines[Math.floor(Math.random()*airlines.length)];return {id:++state.id,call:a[1]+' '+String(100+Math.floor(Math.random()*899)),airline:a[0],color:a[2],pax:72+Math.floor(Math.random()*117),status:'queue',wait:0,gate:null,x:1280,y:176,angle:Math.PI,waypoints:[],service:0,turnaround:0,released:false}}
+function newArrival(){if(state.arrivals.length>=5){state.missed++;state.cash=Math.max(0,state.cash-750);log('För många flyg på ingång! Förseningsavgift −750 kr.');return}const f=flightCreate();state.arrivals.push(f);if(state.selected===null)state.selected=f.id;log(`${f.call} begär landning. Tilldela en gate.`)}
+function freeGate(g){return !g.flight}
+function assign(gid){if(!state.running||state.paused)return;const g=state.gates.find(x=>x.id===gid);if(!g)return;if(g.flight){const f=g.flight;if(f.status==='ready'){depart(f);return}if(f.status==='servicing')log(`${f.call} servas. Vänta ${Math.ceil(f.service)} s.`);else log(`${f.call} är ${f.status==='pending'?'i landningskö':f.status==='taxi-in'?'på väg till gaten':'upptaget'}.`);return}
+ let f=state.arrivals.find(x=>x.id===state.selected)||state.arrivals[0];if(!f){log('Inga inkommande flyg väntar för tillfället.');return}
+ state.arrivals=state.arrivals.filter(x=>x!==f);g.flight=f;f.gate=g;f.status='pending';state.pending.push(f);state.selected=state.arrivals.length?state.arrivals[0].id:null;log(`${f.call} tilldelad gate ${g.id}. Invaktar ledig landningsbana.`);dispatch();updateUI();}
+function route(f,list){f.waypoints=list.map(p=>({...p}));if(list.length)f.angle=Math.atan2(list[0].y-f.y,list[0].x-f.x)}
+function dispatch(){if(state.runway||!state.running||state.paused)return;const holding=state.active.find(f=>f.status==='holding');if(holding){startTakeoff(holding);return}if(state.pending.length){const f=state.pending.shift();state.active.push(f);f.status='landing';f.x=1265;f.y=176;f.angle=Math.PI;route(f,[{x:624,y:176}]);state.runway={flight:f,mode:'Landning'};log(`${f.call} landar på bana 27.`)}}
+function depart(f){if(f.status!=='ready')return;f.status='taxi-out';f.angle=-Math.PI/2;route(f,[{x:f.gate.x,y:304},{x:1062,y:304}]);log(`${f.call} taxar mot bana 09 för avgång.`);updateUI()}
+function startTakeoff(f){f.status='departing';f.x=1062;f.y=304;route(f,[{x:1062,y:176},{x:1270,y:176}]);state.runway={flight:f,mode:'Avgång'};log(`${f.call} får klartecken för start från bana 09.`)}
+function movePlane(f,dt,spd){let distance=dt*spd;while(distance>0&&f.waypoints.length){const p=f.waypoints[0],dx=p.x-f.x,dy=p.y-f.y,dist=Math.hypot(dx,dy);if(dist<.5){f.x=p.x;f.y=p.y;f.waypoints.shift();continue}const mv=Math.min(distance,dist);f.angle=Math.atan2(dy,dx);f.x+=dx/dist*mv;f.y+=dy/dist*mv;distance-=mv;if(mv>=dist-.001)f.waypoints.shift();}}
+function update(dt){if(!state.running||state.paused)return;dt=Math.min(dt,.075)*state.speed;state.elapsed+=dt;state.time+=dt*1.45;state.nextArrival-=dt;
+if(state.nextArrival<=0){newArrival();state.nextArrival=Math.max(18,30-state.score*.65)+Math.random()*8;}
+for(const f of [...state.arrivals]){f.wait+=dt;if(f.wait>=95){state.arrivals=state.arrivals.filter(x=>x!==f);state.missed++;state.cash=Math.max(0,state.cash-1100);log(`${f.call} avbröt inflygningen! −1 100 kr.`);if(state.selected===f.id)state.selected=state.arrivals[0]?.id??null}}
+for(const f of [...state.active]){
+ if(f.status==='landing'){movePlane(f,dt,99);if(!f.waypoints.length){f.status='taxi-in';route(f,[{x:624,y:304},{x:f.gate.x,y:304},{x:f.gate.x,y:GY}]);}}
+ else if(f.status==='taxi-in'){movePlane(f,dt,87);if(state.runway?.flight===f&&f.y>=285){state.runway=null;dispatch()}if(!f.waypoints.length){f.status='servicing';f.turnaround=17+Math.floor(f.pax/38);f.service=f.turnaround/(1+(state.serviceLevel-1)*.38);log(`${f.call} vid gate ${f.gate.id}. Markservice pågår.`)}}
+ else if(f.status==='servicing'){f.service-=dt;if(f.service<=0){f.service=0;f.status='ready';log(`${f.call} vid gate ${f.gate.id} är klart för avgång!`)}}
+ else if(f.status==='taxi-out'){movePlane(f,dt,88);if(!f.released&&f.y<=333){f.released=true;if(f.gate?.flight===f)f.gate.flight=null;}if(!f.waypoints.length){f.status='holding';dispatch()}}
+ else if(f.status==='departing'){movePlane(f,dt,130);if(!f.waypoints.length){state.active=state.active.filter(x=>x!==f);if(state.runway?.flight===f)state.runway=null;state.score++;state.pax+=f.pax;const revenue=1200+f.pax*14;state.cash+=revenue;log(`${f.call} har lyft! +${fmt(revenue)} kr, ${f.pax} passagerare.`);if(state.score>=10&&!state.winShown){state.winShown=true;setTimeout(()=>{if(state.running){log(`🏆 10 flygningar genomförda! Du kan fortsätta spela och slå ditt rekord.`)}},2500)}dispatch()}}
+}
+dispatch();}
+function upgrade(){const cost=4000*state.serviceLevel;if(state.serviceLevel>=4){log('Markservicen är redan maximalt uppgraderad.');return}if(state.cash<cost){log(`Du behöver ${fmt(cost-state.cash)} kr till för uppgraderingen.`);return}state.cash-=cost;state.serviceLevel++;log(`Markservice uppgraderad till nivå ${state.serviceLevel}!`);updateUI()}
+function restart(){state.running=false;state.paused=false;state.speed=1;state.elapsed=0;state.time=360;state.score=0;state.pax=0;state.cash=25000;state.missed=0;state.serviceLevel=1;state.id=0;state.arrivals=[];state.active=[];state.pending=[];state.selected=null;state.gates.forEach(g=>g.flight=null);state.runway=null;state.nextArrival=23;state.winShown=false;state.log='Välj ett inkommande flyg och en ledig gate.';newArrival();newArrival();state.running=true;$('help').hidden=true;updateUI();}
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let lastUi=0;
+function updateUI(){const a=$('arrivals');a.innerHTML=state.arrivals.map(f=>`<button class="arrival ${f.id===state.selected?'selected':''}" data-flight="${f.id}" aria-pressed="${f.id===state.selected}"><span class="flight-head"><strong>✈ ${esc(f.call)}</strong><span class="time" style="color:${f.wait>65?'#ffb4a0':'#d1e6e9'}">${Math.max(0,95-Math.floor(f.wait))} s</span></span><small>${esc(f.airline)} · ${f.pax} passagerare · ${f.wait>65?'⚠ Bråttom!':'Väntar på gate'}</small></button>`).join('')||'<div class="flight-empty">Inga plan i landningskön just nu.</div>';
+ $('incomingCount').textContent=`${state.arrivals.length} väntar`;
+ const b=$('gates');b.innerHTML=state.gates.map(g=>{let f=g.flight;let desc=!f?'Ledig · tryck här':f.status==='pending'?'Landning köad':f.status==='landing'?'Landar nu':f.status==='taxi-in'?'Taxar in':f.status==='servicing'?`Service ${Math.ceil(f.service)} s`:f.status==='ready'?'▶ Starta avgång':f.status==='taxi-out'?'Taxar ut':'Upptagen';return `<button class="gate ${!f?'available':f.status==='ready'?'ready':'taken'}" data-gate="${g.id}"><strong>Gate ${g.id} ${f?.status==='ready'?'●':''}</strong><small>${f?esc(f.call)+' · ':''}${desc}</small></button>`}).join('');
+ $('score').textContent=state.score;$('pax').textContent=fmt(state.pax);$('cash').textContent=fmt(state.cash)+' kr';$('clock').textContent=clock();$('messageClock').textContent=clock();$('message').textContent=state.log;
+ $('runwayStatus').textContent=state.runway?state.runway.mode:'Ledig';$('runwayStatus').style.color=state.runway?'#f8c951':'#59dfb7';$('reputation').textContent=Math.max(0,100-state.missed*12)+' %';$('serviceStatus').textContent=`Nivå ${state.serviceLevel}`;$('upgradePrice').textContent=state.serviceLevel===4?'Maxnivå':`Kostar ${fmt(4000*state.serviceLevel)} kr`;$('upgrade').disabled=state.serviceLevel>=4||state.cash<4000*state.serviceLevel;$('goalText').textContent=`${Math.min(10,state.score)} / 10`;$('goalProgress').style.width=Math.min(100,state.score*10)+'%';$('pause').textContent=state.paused?'▶ Fortsätt':'⏸ Pausa';$('speed').textContent=`Hastighet ×${state.speed}`;}
+$('arrivals').addEventListener('click',e=>{const btn=e.target.closest('[data-flight]');if(!btn)return;state.selected=Number(btn.dataset.flight);updateUI()});
+$('gates').addEventListener('click',e=>{const btn=e.target.closest('[data-gate]');if(btn)assign(Number(btn.dataset.gate))});
+$('start').addEventListener('click',()=>restart());$('restart').addEventListener('click',()=>restart());$('pause').addEventListener('click',()=>{if(!state.running)return;state.paused=!state.paused;updateUI()});$('speed').addEventListener('click',()=>{state.speed=state.speed===1?2:state.speed===2?3:1;updateUI()});$('upgrade').addEventListener('click',upgrade);
+cv.addEventListener('pointerup',e=>{const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*H/r.height;for(const g of state.gates){if(Math.abs(x-g.x)<77&&y>=344&&y<=503){assign(g.id);return}}});
+// ----- Flygplatsgrafik -----
+const rand=(a,b)=>{const n=Math.sin(a*134.42+b*84.31)*43758.5453;return n-Math.floor(n)};
+function rect(x,y,w,h,color){cx.fillStyle=color;cx.fillRect(x,y,w,h)}
+function line(x,y,x2,y2,color,width=1){cx.strokeStyle=color;cx.lineWidth=width;cx.beginPath();cx.moveTo(x,y);cx.lineTo(x2,y2);cx.stroke()}
+function roundRect(x,y,w,h,r,color){cx.fillStyle=color;cx.beginPath();cx.roundRect(x,y,w,h,r);cx.fill()}
+function text(t,x,y,font,color,align='left'){cx.fillStyle=color;cx.font=font;cx.textAlign=align;cx.fillText(t,x,y);cx.textAlign='left'}
+function makeGround(){rect(0,0,W,H,'#608948');for(let i=0;i<210;i++){let x=rand(i,2)*W,y=rand(i,9)*H,s=2+rand(i,7)*8;cx.fillStyle=rand(i,11)>.5?'#6e9753':'#567e44';cx.globalAlpha=.31;cx.beginPath();cx.arc(x,y,s,0,Math.PI*2);cx.fill()}cx.globalAlpha=1;
+ // Woodland / small trees along sides
+ for(let i=0;i<73;i++){let x=rand(i,41)*W,y=rand(i,52)*H;if(x>50&&x<1150&&y>95&&y<606)continue;const size=5+rand(i,53)*9;cx.fillStyle='#344f30';cx.beginPath();cx.arc(x+2,y+3,size,0,7);cx.fill();cx.fillStyle=rand(i,55)>.4?'#517544':'#42653b';cx.beginPath();cx.arc(x,y,size-2,0,7);cx.fill()}
+ // perimeter roads behind runway
+ rect(0,38,W,20,'#4b5554');line(0,48,W,48,'#98a08b',1.5);
+ // runway asphalt and edges
+ rect(22,96,1155,147,'#30383d');rect(22,104,1155,128,'#44484c');line(26,111,1175,111,'#d8d5c3',3);line(26,227,1175,227,'#d8d5c3',3);
+ // runway subtle asphalt seams
+ for(let x=58;x<1175;x+=56)line(x,116,x,225,'#343b40',1);
+ for(let x=70;x<1170;x+=85)rect(x,168,39,3,'#deddd1');
+ for(let j=0;j<6;j++){rect(69,128+j*12,62,7,'#e6e9e3');rect(1068,128+j*12,62,7,'#e6e9e3')}
+ text('27',154,162,'bold 36px system-ui','#edf0eb');text('09',993,162,'bold 36px system-ui','#edf0eb');
+ for(let i=0;i<30;i++){const x=34+i*39;cx.fillStyle=i%2?'#f5c657':'#b8e6ea';cx.beginPath();cx.arc(x,103,2.7,0,7);cx.fill();cx.beginPath();cx.arc(x,233,2.7,0,7);cx.fill()}
+ // taxiway
+ rect(0,281,W,51,'#5b6264');line(0,306,W,306,'#e6c54b',3);line(0,284,W,284,'#d4bd56',1);line(0,330,W,330,'#d4bd56',1);
+ // taxi connector to runway
+ rect(597,229,54,62,'#5b6264');line(624,230,624,305,'#e8cf56',3);
+ rect(1036,229,52,62,'#5b6264');line(1062,230,1062,305,'#e8cf56',3);
+ // apron
+ rect(45,339,1115,171,'#959b99');for(let x=55;x<1159;x+=33)line(x,340,x,510,'#a3aaa7',1);for(let y=356;y<512;y+=34)line(45,y,1157,y,'#aeb1a7',.8);
+ for(let i=0;i<GX.length;i++){const x=GX[i];line(x,329,x,480,'#e4c14a',2.5);line(x-49,485,x+49,485,'#e4bb4f',2);line(x-50,385,x-50,488,'#d96557',1);line(x+50,385,x+50,488,'#d96557',1);for(let k=0;k<6;k++){line(x-50,390+k*16,x-43,400+k*16,'#cb6b61',1)}roundRect(x-26,350,52,26,4,'#222f36');text('GATE '+(i+1),x,368,'bold 13px system-ui','#fff','center');
+ // jetbridge
+ rect(x-72,493,63,13,'#becbd0');rect(x-17,473,14,31,'#d5e1df');rect(x-72,493,64,3,'#647f86');
+ // service truck
+ const tx=x+76,ty=454;roundRect(tx-15,ty-7,29,14,3,'#3b7ca4');rect(tx+10,ty-5,9,10,'#e9d8a1');line(tx-12,ty+7,tx+14,ty+7,'#263542',2);
+ }
+ // terminal
+ roundRect(14,507,1172,154,8,'#bac6c5');rect(14,518,1172,22,'#79939d');rect(14,546,1172,96,'#d1dbd8');for(let x=31;x<1165;x+=29){rect(x,567,18,43,'#4b8ca5');rect(x,613,18,9,'#7aa7ad')}
+ roundRect(506,519,193,108,3,'#a6c0c9');for(let x=517;x<690;x+=19)for(let y=531;y<618;y+=19)rect(x,y,13,12,'#568ca4');
+ text('VÄLKOMMEN TILL AIRPORT CONTROL',600,674,'bold 17px system-ui','#e5eeea','center');
+ // tower on left
+ roundRect(33,400,58,110,6,'#95a8ae');roundRect(20,384,84,30,8,'#263f51');rect(29,387,68,13,'#70a6bc');rect(48,348,25,38,'#d1dcd8');text('ATC',63,432,'bold 15px system-ui','#2c4451','center');
+ // directional wayfinding
+ roundRect(20,263,87,21,3,'#172a34');text('← TAXI A',63,278,'bold 12px system-ui','#f8d86a','center');
+ roundRect(1082,263,100,21,3,'#172a34');text('TAXI B →',1132,278,'bold 12px system-ui','#f8d86a','center');
+ }
+function plane(f){cx.save();cx.translate(f.x,f.y);cx.rotate(f.angle);const scale=f.status==='departing'||f.status==='landing'?1.07:.92;cx.scale(scale,scale);
+ cx.globalAlpha=.21;cx.fillStyle='#0d1521';cx.beginPath();cx.ellipse(4,5,41,18,0,0,7);cx.fill();cx.globalAlpha=1;
+ cx.fillStyle='#dce7eb';cx.strokeStyle='#74818a';cx.lineWidth=1.1;
+ cx.beginPath();cx.moveTo(37,0);cx.quadraticCurveTo(33,-5,18,-6);cx.lineTo(-25,-6);cx.quadraticCurveTo(-36,-4,-39,0);cx.quadraticCurveTo(-36,4,-25,6);cx.lineTo(18,6);cx.quadraticCurveTo(33,5,37,0);cx.fill();cx.stroke();
+ cx.fillStyle='#c5d8e0';cx.beginPath();cx.moveTo(3,-4);cx.lineTo(-7,-38);cx.lineTo(-18,-40);cx.lineTo(-15,-4);cx.closePath();cx.fill();cx.stroke();cx.beginPath();cx.moveTo(3,4);cx.lineTo(-7,38);cx.lineTo(-18,40);cx.lineTo(-15,4);cx.closePath();cx.fill();cx.stroke();
+ cx.fillStyle=f.color;cx.beginPath();cx.moveTo(-22,-4);cx.lineTo(-36,-17);cx.lineTo(-40,-16);cx.lineTo(-34,0);cx.lineTo(-40,16);cx.lineTo(-36,17);cx.lineTo(-22,4);cx.fill();cx.fillRect(-19,-6,17,12);
+ cx.fillStyle='#2a5265';cx.beginPath();cx.ellipse(22,0,7,3.2,0,0,7);cx.fill();for(let i=-16;i<=13;i+=6){cx.fillStyle='#70909e';cx.fillRect(i,-5,2,1.4);cx.fillRect(i,4,2,1.4)}
+ cx.fillStyle='#777f83';cx.beginPath();cx.ellipse(-6,-21,4,3,0,0,7);cx.fill();cx.beginPath();cx.ellipse(-6,21,4,3,0,0,7);cx.fill();cx.restore();
+ if(f.status==='ready'){cx.strokeStyle='#5df4b9';cx.lineWidth=3;cx.beginPath();cx.arc(f.x,f.y,47,0,7);cx.stroke();text('KLAR',f.x,f.y-53,'bold 12px system-ui','#d2ffe8','center')}if(f.status==='servicing'){let p=1-f.service/(f.turnaround/(1+(state.serviceLevel-1)*.38));rect(f.x-30,f.y-57,60,5,'#31434e');rect(f.x-30,f.y-57,60*Math.max(0,p),5,'#79e3b6')}
+}
+function draw(){makeGround();
+ // approaching aircraft silhouettes have trajectory hints
+ for(const f of state.active)plane(f);
+ // runway danger outline when occupied
+ if(state.runway){roundRect(474,114,255,31,7,'#192e37e8');text('● BANA UPPTAGEN  ·  '+state.runway.mode.toUpperCase(),602,135,'bold 14px system-ui','#ffd875','center')}else{roundRect(502,114,201,31,7,'#192e37ca');text('● BANA LEDIG',602,135,'bold 14px system-ui','#9cf9c8','center')}
+ // map gate statuses
+ for(const g of state.gates){let f=g.flight;let color=!f?'#e8edc5':f.status==='ready'?'#87ffd0':'#d9e7ea';text(!f?'LEDIG':f.status==='ready'?'AVGÅNGSKLAR':f.status==='servicing'?`SERVICE ${Math.ceil(f.service)} s`:f.call,g.x,390,'bold 12px system-ui',color,'center')}
+ if(state.paused){rect(0,0,W,H,'#07182488');roundRect(461,285,278,98,14,'#102737e8');text('⏸  PAUSAT',600,343,'bold 28px system-ui','#fff','center')}
+}
+let prev=0;function frame(ms){const dt=prev?(ms-prev)/1000:0;prev=ms;update(dt);draw();if(ms-lastUi>340){updateUI();lastUi=ms}requestAnimationFrame(frame)}
+restart();requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
