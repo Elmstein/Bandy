@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#081524">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Rink Riot '96">
+<meta name="description" content="Rink Riot '96 – arkadhockey med touch, tangentbord och handkontroll.">
+
+<title>RINK RIOT '96 — Arkadhockey</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap');
+:root{--bg:#081524;--card:#101e30;--line:#2e4256;--ice:#edf7ff;--cyan:#54f3ff;--orange:#ff8b49;--gold:#f8d668;--white:#f1f8ff}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--white)}
+body{font-family:'DM Sans',system-ui,-apple-system,Segoe UI,sans-serif;background-image:radial-gradient(ellipse at 25% -20%,#1b5375 0,transparent 47%),radial-gradient(ellipse at 85% 100%,#41253e 0,transparent 52%),repeating-linear-gradient(0deg,transparent 0,transparent 31px,#ffffff03 32px)}
+button{font:inherit;cursor:pointer;touch-action:manipulation}
+.shell{max-width:1210px;margin:0 auto;padding:22px 24px 35px}
+.mast{display:flex;justify-content:space-between;align-items:center;gap:24px;margin-bottom:19px}
+.brand{display:flex;align-items:center;gap:14px}.logo{font:900 clamp(30px,5vw,57px)/.85 'Barlow Condensed',Impact,sans-serif;letter-spacing:-1.1px;font-style:italic;transform:skew(-5deg);text-shadow:3px 3px 0 #17435b}.logo span{color:var(--cyan)}.logo b{color:var(--orange)}.tag{margin-top:8px;color:#a4bcd0;letter-spacing:2.5px;text-transform:uppercase;font:800 11px 'DM Sans',sans-serif}.badge{background:#102c40;border:1px solid #35536b;padding:7px 12px;border-radius:4px;color:#98dfe5;font-size:11px;font-weight:800;letter-spacing:1.4px;white-space:nowrap}
+.scoreboard{background:#0d1725;border:1px solid #2c4056;border-radius:9px;display:flex;align-items:stretch;min-height:91px;overflow:hidden;box-shadow:0 15px 26px #01051033;margin-bottom:14px}
+.team{width:36%;display:flex;align-items:center;gap:16px;padding:11px 24px}.team.right{justify-content:flex-end;text-align:right}.team-icon{width:47px;height:47px;border:3px solid currentColor;border-radius:50%;display:grid;place-items:center;font:900 29px 'Barlow Condensed';transform:skew(-8deg)}.teama{color:var(--cyan)}.teamb{color:var(--orange)}.team-info small{display:block;color:#869cad;text-transform:uppercase;letter-spacing:2px;font-size:10px;font-weight:700}.team-info strong{display:block;font:900 clamp(19px,2.9vw,32px)/1 'Barlow Condensed';text-transform:uppercase;letter-spacing:.5px;margin-top:4px}.score-center{flex:1;display:flex;align-items:center;justify-content:center;gap:13px;border-left:1px solid #26394d;border-right:1px solid #26394d;background:#080f1b}.score{font:900 clamp(44px,7vw,75px)/1 'Barlow Condensed';font-variant-numeric:tabular-nums;min-width:42px;text-align:center}.sep{font-size:31px;font-weight:800;color:#3b556a}.period-clock{display:flex;flex-direction:column;text-align:center;align-items:center;justify-content:center;min-width:75px}.period-clock span{color:#a8bbca;font-size:10px;text-transform:uppercase;font-weight:800;letter-spacing:1.7px}.period-clock strong{font:800 24px 'Barlow Condensed';color:var(--gold);letter-spacing:1.5px;font-variant-numeric:tabular-nums}
+.stage{position:relative;overflow:hidden;border-radius:10px;border:5px solid #1a334b;box-shadow:0 21px 65px #0008,0 0 0 1px #5471882e;background:#b6d3e6;aspect-ratio:5/3}.stage:after{content:'';position:absolute;inset:0;border:10px solid #0000000a;pointer-events:none}
+canvas{display:block;width:100%;height:100%;touch-action:none}
+.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#07162acb;backdrop-filter:blur(4px);z-index:2;transition:opacity .2s}.overlay.hidden{display:none}.overlay-card{text-align:center;max-width:525px;padding:20px;animation:pop .2s ease-out}@keyframes pop{from{transform:scale(.95);opacity:.4}to{transform:scale(1);opacity:1}}.kicker{color:var(--cyan);font-size:12px;letter-spacing:4px;font-weight:800}.overlay-card h1{font:900 clamp(49px,8vw,101px)/.87 'Barlow Condensed',Impact,sans-serif;margin:13px 0 18px;font-style:italic;text-transform:uppercase;text-shadow:5px 5px #133a50}.overlay-card h1 em{color:var(--orange);font-style:inherit}.overlay-card p{line-height:1.6;color:#c5d7e6;margin:5px 0 20px;font-size:15px}.main-btn{background:var(--orange);border:0;border-bottom:5px solid #ad4d27;color:#081524;padding:13px 30px;text-transform:uppercase;letter-spacing:1.2px;font:900 23px 'Barlow Condensed',Impact;border-radius:5px;transition:transform .12s}.main-btn:hover{transform:translateY(-2px);filter:brightness(1.07)}
+.toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0}.tool-btn{border:1px solid #39516a;border-radius:5px;background:#13273b;color:#cfe4f3;font-size:12px;font-weight:800;padding:11px 14px;text-transform:uppercase;letter-spacing:.6px}.tool-btn:hover{border-color:var(--cyan);color:#fff}.tool-btn.active{border-color:var(--cyan);color:var(--cyan)}.toolbar .spacer{flex:1}.status-pill{font-size:12px;color:#a8bfd0}.status-pill b{color:var(--cyan)}
+.instructions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:15px}.instruction{border:1px solid #30465b;background:#0d2034bf;padding:15px 17px;border-radius:7px}.instruction h3{font:800 17px 'Barlow Condensed';text-transform:uppercase;margin:0 0 9px;color:#f0f7ff;letter-spacing:1px}.instruction p{margin:0;color:#a6bece;font-size:12px;line-height:1.9}.kbd{display:inline-block;min-width:25px;padding:2px 5px;border-radius:3px;border:1px solid #62768b;background:#24374a;color:#e9f5ff;font-weight:800;font-size:11px;text-align:center;box-shadow:0 2px #08121e}.foot{margin-top:18px;text-align:center;color:#718ba2;font-size:11px}.foot strong{color:#b7d1df}
+.touchpad{display:none;align-items:center;justify-content:space-between;gap:12px;margin-top:8px;user-select:none;-webkit-user-select:none;touch-action:none}.stick-zone{width:130px;height:130px;position:relative;display:grid;place-items:center;touch-action:none;flex-shrink:0}.stick-ring{width:110px;height:110px;border:2px solid #446781;border-radius:50%;background:#163047;position:relative;box-shadow:inset 0 0 17px #06131b}.stick-head{width:47px;height:47px;border:2px solid #96d7e0;border-radius:50%;background:linear-gradient(#4289a6,#20516d);position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);box-shadow:0 5px 8px #0005}.action-zone{display:grid;grid-template-columns:repeat(2,64px);gap:9px;align-items:center}.act{height:55px;border:1px solid #55758d;border-radius:9px;background:#233d57;color:#fff;font:800 13px 'Barlow Condensed';letter-spacing:1px;touch-action:none}.act:active{transform:scale(.92)}.act.shoot{background:#cb6036;border-color:#ffad75}.act.pass{background:#217f89;border-color:#6af0ea}
+@media(max-width:760px){.shell{padding:15px 11px 25px}.mast{margin-bottom:14px}.logo{font-size:37px}.badge{display:none}.scoreboard{min-height:74px;margin-bottom:10px}.team{padding:9px 12px;gap:8px}.team-icon{display:none}.team-info strong{font-size:21px}.team-info small{font-size:9px;letter-spacing:1px}.score-center{gap:5px}.score{font-size:49px;min-width:29px}.sep{font-size:18px}.period-clock{min-width:50px}.period-clock span{font-size:8px}.period-clock strong{font-size:19px}.overlay-card h1{font-size:65px}.overlay-card p{font-size:12px}.instructions{grid-template-columns:1fr}.instruction{padding:10px 12px}.touchpad{display:flex}.toolbar .status-pill{display:none}.tool-btn{font-size:11px;padding:9px 10px}.foot{line-height:1.6}}
+@media(max-width:430px){.logo{font-size:33px}.tag{font-size:9px;letter-spacing:1.5px}.scoreboard{min-height:65px}.team-info strong{font-size:17px}.team{padding:8px}.score{font-size:39px}.period-clock{min-width:42px}.period-clock strong{font-size:17px}.score-center{gap:3px}.overlay-card h1{font-size:43px;margin:9px 0}.overlay-card p{font-size:11px;line-height:1.3}.kicker{font-size:9px}.main-btn{font-size:18px;padding:9px 15px}.overlay-card{padding:10px}.stage{border-width:3px}}
+@media(hover:none) and (pointer:coarse){.touchpad{display:flex}}
+
+/* iPhone landscape: controls beside the rink */
+@media (hover:none) and (pointer:coarse) and (orientation:landscape) and (max-height:520px) {
+  html,body{height:100%;overflow:hidden}
+  .shell{max-width:100%;height:100dvh;padding:calc(3px + env(safe-area-inset-top)) 8px env(safe-area-inset-bottom)}
+  .mast,.toolbar,.instructions,.foot{display:none}
+  .scoreboard{max-width:490px;height:39px;min-height:39px;margin:0 auto 4px}
+  .team{padding:3px 8px}.team-info strong{font-size:13px}
+  .team-info small,.team-icon{display:none}
+  .score{font-size:26px}.score-center{gap:5px}.sep{font-size:13px}
+  .period-clock{min-width:46px}.period-clock span{font-size:7px}.period-clock strong{font-size:13px}
+  .stage{height:auto;width:55vw;max-width:calc(100vw - 302px - env(safe-area-inset-left) - env(safe-area-inset-right));max-height:calc(100dvh - 49px - env(safe-area-inset-top) - env(safe-area-inset-bottom));border-width:3px;margin:0 auto}
+  .touchpad{display:contents}
+  .stick-zone{position:fixed;left:calc(9px + env(safe-area-inset-left));top:50%;transform:translateY(-45%);z-index:3;width:116px;height:116px}
+  .stick-ring{width:104px;height:104px}
+  .action-zone{position:fixed;right:calc(9px + env(safe-area-inset-right));top:50%;transform:translateY(-50%);z-index:3;display:grid;grid-template-columns:repeat(2,74px);gap:7px}
+  .act{width:74px;min-width:0;height:74px;min-height:0;font-size:12px;padding:2px}
+  .overlay-card{padding:7px}.overlay-card h1{font-size:33px;margin:2px 0}
+  .overlay-card p{font-size:10px;line-height:1.2;margin:5px 0}
+  .overlay-card .kicker{font-size:8px}.overlay-card .main-btn{font-size:13px;padding:7px 12px}
+}
+
+.role-tag{position:absolute;left:14px;top:14px;z-index:1;background:#081524c9;border:1px solid #75bdca;color:#dcf7ff;font:900 18px 'Barlow Condensed',Impact,sans-serif;letter-spacing:.5px;padding:5px 11px;border-radius:3px;pointer-events:none;text-shadow:1px 2px #000}
+.mobile-pause{display:none;position:absolute;right:12px;top:12px;z-index:3;background:#091c32d9;border:1px solid #b0cbde;color:#fff;border-radius:5px;min-width:38px;min-height:38px}
+@media (hover:none) and (pointer:coarse) and (orientation:landscape) and (max-height:520px){
+ .role-tag{font-size:12px;top:5px;left:6px;padding:3px 5px}
+ .mobile-pause{display:block;top:4px;right:4px;min-width:28px;min-height:28px;font-size:12px}
+ .act{font-size:10px;letter-spacing:.1px}
+}
+</style>
+</head>
+<body>
+<main class="shell">
+<header class="mast"><div class="brand"><div><div class="logo">RINK <span>RIOT</span><b>'96</b></div><div class="tag">Arcade hockey · Gameplay Preview 0.3</div></div></div><div class="badge">3 VS 3 · NO RULES · ALL ACTION</div></header>
+<section class="scoreboard" aria-label="Resultattavla"><div class="team teama"><div class="team-icon">I</div><div class="team-info"><small>Du · Hemma</small><strong>Icebreakers</strong></div></div><div class="score-center"><span class="score teama" id="scoreHome">0</span><span class="sep">:</span><div class="period-clock"><span id="periodLabel">PERIOD 1/3</span><strong id="clock">1:15</strong></div><span class="sep">:</span><span class="score teamb" id="scoreAway">0</span></div><div class="team right teamb"><div class="team-info"><small>Dator · Borta</small><strong>Blazers</strong></div><div class="team-icon">B</div></div></section>
+<div class="stage" id="stage"><canvas id="ice" width="1000" height="600" aria-label="Spelplan för Rink Riot arkadhockey"></canvas><div class="role-tag" id="roleTag" aria-live="polite">DANGLE KING · #9</div><button class="mobile-pause" id="mobilePause" aria-label="Pausa spelet">Ⅱ</button><div class="overlay" id="overlay"><div class="overlay-card"><div class="kicker" id="overlayKicker">★ WORLD PREMIERE ★</div><h1 id="overlayTitle">RINK <em>RIOT!</em></h1><p id="overlayText">Tre mot tre. Tre spelartyper. Finter, laddade slagskott och rejäla tacklingar.<br>Ta kontrollen och gör dig redo!</p><button class="main-btn" id="overlayButton">STARTA MATCHEN ▶</button></div></div></div>
+<div class="touchpad" aria-label="Pekskärmskontroller"><div class="stick-zone" id="stickZone"><div class="stick-ring"><div class="stick-head" id="stickHead"></div></div></div><div class="action-zone"><button class="act shoot" data-action="shoot">SKOTT</button><button class="act pass" data-action="pass">PASS</button><button class="act" data-action="check">TACKLA/FINT</button><button class="act" data-action="switch">BYT</button></div></div>
+<div class="toolbar"><button class="tool-btn" id="pauseButton">Ⅱ Paus</button><button class="tool-btn" id="restartButton">↻ Ny match</button><button class="tool-btn" id="soundButton">♫ Ljud: På</button><div class="spacer"></div><span class="status-pill">STYRSYSTEM <b>▸ Tangentbord · Handkontroll · Touch</b></span></div>
+<section class="instructions"><div class="instruction"><h3>⌨ Tangentbord</h3><p>Styr med <span class="kbd">W</span> <span class="kbd">A</span> <span class="kbd">S</span> <span class="kbd">D</span> eller piltangenterna.<br><span class="kbd">J</span> Skott (håll/släpp = slagskott) &nbsp; <span class="kbd">K</span> Pass &nbsp; <span class="kbd">L</span> Tackla/finta &nbsp; <span class="kbd">MELLANSLAG</span> Byt spelare</p></div><div class="instruction"><h3>🎮 Handkontroll</h3><p>Vänster spak styr.<br><span class="kbd">A</span> Skott (håll/ladda) &nbsp; <span class="kbd">B</span> Pass &nbsp; <span class="kbd">X</span> Tackla/finta &nbsp; <span class="kbd">Y</span> Byt spelare<br><span class="kbd">START</span> Pausa</p></div><div class="instruction"><h3>🏒 Arkadregler</h3><p>Tre perioder om 75 sekunder. Växla mellan tre utespelare: Dangle King, Cannon och Enforcer. Målvakterna styrs av datorn. Flytta spaken för att sikta skottet. Fungerar även med touch på mobilen (helst i liggande läge).</p></div></section>
+<footer class="foot"><strong>RINK RIOT '96</strong> · En fristående spelprototyp med egen grafik och egna lag · Inspirerad av klassisk arkadhockey</footer>
+</main>
+<script>
+(()=>{'use strict';
+const canvas=document.getElementById('ice'),ctx=canvas.getContext('2d');
+const $=id=>document.getElementById(id);
+const rink={left:71,right:929,top:90,bottom:510,goalTop:263,goalBottom:337,goalLeft:94,goalRight:906,cx:500,cy:300};
+const colors=['#32dbea','#ff8751'];
+const keys=new Set();const state={phase:'ready',period:1,remaining:75,score:[0,0],players:[],goalies:[],puck:{x:500,y:300,vx:0,vy:0,owner:null,ignore:0},controlled:0,freeze:0,flash:'',flashSub:'',flashTimer:0,sound:true,particles:[],shake:0,elapsed:0,gamepadPrev:[],lastFrame:0};
+let audioCtx=null;let touchX=0,touchY=0,stickPointer=null;
+const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));const length=(x,y)=>Math.hypot(x,y);const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);const rand=(a,b)=>a+Math.random()*(b-a);
+function tone(freq,duration,kind='square',vol=.04,endFreq){if(!state.sound)return;try{audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=kind;o.frequency.setValueAtTime(freq,audioCtx.currentTime);if(endFreq)o.frequency.exponentialRampToValueAtTime(Math.max(endFreq,30),audioCtx.currentTime+duration);g.gain.setValueAtTime(vol,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+duration);o.connect(g).connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+duration)}catch{}}
+function sfx(name){if(name==='shot'){tone(210,.14,'sawtooth',.048,80)}if(name==='pass'){tone(310,.08,'triangle',.025,170)}if(name==='hit'){tone(95,.17,'sawtooth',.047,44)}if(name==='save'){tone(190,.16,'triangle',.03,330)}if(name==='goal'){tone(460,.15,'square',.055,620);setTimeout(()=>tone(620,.17,'square',.04,800),160);setTimeout(()=>tone(840,.32,'square',.04,1050),340)}}
+const ROLES={dangler:{name:'DANGLE KING',speed:328,accel:15,shot:1.0,check:.83},cannon:{name:'THE CANNON',speed:281,accel:11.5,shot:1.29,check:1.0},enforcer:{name:'ENFORCER',speed:263,accel:10,shot:1.04,check:1.55}};
+function player(id,team,x,y,num,role){return{id,team,x,y,px:x,py:y,vx:0,vy:0,dirX:team===0?1:-1,dirY:0,num,role,cool:0,hit:0,stun:0,think:0,charge:0,dodge:0}}
+function faceoff(first=false){
+state.players=[
+ player(0,0,394,268,9,'dangler'),player(1,0,341,388,17,'cannon'),player(2,0,337,172,44,'enforcer'),
+ player(3,1,607,331,8,'dangler'),player(4,1,664,221,21,'cannon'),player(5,1,665,422,55,'enforcer')
+];state.goalies=[{x:115,y:300,team:0},{x:885,y:300,team:1}];
+state.puck={x:500,y:300,vx:0,vy:0,owner:null,ignore:0};
+state.controlled=0;state.shotPlayer=null;state.freeze=first?1.1:.85;
+state.flash='NEDSLÄPP!';state.flashSub='';state.flashTimer=.86;state.particles=[];updateHud()
+}
+function updateHud(){$('scoreHome').textContent=state.score[0];$('scoreAway').textContent=state.score[1];$('periodLabel').textContent='PERIOD '+state.period+'/3';const s=Math.max(0,Math.ceil(state.remaining));$('clock').textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0');const p=state.players[state.controlled];if(p)$('roleTag').textContent=ROLES[p.role].name+' · #'+p.num}
+function showOverlay(kicker,title,body,btn){$('overlayKicker').textContent=kicker;$('overlayTitle').innerHTML=title;$('overlayText').innerHTML=body;$('overlayButton').textContent=btn;$('overlay').classList.remove('hidden')}
+function hideOverlay(){$('overlay').classList.add('hidden')}
+function start(){if(state.phase==='paused'){state.phase='playing';hideOverlay();return}state.period=1;state.remaining=75;state.score=[0,0];state.elapsed=0;faceoff(true);state.phase='playing';hideOverlay()}
+function pause(){if(state.phase==='playing'){state.phase='paused';showOverlay('HALVTID I HUVUDET','PAUS','Matchen väntar på dig.','FORTSÄTT ▶')}else if(state.phase==='paused'){state.phase='playing';hideOverlay()}}
+$('overlayButton').addEventListener('click',start);$('mobilePause').addEventListener('click',pause);$('pauseButton').addEventListener('click',pause);$('restartButton').addEventListener('click',()=>{state.phase='ready';state.score=[0,0];state.period=1;state.remaining=75;faceoff();showOverlay('NY MATCH','RINK <em>RIOT!</em>','Redo för en ny omgång?','STARTA MATCHEN ▶')});$('soundButton').addEventListener('click',()=>{state.sound=!state.sound;$('soundButton').textContent='♫ Ljud: '+(state.sound?'På':'Av');$('soundButton').classList.toggle('active',state.sound)});
+function switchPlayer(){if(state.phase!=='playing')return;state.shotPlayer=null;for(const p of state.players)p.charge=0;state.controlled=(state.controlled+1)%3;updateHud();tone(460,.055,'triangle',.016)}
+function dirFor(p){let dx=p.dirX,dy=p.dirY;if(length(dx,dy)<.01){dx=p.team===0?1:-1;dy=0}const n=length(dx,dy);return{x:dx/n,y:dy/n}}
+function releasePuck(p,dx,dy,speed,kind){let n=length(dx,dy);if(n<.02){dx=p.team===0?1:-1;dy=0;n=1}dx/=n;dy/=n;state.puck.owner=null;state.puck.x=p.x+dx*25;state.puck.y=p.y+dy*25;state.puck.vx=dx*speed;state.puck.vy=dy*speed;state.puck.ignore=.2;p.cool=.36;sfx(kind);spawn(p.x+dx*20,p.y+dy*20,colors[p.team],7)}
+function shoot(p,ai=false){
+ if(p.cool>0||p.stun>0)return;
+ if(state.puck.owner!==p.id){if(distance(state.puck,p)>38)return;state.puck.owner=p.id}
+ const charge=clamp(p.charge/1.1,0,1);p.charge=0;
+ let d=dirFor(p);
+ if(ai){const gx=p.team===0?rink.goalRight:rink.goalLeft,gy=300+rand(-31,31);d={x:gx-p.x,y:gy-p.y}}
+ const power=(790+charge*490)*ROLES[p.role].shot;
+ releasePuck(p,d.x,d.y,power,'shot');state.shake=3+charge*5;
+ if(charge>.68){state.flash='POWER SHOT!';state.flashSub=ROLES[p.role].name;state.flashTimer=.37;spawn(p.x,p.y,'#ffe28c',15)}
+}
+function beginShot(){
+ if(state.phase==='ready'||state.phase==='ended'){start();return}
+ if(state.phase!=='playing'||state.freeze>0||state.shotPlayer!==null)return;
+ const p=state.players[state.controlled];
+ if(!p||p.cool>0||p.stun>0)return;
+ state.shotPlayer=p.id;p.charge=.001
+}
+function finishShot(){
+ const id=state.shotPlayer;state.shotPlayer=null;
+ if(id===null||id===undefined)return;
+ const p=state.players[id];if(p&&state.phase==='playing'&&state.freeze<=0)shoot(p)
+}
+function pass(p){
+ if(p.cool>0||state.puck.owner!==p.id)return;
+ const mates=state.players.filter(q=>q.team===p.team&&q.id!==p.id);
+ const aim=dirFor(p);
+ mates.sort((a,b)=>{
+  const grade=q=>{const dx=q.x-p.x,dy=q.y-p.y,d=length(dx,dy)||1;return (dx*aim.x+dy*aim.y)/d*1.5-d*.0007};
+  return grade(b)-grade(a)
+ });
+ const m=mates[0];if(!m)return;
+ const dx=m.x+m.vx*.17-p.x,dy=m.y+m.vy*.17-p.y;
+ releasePuck(p,dx,dy,705,'pass')
+}
+function deke(p){
+ if(p.cool>0||p.stun>0)return;
+ const d=dirFor(p),side=Math.sin(state.elapsed*13+p.id)>0?1:-1;
+ p.x=clamp(p.x+d.x*23-d.y*28*side,rink.left+22,rink.right-22);
+ p.y=clamp(p.y+d.y*23+d.x*28*side,rink.top+22,rink.bottom-22);
+ p.cool=.40;p.dodge=.32;spawn(p.x,p.y,'#8eeaff',11);tone(420,.08,'triangle',.03,680)
+}
+function check(p){
+ if(p.cool>0||p.stun>0)return;
+ p.cool=p.role==='enforcer'?.52:.63;p.hit=.24;
+ const direction=dirFor(p),power=ROLES[p.role].check;
+ const foes=state.players.filter(q=>q.team!==p.team).sort((a,b)=>distance(a,p)-distance(b,p));
+ const v=foes.find(q=>{const dx=q.x-p.x,dy=q.y-p.y,d=length(dx,dy)||1;return d<67+power*11 && (dx*direction.x+dy*direction.y)/d>-.28});
+ if(v&&v.dodge<=0){
+  const d=length(v.x-p.x,v.y-p.y)||1,ux=(v.x-p.x)/d,uy=(v.y-p.y)/d;
+  v.vx+=ux*300*power;v.vy+=uy*300*power;v.stun=.2+.17*power;
+  if(state.puck.owner===v.id){state.puck.owner=null;state.puck.x=v.x;state.puck.y=v.y;state.puck.vx=ux*310;state.puck.vy=uy*310;state.puck.ignore=.15}
+  spawn(v.x,v.y,'#ffffff',Math.round(12+power*5));state.shake=5+power*3;sfx('hit')
+ }else tone(130,.08,'triangle',.018,70)
+}
+function act(action){
+ if(action==='shoot'){beginShot();return}
+ if(state.phase==='ready'||state.phase==='ended')return;
+ if(state.phase!=='playing'||state.freeze>0)return;
+ const p=state.players[state.controlled];
+ if(action==='pass')pass(p);
+ if(action==='check'){if(state.puck.owner===p.id)deke(p);else check(p)}
+ if(action==='switch')switchPlayer()
+}
+const actionKeys={'j':'shoot','k':'pass','l':'check',' ':'switch','x':'shoot','c':'pass','v':'check','tab':'switch'};
+window.addEventListener('keydown',e=>{
+ const k=e.key.toLowerCase();
+ if([' ','arrowup','arrowdown','arrowleft','arrowright','tab'].includes(k))e.preventDefault();
+ if(!keys.has(k)&&actionKeys[k])act(actionKeys[k]);
+ if(!keys.has(k)&&(k==='p'||k==='escape'))pause();
+ if(!keys.has(k)&&k==='enter'&&state.phase!=='playing')start();
+ keys.add(k)
+});
+window.addEventListener('keyup',e=>{
+ const k=e.key.toLowerCase();
+ if(actionKeys[k]==='shoot')finishShot();
+ keys.delete(k)
+});
+window.addEventListener('blur',()=>{
+ keys.clear();touchX=touchY=0;state.shotPlayer=null;
+ for(const p of state.players)p.charge=0;
+ if(state.phase==='playing')pause()
+});
+for(const b of document.querySelectorAll('[data-action]')){
+ b.addEventListener('pointerdown',e=>{
+  e.preventDefault();
+  try{b.setPointerCapture(e.pointerId)}catch{}
+  act(b.dataset.action)
+ });
+ b.addEventListener('pointerup',e=>{e.preventDefault();if(b.dataset.action==='shoot')finishShot()});
+ b.addEventListener('pointercancel',()=>{state.shotPlayer=null;for(const p of state.players)p.charge=0});
+ b.addEventListener('contextmenu',e=>e.preventDefault())
+}
+const zone=$('stickZone'),head=$('stickHead');
+function updateStick(e){
+ const r=zone.getBoundingClientRect(),x=e.clientX-(r.left+r.width/2),y=e.clientY-(r.top+r.height/2);
+ const len=length(x,y),rad=40,scale=len>rad?rad/len:1,px=x*scale,py=y*scale;
+ touchX=px/rad;touchY=py/rad;
+ head.style.left='calc(50% + '+px+'px)';head.style.top='calc(50% + '+py+'px)'
+}
+function resetStick(){touchX=0;touchY=0;stickPointer=null;head.style.left='50%';head.style.top='50%'}
+zone.addEventListener('pointerdown',e=>{e.preventDefault();stickPointer=e.pointerId;zone.setPointerCapture(e.pointerId);updateStick(e)});
+zone.addEventListener('pointermove',e=>{if(e.pointerId===stickPointer)updateStick(e)});
+zone.addEventListener('pointerup',e=>{if(e.pointerId===stickPointer)resetStick()});
+zone.addEventListener('pointercancel',resetStick);
+function inputVector(){
+ let dx=(keys.has('d')||keys.has('arrowright')?1:0)-(keys.has('a')||keys.has('arrowleft')?1:0);
+ let dy=(keys.has('s')||keys.has('arrowdown')?1:0)-(keys.has('w')||keys.has('arrowup')?1:0);
+ dx+=touchX;dy+=touchY;
+ const pads=navigator.getGamepads?.()||[],pad=Array.from(pads).find(x=>x&&x.connected);
+ if(pad){
+  const px=pad.axes[0]||0,py=pad.axes[1]||0;
+  dx+=Math.abs(px)>.17?px:0;dy+=Math.abs(py)>.17?py:0;
+  const btn=pad.buttons;
+  dx+=(btn[15]?.pressed?1:0)-(btn[14]?.pressed?1:0);
+  dy+=(btn[13]?.pressed?1:0)-(btn[12]?.pressed?1:0);
+  for(const [index,action] of [[0,'shoot'],[1,'pass'],[2,'check'],[3,'switch'],[9,'pause']]){
+   const active=!!btn[index]?.pressed,previous=!!state.gamepadPrev[index];
+   if(active&&!previous){if(action==='pause')pause();else act(action)}
+   if(!active&&previous&&action==='shoot')finishShot();
+   state.gamepadPrev[index]=active
+  }
+ }else{if(state.gamepadPrev[0])finishShot();state.gamepadPrev=[]}
+ const n=length(dx,dy);return n>1?{x:dx/n,y:dy/n}:{x:dx,y:dy}
+}
+function movePlayer(p,dx,dy,dt){
+ const stats=ROLES[p.role];
+ if(p.stun>0){p.vx*=Math.exp(-6*dt);p.vy*=Math.exp(-6*dt)}
+ else{
+  const speed=stats.speed*(p.id===state.controlled&&p.team===0?1.04:1)*(p.id===state.shotPlayer?.83:1);
+  const mag=length(dx,dy),targetX=dx*speed,targetY=dy*speed;
+  const accel=mag>.08?stats.accel:stats.accel*.65,t=1-Math.exp(-accel*dt);
+  p.vx+=(targetX-p.vx)*t;p.vy+=(targetY-p.vy)*t;
+  if(mag>.14){p.dirX=dx/mag;p.dirY=dy/mag}
+ }
+ p.x=clamp(p.x+p.vx*dt,rink.left+21,rink.right-21);
+ p.y=clamp(p.y+p.vy*dt,rink.top+21,rink.bottom-21);
+ p.cool=Math.max(0,p.cool-dt);p.hit=Math.max(0,p.hit-dt);
+ p.stun=Math.max(0,p.stun-dt);p.dodge=Math.max(0,p.dodge-dt)
+}
+function getTarget(p){
+ const ownerId=state.puck.owner,owner=ownerId===null?null:state.players[ownerId];
+ const mates=state.players.filter(q=>q.team===p.team&&q.id!==p.id),team=state.players.filter(q=>q.team===p.team);
+ const dir=p.team===0?1:-1;
+ const rank=team.slice().sort((a,b)=>distance(a,owner||state.puck)-distance(b,owner||state.puck)).findIndex(q=>q.id===p.id);
+ const lane=(p.role==='dangler'?-105:p.role==='enforcer'?115:10);
+ let x,y;
+ if(owner?.id===p.id){
+  x=p.team===0?845:155;y=clamp(300+Math.sin(state.elapsed*1.6+p.id)*75,160,442);
+  if((p.team===0?p.x>575:p.x<425)&&p.cool<=0&&Math.random()<.017){
+   p.charge=p.role==='cannon'?.8:.2;shoot(p,true)
+  }else if(p.team===1&&p.cool<=0&&Math.random()<.004&&mates.length){
+   const m=mates[Math.floor(Math.random()*mates.length)];
+   if(distance(p,m)<360)pass(p)
+  }
+ }else if(owner&&owner.team===p.team){
+  x=clamp(owner.x+dir*(100+rank*29),rink.left+50,rink.right-50);
+  y=clamp(owner.y+lane*(.58+rank*.12),rink.top+45,rink.bottom-45)
+ }else if(owner&&owner.team!==p.team){
+  if(rank===0||(rank===1&&p.role==='enforcer')){
+   x=owner.x-dir*12;y=owner.y;
+   if(distance(p,owner)<69&&p.cool<=0&&Math.random()<.10)check(p)
+  }else{
+   x=clamp(owner.x-dir*(95+rank*45),rink.left+40,rink.right-40);
+   y=clamp(owner.y+lane*.7,rink.top+40,rink.bottom-40)
+  }
+ }else{
+  if(rank===0){x=state.puck.x+state.puck.vx*.12;y=state.puck.y+state.puck.vy*.12}
+  else{x=clamp(state.puck.x+dir*(95+rank*35),rink.left+42,rink.right-42);y=clamp(state.puck.y+lane*.8,rink.top+40,rink.bottom-40)}
+ }
+ const dx=x-p.x,dy=y-p.y,n=length(dx,dy);return n<11?{x:0,y:0}:{x:dx/n,y:dy/n}
+}
+function spawn(x,y,color,count){for(let i=0;i<count;i++){const ang=rand(0,Math.PI*2),speed=rand(35,205);state.particles.push({x,y,vx:Math.cos(ang)*speed,vy:Math.sin(ang)*speed,life:rand(.2,.55),max:.55,color,r:rand(2,5)})}}
+function collidePlayers(){for(let i=0;i<state.players.length;i++)for(let j=i+1;j<state.players.length;j++){const a=state.players[i],b=state.players[j],dx=b.x-a.x,dy=b.y-a.y,d=length(dx,dy)||1;if(d<33){const push=(33-d)/2;const ux=dx/d,uy=dy/d;a.x-=ux*push;a.y-=uy*push;b.x+=ux*push;b.y+=uy*push}}}
+function puckPhysics(dt){const puck=state.puck;puck.ignore=Math.max(0,puck.ignore-dt);if(puck.owner!==null){const p=state.players[puck.owner],d=dirFor(p);puck.x=p.x+d.x*22;puck.y=p.y+d.y*22;puck.vx=p.vx;puck.vy=p.vy;return}puck.x+=puck.vx*dt;puck.y+=puck.vy*dt;const slow=Math.exp(-1.12*dt);puck.vx*=slow;puck.vy*=slow;
+if(puck.y<rink.top+9){puck.y=rink.top+9;puck.vy=Math.abs(puck.vy)*.83;sfx('pass')}if(puck.y>rink.bottom-9){puck.y=rink.bottom-9;puck.vy=-Math.abs(puck.vy)*.83;sfx('pass')}
+if(puck.x<=rink.goalLeft&&puck.y>rink.goalTop+7&&puck.y<rink.goalBottom-7){goal(1);return}if(puck.x>=rink.goalRight&&puck.y>rink.goalTop+7&&puck.y<rink.goalBottom-7){goal(0);return}
+if(puck.x<rink.left+9){puck.x=rink.left+9;puck.vx=Math.abs(puck.vx)*.82;sfx('pass')}if(puck.x>rink.right-9){puck.x=rink.right-9;puck.vx=-Math.abs(puck.vx)*.82;sfx('pass')}
+for(const g of state.goalies){const dx=puck.x-g.x,dy=puck.y-g.y,d=length(dx,dy);if(d<25&&d>.01){const ux=dx/d,uy=dy/d;puck.x=g.x+ux*26;puck.y=g.y+uy*26;const speed=Math.max(240,length(puck.vx,puck.vy)*.72);puck.vx=ux*speed+(g.team===0?155:-155);puck.vy=uy*speed;spawn(puck.x,puck.y,'#ffffff',12);sfx('save')}}
+if(puck.ignore<=0){const sorted=state.players.slice().sort((a,b)=>distance(a,puck)-distance(b,puck));for(const p of sorted){if(p.stun<=.1&&distance(p,puck)<27){puck.owner=p.id;puck.vx=puck.vy=0;break}}}}
+function goal(team){state.score[team]++;state.shake=13;sfx('goal');faceoff(false);state.flash='MÅÅÅÅL!';state.flashSub=(team===0?'ICEBREAKERS':'BLAZERS')+' GÖR MÅL';state.flashTimer=2.1;state.freeze=2.2;spawn(team===0?rink.goalRight:rink.goalLeft,300,colors[team],75);updateHud()}
+function endPeriod(){if(state.period<3){state.period++;state.remaining=75;faceoff(false);state.flash='PERIOD '+state.period;state.flashSub='NU KÖR VI!';state.flashTimer=2.0;state.freeze=2.15;updateHud()}else{state.phase='ended';let result=state.score[0]===state.score[1]?'OAVGJORT!':state.score[0]>state.score[1]?'DU VANN!':'DATORN VANN';showOverlay('SLUTSIGNAL',result,'Slutresultat: '+state.score[0]+' – '+state.score[1]+'<br>En ny match kan alltid ändra historien.','SPELA IGEN ▶')}}
+function step(dt){
+ state.elapsed+=dt;state.flashTimer=Math.max(0,state.flashTimer-dt);
+ state.shake=Math.max(0,state.shake-dt*23);
+ for(const p of state.particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=Math.exp(-2.2*dt);p.vy*=Math.exp(-2.2*dt);p.life-=dt}
+ state.particles=state.particles.filter(p=>p.life>0);
+ if(state.phase!=='playing')return;
+ const input=inputVector();
+ if(state.freeze>0){state.freeze-=dt;return}
+ if(state.shotPlayer!==null){const p=state.players[state.shotPlayer];if(p)p.charge=Math.min(1.1,p.charge+dt)}
+ state.remaining-=dt;if(state.remaining<=0){endPeriod();return}
+ updateHud();
+ for(const p of state.players){const d=(p.team===0&&p.id===state.controlled)?input:getTarget(p);movePlayer(p,d.x,d.y,dt)}
+ collidePlayers();
+ for(const g of state.goalies){
+  const towards=state.puck.owner===null?state.puck:state.players[state.puck.owner];
+  const target=clamp(towards.y+(g.team===0?-3:3),rink.goalTop+12,rink.goalBottom-12);
+  g.y+=clamp(target-g.y,-190*dt,190*dt)
+ }
+ puckPhysics(dt)
+}
+
+function roundRect(x,y,w,h,r,fill,stroke,lw=1){ctx.beginPath();ctx.roundRect(x,y,w,h,r);if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw;ctx.stroke()}}
+function line(x1,y1,x2,y2,color,w=2){ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.strokeStyle=color;ctx.lineWidth=w;ctx.stroke()}
+function circle(x,y,r,stroke,w=2,fill){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=w;ctx.stroke()}}
+function rinkDraw(){const grad=ctx.createLinearGradient(0,88,0,513);grad.addColorStop(0,'#e4f4ff');grad.addColorStop(.55,'#f7fcff');grad.addColorStop(1,'#d9efff');ctx.fillStyle='#0d273b';ctx.fillRect(0,0,1000,600);
+for(let x=0;x<1000;x+=24){ctx.fillStyle=x%48===0?'#153147':'#123047';ctx.fillRect(x,0,22,66);ctx.fillRect(x,536,22,64)}
+ctx.fillStyle='#091929';ctx.font='900 22px Barlow Condensed, sans-serif';ctx.textAlign='center';ctx.fillText("RINK RIOT '96  •  ICEBREAKERS VS BLAZERS",500,46);ctx.fillText('ARCADE HOCKEY',500,569);
+roundRect(rink.left-13,rink.top-13,rink.right-rink.left+26,rink.bottom-rink.top+26,93,'#e8edf0','#54758a',8);
+roundRect(rink.left,rink.top,rink.right-rink.left,rink.bottom-rink.top,82,grad,'#c63441',5);
+ctx.save();ctx.beginPath();ctx.roundRect(rink.left,rink.top,rink.right-rink.left,rink.bottom-rink.top,82);ctx.clip();
+for(let x=90;x<940;x+=43)line(x,rink.top,x,rink.bottom,'#4283b00b',1);
+for(let y=105;y<512;y+=40)line(rink.left,y,rink.right,y,'#4283b008',1);
+ctx.fillStyle='#e84d5521';ctx.fillRect(490,rink.top,20,rink.bottom-rink.top);line(500,rink.top,500,rink.bottom,'#b83f4b',6);
+for(const bx of [319,681]){ctx.fillStyle='#3885c127';ctx.fillRect(bx-8,rink.top,16,rink.bottom-rink.top);line(bx,rink.top,bx,rink.bottom,'#236fb6',6)}
+circle(500,300,67,'#b63d4a',4);circle(500,300,5,null,1,'#b63d4a');
+for(const x of [225,775])for(const y of [190,410]){circle(x,y,56,'#b63d4a',3);circle(x,y,4,null,1,'#b63d4a');for(const t of [-1,1])line(x+t*21,y-7,x+t*21,y+7,'#b63d4a',2)}
+for(const x of [225,775]){circle(x,300,4,null,1,'#b63d4a')}
+for(const [x,side] of [[rink.goalLeft,1],[rink.goalRight,-1]]){ctx.beginPath();ctx.ellipse(x+side*27,300,36,45,0,Math.PI/2,Math.PI*1.5,side===-1);ctx.strokeStyle='#a0cbea';ctx.lineWidth=2;ctx.stroke();circle(x,300,5,'#bd4e57',2)}
+ctx.globalAlpha=.12;ctx.fillStyle='#517b97';ctx.textAlign='center';ctx.font='900 68px Barlow Condensed, sans-serif';ctx.fillText('RINK RIOT',500,327);ctx.globalAlpha=1;
+ctx.restore();
+// Nets and posts
+for(const side of [0,1]){const gx=side===0?rink.goalLeft:rink.goalRight,dir=side===0?-1:1;roundRect(gx+(dir<0?-30:0),rink.goalTop,30,rink.goalBottom-rink.goalTop,4,'#849aaa77','#c74753',3);for(let i=1;i<5;i++)line(gx+dir*i*6,rink.goalTop,gx+dir*i*6,rink.goalBottom,'#647f9a78',1);for(let y=rink.goalTop+9;y<rink.goalBottom;y+=9)line(gx,y,gx+dir*30,y,'#647f9a78',1);circle(gx,rink.goalTop,5,null,1,'#e43643');circle(gx,rink.goalBottom,5,null,1,'#e43643')}
+}
+function drawShadow(x,y,w,h){ctx.beginPath();ctx.ellipse(x,y,w,h,0,0,2*Math.PI);ctx.fillStyle='#0d3d6261';ctx.fill()}
+function drawPlayer(p){const selected=p.id===state.controlled&&p.team===0,col=colors[p.team];drawShadow(p.x,p.y+16,24,10);if(selected){circle(p.x,p.y,29,'#ffe777',3);ctx.save();ctx.globalAlpha=.18;circle(p.x,p.y,34,null,0,'#ffe777');ctx.restore();ctx.fillStyle='#9b620b';ctx.beginPath();ctx.moveTo(p.x-9,p.y-34);ctx.lineTo(p.x+9,p.y-34);ctx.lineTo(p.x,p.y-24);ctx.fill()}
+if(p.hit>0){ctx.save();ctx.globalAlpha=p.hit/.24*.55;circle(p.x,p.y,36,'#ffd18b',6);ctx.restore()}
+ctx.save();ctx.translate(p.x,p.y);ctx.rotate(Math.atan2(p.dirY,p.dirX));
+// Stick and blade
+line(7,8,29,13,'#543c3c',5);line(29,13,36,5,'#503636',5);
+roundRect(-18,-14,36,28,10,col,'#0d3543',3);roundRect(-13,-10,25,7,3,p.team===0?'#bff8ff':'#ffcfb6');circle(12,0,8,null,1,'#172b39');ctx.fillStyle='#eef8ff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='900 17px Barlow Condensed, sans-serif';ctx.fillText(p.num,0,3);ctx.restore();
+if(selected&&p.charge>.015){
+ roundRect(p.x-25,p.y+31,50,8,3,'#122c44','#ffffff',1);
+ ctx.fillStyle=p.charge>.76?'#ffbe3d':'#5be9e9';
+ ctx.fillRect(p.x-23,p.y+33,46*clamp(p.charge/1.1,0,1),4)
+}
+if(p.stun>0){ctx.fillStyle='#e3ac39';ctx.textAlign='center';ctx.font='20px sans-serif';ctx.fillText('✦',p.x,p.y-23)}}
+function drawGoalie(g){drawShadow(g.x,g.y+14,18,8);ctx.save();ctx.translate(g.x,g.y);ctx.fillStyle='#283547';roundRect(-14,-17,28,34,5,g.team===0?'#26b9d4':'#e46c44','#112c3a',3);roundRect(-20,-14,9,29,2,'#e9f4ff','#5b879d',1);roundRect(11,-14,9,29,2,'#e9f4ff','#5b879d',1);circle(0,-3,11,null,0,'#edf6ff');ctx.fillStyle='#375c70';ctx.fillRect(-6,-5,12,2);ctx.restore()}
+function drawPuck(){const p=state.puck;drawShadow(p.x,p.y+5,10,4);circle(p.x,p.y,8,'#ffffff',2,'#142434');circle(p.x-2,p.y-2,2,null,0,'#657e97')}
+function drawParticles(){for(const p of state.particles){ctx.globalAlpha=clamp(p.life/p.max,0,1);circle(p.x,p.y,p.r,null,0,p.color)}ctx.globalAlpha=1}
+function drawFlash(){if(state.flashTimer<=0)return;const a=Math.min(1,state.flashTimer/.3);ctx.save();ctx.globalAlpha=a;ctx.textAlign='center';ctx.shadowColor='#082c4a';ctx.shadowBlur=13;ctx.font='italic 900 79px Barlow Condensed,Impact,sans-serif';ctx.strokeStyle='#092b3a';ctx.lineWidth=9;ctx.strokeText(state.flash,500,226);ctx.fillStyle='#ffdd6e';ctx.fillText(state.flash,500,226);if(state.flashSub){ctx.font='800 24px Barlow Condensed';ctx.fillStyle='#ffffff';ctx.fillText(state.flashSub,500,263)}ctx.restore()}
+function draw(){ctx.save();if(state.shake>0)ctx.translate(rand(-state.shake,state.shake),rand(-state.shake,state.shake));rinkDraw();for(const g of state.goalies)drawGoalie(g);for(const p of state.players)drawPlayer(p);drawPuck();drawParticles();drawFlash();ctx.restore()}
+// Read-only QA snapshot for regression tests of this standalone preview.
+window.__rinkRiotQA=()=>({
+ phase:state.phase,period:state.period,score:[...state.score],
+ skaters:state.players.map(p=>({id:p.id,team:p.team,role:p.role,x:p.x,y:p.y,charge:p.charge,stun:p.stun})),
+ controlled:state.controlled,shotPlayer:state.shotPlayer,puckOwner:state.puck.owner,freeze:state.freeze
+});
+function loop(timestamp){let dt=Math.min(.032,(timestamp-(state.lastFrame||timestamp))/1000);state.lastFrame=timestamp;step(dt);draw();requestAnimationFrame(loop)}faceoff(true);draw();requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
