@@ -111,13 +111,53 @@ window.addEventListener('keydown',e=>{const k=e.key.toLowerCase();if([' ','arrow
 for(const b of document.querySelectorAll('[data-action]')){b.addEventListener('pointerdown',e=>{e.preventDefault();act(b.dataset.action)});b.addEventListener('contextmenu',e=>e.preventDefault())}
 const zone=$('stickZone'),head=$('stickHead');function updateStick(e){const r=zone.getBoundingClientRect();const x=e.clientX-(r.left+r.width/2),y=e.clientY-(r.top+r.height/2);const len=length(x,y),rad=40,scale=len>rad?rad/len:1;const px=x*scale,py=y*scale;touchX=px/rad;touchY=py/rad;head.style.left='calc(50% + '+px+'px)';head.style.top='calc(50% + '+py+'px)'}function resetStick(){touchX=0;touchY=0;stickPointer=null;head.style.left='50%';head.style.top='50%'}zone.addEventListener('pointerdown',e=>{e.preventDefault();stickPointer=e.pointerId;zone.setPointerCapture(e.pointerId);updateStick(e)});zone.addEventListener('pointermove',e=>{if(e.pointerId===stickPointer)updateStick(e)});zone.addEventListener('pointerup',e=>{if(e.pointerId===stickPointer)resetStick()});zone.addEventListener('pointercancel',resetStick);
 function inputVector(){let dx=(keys.has('d')||keys.has('arrowright')?1:0)-(keys.has('a')||keys.has('arrowleft')?1:0),dy=(keys.has('s')||keys.has('arrowdown')?1:0)-(keys.has('w')||keys.has('arrowup')?1:0);dx+=touchX;dy+=touchY;const pads=navigator.getGamepads?.()||[];const pad=Array.from(pads).find(x=>x&&x.connected);if(pad){const px=pad.axes[0]||0,py=pad.axes[1]||0;dx+=Math.abs(px)>.17?px:0;dy+=Math.abs(py)>.17?py:0;const btn=pad.buttons;for(const [index,action] of [[0,'shoot'],[1,'pass'],[2,'check'],[3,'switch'],[9,'pause']]){const active=!!btn[index]?.pressed;if(active&&!state.gamepadPrev[index]){if(action==='pause')pause();else act(action)}state.gamepadPrev[index]=active}}else{state.gamepadPrev=[]}const n=length(dx,dy);return n>1?{x:dx/n,y:dy/n}:{x:dx,y:dy}}
-function movePlayer(p,dx,dy,dt){if(p.stun>0){p.vx*=Math.max(0,1-dt*5);p.vy*=Math.max(0,1-dt*5)}else{const mag=length(dx,dy);const speed=p.id===state.controlled&&p.team===0?290:260;const tx=dx*speed,ty=dy*speed;const t=Math.min(1,dt*11);p.vx+=(tx-p.vx)*t;p.vy+=(ty-p.vy)*t;if(mag>.12){p.dirX=dx/mag;p.dirY=dy/mag}}p.x=clamp(p.x+p.vx*dt,rink.left+21,rink.right-21);p.y=clamp(p.y+p.vy*dt,rink.top+21,rink.bottom-21);p.cool=Math.max(0,p.cool-dt);p.hit=Math.max(0,p.hit-dt);p.stun=Math.max(0,p.stun-dt)}
-function getTarget(p){const own=state.puck.owner!==null?state.players[state.puck.owner]:null;const team=state.players.filter(q=>q.team===p.team),mate=team.find(q=>q.id!==p.id);const dir=p.team===0?1:-1;let x,y;
-if(own?.id===p.id){x=p.team===0?860:140;y=clamp(290+Math.sin(state.elapsed*1.6+p.id)*78,175,430);if((p.team===0?p.x>630:p.x<370)&&p.cool===0&&Math.random()<.015)shoot(p,true)}
-else if(own&&own.team===p.team){x=clamp(own.x+dir*125,rink.left+50,rink.right-50);y=clamp(own.y+(p.id%2===0?110:-110),rink.top+45,rink.bottom-45)}
-else if(own&&own.team!==p.team){const myD=distance(p,own),mateD=distance(mate,own);if(myD<mateD||p===team[0]){x=own.x-dir*13;y=own.y;if(myD<53&&p.cool===0&&Math.random()<.07)check(p)}else{x=clamp(own.x-dir*155,rink.left+42,rink.right-42);y=clamp(own.y+(p.id%2===0?105:-105),rink.top+30,rink.bottom-30)}}
-else{const distMe=distance(p,state.puck),distMate=distance(mate,state.puck);if(distMe<=distMate||p===team[0]){x=state.puck.x+state.puck.vx*.13;y=state.puck.y+state.puck.vy*.13}else{x=clamp(state.puck.x+dir*130,rink.left+42,rink.right-42);y=clamp(state.puck.y+(p.id%2===0?90:-90),rink.top+30,rink.bottom-30)}}
-let dx=x-p.x,dy=y-p.y,n=length(dx,dy);if(n<12)return{x:0,y:0};return{x:dx/n,y:dy/n}}
+function movePlayer(p,dx,dy,dt){
+ const stats=ROLES[p.role];
+ if(p.stun>0){p.vx*=Math.exp(-6*dt);p.vy*=Math.exp(-6*dt)}
+ else{
+  const speed=stats.speed*(p.id===state.controlled&&p.team===0?1.04:1);
+  const mag=length(dx,dy),targetX=dx*speed,targetY=dy*speed;
+  const accel=mag>.08?stats.accel:stats.accel*.65,t=1-Math.exp(-accel*dt);
+  p.vx+=(targetX-p.vx)*t;p.vy+=(targetY-p.vy)*t;
+  if(mag>.14){p.dirX=dx/mag;p.dirY=dy/mag}
+ }
+ p.x=clamp(p.x+p.vx*dt,rink.left+21,rink.right-21);
+ p.y=clamp(p.y+p.vy*dt,rink.top+21,rink.bottom-21);
+ p.cool=Math.max(0,p.cool-dt);p.hit=Math.max(0,p.hit-dt);
+ p.stun=Math.max(0,p.stun-dt);p.dodge=Math.max(0,p.dodge-dt)
+}
+function getTarget(p){
+ const ownerId=state.puck.owner,owner=ownerId===null?null:state.players[ownerId];
+ const mates=state.players.filter(q=>q.team===p.team&&q.id!==p.id),team=state.players.filter(q=>q.team===p.team);
+ const dir=p.team===0?1:-1;
+ const rank=team.slice().sort((a,b)=>distance(a,owner||state.puck)-distance(b,owner||state.puck)).findIndex(q=>q.id===p.id);
+ const lane=(p.role==='dangler'?-105:p.role==='enforcer'?115:10);
+ let x,y;
+ if(owner?.id===p.id){
+  x=p.team===0?845:155;y=clamp(300+Math.sin(state.elapsed*1.6+p.id)*75,160,442);
+  if((p.team===0?p.x>575:p.x<425)&&p.cool<=0&&Math.random()<.017){
+   p.charge=p.role==='cannon'?.8:.2;shoot(p,true)
+  }else if(p.team===1&&p.cool<=0&&Math.random()<.004&&mates.length){
+   const m=mates[Math.floor(Math.random()*mates.length)];
+   if(distance(p,m)<360)pass(p)
+  }
+ }else if(owner&&owner.team===p.team){
+  x=clamp(owner.x+dir*(100+rank*29),rink.left+50,rink.right-50);
+  y=clamp(owner.y+lane*(.58+rank*.12),rink.top+45,rink.bottom-45)
+ }else if(owner&&owner.team!==p.team){
+  if(rank===0||(rank===1&&p.role==='enforcer')){
+   x=owner.x-dir*12;y=owner.y;
+   if(distance(p,owner)<69&&p.cool<=0&&Math.random()<.10)check(p)
+  }else{
+   x=clamp(owner.x-dir*(95+rank*45),rink.left+40,rink.right-40);
+   y=clamp(owner.y+lane*.7,rink.top+40,rink.bottom-40)
+  }
+ }else{
+  if(rank===0){x=state.puck.x+state.puck.vx*.12;y=state.puck.y+state.puck.vy*.12}
+  else{x=clamp(state.puck.x+dir*(95+rank*35),rink.left+42,rink.right-42);y=clamp(state.puck.y+lane*.8,rink.top+40,rink.bottom-40)}
+ }
+ const dx=x-p.x,dy=y-p.y,n=length(dx,dy);return n<11?{x:0,y:0}:{x:dx/n,y:dy/n}
+}
 function spawn(x,y,color,count){for(let i=0;i<count;i++){const ang=rand(0,Math.PI*2),speed=rand(35,205);state.particles.push({x,y,vx:Math.cos(ang)*speed,vy:Math.sin(ang)*speed,life:rand(.2,.55),max:.55,color,r:rand(2,5)})}}
 function collidePlayers(){for(let i=0;i<state.players.length;i++)for(let j=i+1;j<state.players.length;j++){const a=state.players[i],b=state.players[j],dx=b.x-a.x,dy=b.y-a.y,d=length(dx,dy)||1;if(d<33){const push=(33-d)/2;const ux=dx/d,uy=dy/d;a.x-=ux*push;a.y-=uy*push;b.x+=ux*push;b.y+=uy*push}}}
 function puckPhysics(dt){const puck=state.puck;puck.ignore=Math.max(0,puck.ignore-dt);if(puck.owner!==null){const p=state.players[puck.owner],d=dirFor(p);puck.x=p.x+d.x*22;puck.y=p.y+d.y*22;puck.vx=p.vx;puck.vy=p.vy;return}puck.x+=puck.vx*dt;puck.y+=puck.vy*dt;const slow=Math.exp(-1.12*dt);puck.vx*=slow;puck.vy*=slow;
