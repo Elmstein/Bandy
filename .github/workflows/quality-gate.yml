@@ -33,7 +33,7 @@ jobs:
       - name: Check inline JavaScript syntax
         run: npm run check:syntax
       - name: Install browser engines
-        run: npx playwright install --with-deps chromium webkit
+        run: npx playwright install chromium webkit
       - name: Run regression tests
         env:
           VISUAL_REFERENCE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
