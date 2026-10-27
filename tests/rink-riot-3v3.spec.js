@@ -28,17 +28,31 @@ test('Rink Riot 3v3 can switch players and hold / release a shot @smoke', async 
   await page.evaluate(() => document.querySelector('#overlayButton').click());
   await page.waitForTimeout(1280);
 
-  await page.keyboard.press('Space');
+  // iPhone and Android have touch controls; desktop uses the documented keyboard keys.
+  const mobile = test.info().project.name !== 'desktop-chromium';
+  if (mobile) {
+    await page.locator('[data-action="switch"]').tap();
+  } else {
+    await page.keyboard.press('Space');
+  }
   const swapped = await page.evaluate(() => window.__rinkRiotQA());
   expect(swapped.controlled).toBe(1);
   expect(swapped.skaters[swapped.controlled].role).toBe('cannon');
 
-  await page.keyboard.down('j');
+  if (mobile) {
+    await page.locator('[data-action="shoot"]').dispatchEvent('pointerdown', { pointerId: 11, pointerType: 'touch' });
+  } else {
+    await page.keyboard.down('j');
+  }
   await page.waitForTimeout(200);
   const charging = await page.evaluate(() => window.__rinkRiotQA());
   expect(charging.shotPlayer).toBe(1);
   expect(charging.skaters[1].charge).toBeGreaterThan(0.04);
-  await page.keyboard.up('j');
+  if (mobile) {
+    await page.locator('[data-action="shoot"]').dispatchEvent('pointerup', { pointerId: 11, pointerType: 'touch' });
+  } else {
+    await page.keyboard.up('j');
+  }
   const released = await page.evaluate(() => window.__rinkRiotQA());
   expect(released.shotPlayer).toBeNull();
   expect(pageErrors).toEqual([]);
