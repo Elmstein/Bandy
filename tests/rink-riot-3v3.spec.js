@@ -26,7 +26,7 @@ test('Rink Riot 3v3 can switch players and hold / release a shot @smoke', async 
   page.on('pageerror', error => pageErrors.push(error.message));
   await page.goto('/rink-riot/v03/');
   await page.evaluate(() => document.querySelector('#overlayButton').click());
-  await page.waitForTimeout(1280);
+  await page.waitForFunction(() => window.__rinkRiotQA?.().freeze <= 0, null, { timeout: 12000 });
 
   // iPhone and Android have touch controls; desktop uses the documented keyboard keys.
   const mobile = test.info().project.name !== 'desktop-chromium';
