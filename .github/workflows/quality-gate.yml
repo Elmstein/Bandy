@@ -36,6 +36,8 @@ jobs:
         run: npm run check:syntax
       - name: Install browser engines
         run: npx playwright --version
+      - name: Trust checkout in Playwright container
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: Run regression tests
         env:
           VISUAL_REFERENCE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
