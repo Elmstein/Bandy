@@ -348,7 +348,7 @@ function draw(){ctx.save();if(state.shake>0)ctx.translate(rand(-state.shake,stat
 window.__rinkRiotQA=()=>({
  phase:state.phase,period:state.period,score:[...state.score],
  skaters:state.players.map(p=>({id:p.id,team:p.team,role:p.role,x:p.x,y:p.y,charge:p.charge,stun:p.stun})),
- controlled:state.controlled,shotPlayer:state.shotPlayer,puckOwner:state.puck.owner
+ controlled:state.controlled,shotPlayer:state.shotPlayer,puckOwner:state.puck.owner,freeze:state.freeze
 });
 function loop(timestamp){let dt=Math.min(.032,(timestamp-(state.lastFrame||timestamp))/1000);state.lastFrame=timestamp;step(dt);draw();requestAnimationFrame(loop)}faceoff(true);draw();requestAnimationFrame(loop);
 })();
