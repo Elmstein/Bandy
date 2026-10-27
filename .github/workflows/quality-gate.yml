@@ -17,7 +17,7 @@ concurrency:
 jobs:
   syntax-and-browser-tests:
     name: Syntax + browser regression
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - name: Checkout
