@@ -230,7 +230,7 @@ function movePlayer(p,dx,dy,dt){
  const stats=ROLES[p.role];
  if(p.stun>0){p.vx*=Math.exp(-6*dt);p.vy*=Math.exp(-6*dt)}
  else{
-  const speed=stats.speed*(p.id===state.controlled&&p.team===0?1.04:1);
+  const speed=stats.speed*(p.id===state.controlled&&p.team===0?1.04:1)*(p.id===state.shotPlayer?.83:1);
   const mag=length(dx,dy),targetX=dx*speed,targetY=dy*speed;
   const accel=mag>.08?stats.accel:stats.accel*.65,t=1-Math.exp(-accel*dt);
   p.vx+=(targetX-p.vx)*t;p.vy+=(targetY-p.vy)*t;
@@ -283,8 +283,27 @@ for(const g of state.goalies){const dx=puck.x-g.x,dy=puck.y-g.y,d=length(dx,dy);
 if(puck.ignore<=0){const sorted=state.players.slice().sort((a,b)=>distance(a,puck)-distance(b,puck));for(const p of sorted){if(p.stun<=.1&&distance(p,puck)<27){puck.owner=p.id;puck.vx=puck.vy=0;break}}}}
 function goal(team){state.score[team]++;state.shake=13;sfx('goal');faceoff(false);state.flash='MÅÅÅÅL!';state.flashSub=(team===0?'ICEBREAKERS':'BLAZERS')+' GÖR MÅL';state.flashTimer=2.1;state.freeze=2.2;spawn(team===0?rink.goalRight:rink.goalLeft,300,colors[team],75);updateHud()}
 function endPeriod(){if(state.period<3){state.period++;state.remaining=75;faceoff(false);state.flash='PERIOD '+state.period;state.flashSub='NU KÖR VI!';state.flashTimer=2.0;state.freeze=2.15;updateHud()}else{state.phase='ended';let result=state.score[0]===state.score[1]?'OAVGJORT!':state.score[0]>state.score[1]?'DU VANN!':'DATORN VANN';showOverlay('SLUTSIGNAL',result,'Slutresultat: '+state.score[0]+' – '+state.score[1]+'<br>En ny match kan alltid ändra historien.','SPELA IGEN ▶')}}
-function step(dt){state.elapsed+=dt;state.flashTimer=Math.max(0,state.flashTimer-dt);state.shake=Math.max(0,state.shake-dt*23);for(const p of state.particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=Math.exp(-2.2*dt);p.vy*=Math.exp(-2.2*dt);p.life-=dt}state.particles=state.particles.filter(p=>p.life>0);
-if(state.phase!=='playing')return;const input=inputVector();if(state.freeze>0){state.freeze-=dt;return}state.remaining-=dt;if(state.remaining<=0){endPeriod();return}updateHud();for(const p of state.players){const d=(p.team===0&&p.id===state.controlled)?input:getTarget(p);movePlayer(p,d.x,d.y,dt)}collidePlayers();for(const g of state.goalies){const towards=state.puck.owner===null?state.puck:state.players[state.puck.owner];const target=clamp(towards.y+(g.team===0?-3:3),rink.goalTop+12,rink.goalBottom-12);g.y+=clamp(target-g.y,-190*dt,190*dt)}puckPhysics(dt)}
+function step(dt){
+ state.elapsed+=dt;state.flashTimer=Math.max(0,state.flashTimer-dt);
+ state.shake=Math.max(0,state.shake-dt*23);
+ for(const p of state.particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=Math.exp(-2.2*dt);p.vy*=Math.exp(-2.2*dt);p.life-=dt}
+ state.particles=state.particles.filter(p=>p.life>0);
+ if(state.phase!=='playing')return;
+ const input=inputVector();
+ if(state.freeze>0){state.freeze-=dt;return}
+ if(state.shotPlayer!==null){const p=state.players[state.shotPlayer];if(p)p.charge=Math.min(1.1,p.charge+dt)}
+ state.remaining-=dt;if(state.remaining<=0){endPeriod();return}
+ updateHud();
+ for(const p of state.players){const d=(p.team===0&&p.id===state.controlled)?input:getTarget(p);movePlayer(p,d.x,d.y,dt)}
+ collidePlayers();
+ for(const g of state.goalies){
+  const towards=state.puck.owner===null?state.puck:state.players[state.puck.owner];
+  const target=clamp(towards.y+(g.team===0?-3:3),rink.goalTop+12,rink.goalBottom-12);
+  g.y+=clamp(target-g.y,-190*dt,190*dt)
+ }
+ puckPhysics(dt)
+}
+
 function roundRect(x,y,w,h,r,fill,stroke,lw=1){ctx.beginPath();ctx.roundRect(x,y,w,h,r);if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw;ctx.stroke()}}
 function line(x1,y1,x2,y2,color,w=2){ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.strokeStyle=color;ctx.lineWidth=w;ctx.stroke()}
 function circle(x,y,r,stroke,w=2,fill){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=w;ctx.stroke()}}
@@ -313,12 +332,24 @@ if(p.hit>0){ctx.save();ctx.globalAlpha=p.hit/.24*.55;circle(p.x,p.y,36,'#ffd18b'
 ctx.save();ctx.translate(p.x,p.y);ctx.rotate(Math.atan2(p.dirY,p.dirX));
 // Stick and blade
 line(7,8,29,13,'#543c3c',5);line(29,13,36,5,'#503636',5);
-roundRect(-18,-14,36,28,10,col,'#0d3543',3);roundRect(-13,-10,25,7,3,p.team===0?'#bff8ff':'#ffcfb6');circle(12,0,8,null,1,'#172b39');ctx.fillStyle='#eef8ff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='900 17px Barlow Condensed, sans-serif';ctx.fillText(p.num,0,3);ctx.restore();if(p.stun>0){ctx.fillStyle='#e3ac39';ctx.textAlign='center';ctx.font='20px sans-serif';ctx.fillText('✦',p.x,p.y-23)}}
+roundRect(-18,-14,36,28,10,col,'#0d3543',3);roundRect(-13,-10,25,7,3,p.team===0?'#bff8ff':'#ffcfb6');circle(12,0,8,null,1,'#172b39');ctx.fillStyle='#eef8ff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='900 17px Barlow Condensed, sans-serif';ctx.fillText(p.num,0,3);ctx.restore();
+if(selected&&p.charge>.015){
+ roundRect(p.x-25,p.y+31,50,8,3,'#122c44','#ffffff',1);
+ ctx.fillStyle=p.charge>.76?'#ffbe3d':'#5be9e9';
+ ctx.fillRect(p.x-23,p.y+33,46*clamp(p.charge/1.1,0,1),4)
+}
+if(p.stun>0){ctx.fillStyle='#e3ac39';ctx.textAlign='center';ctx.font='20px sans-serif';ctx.fillText('✦',p.x,p.y-23)}}
 function drawGoalie(g){drawShadow(g.x,g.y+14,18,8);ctx.save();ctx.translate(g.x,g.y);ctx.fillStyle='#283547';roundRect(-14,-17,28,34,5,g.team===0?'#26b9d4':'#e46c44','#112c3a',3);roundRect(-20,-14,9,29,2,'#e9f4ff','#5b879d',1);roundRect(11,-14,9,29,2,'#e9f4ff','#5b879d',1);circle(0,-3,11,null,0,'#edf6ff');ctx.fillStyle='#375c70';ctx.fillRect(-6,-5,12,2);ctx.restore()}
 function drawPuck(){const p=state.puck;drawShadow(p.x,p.y+5,10,4);circle(p.x,p.y,8,'#ffffff',2,'#142434');circle(p.x-2,p.y-2,2,null,0,'#657e97')}
 function drawParticles(){for(const p of state.particles){ctx.globalAlpha=clamp(p.life/p.max,0,1);circle(p.x,p.y,p.r,null,0,p.color)}ctx.globalAlpha=1}
 function drawFlash(){if(state.flashTimer<=0)return;const a=Math.min(1,state.flashTimer/.3);ctx.save();ctx.globalAlpha=a;ctx.textAlign='center';ctx.shadowColor='#082c4a';ctx.shadowBlur=13;ctx.font='italic 900 79px Barlow Condensed,Impact,sans-serif';ctx.strokeStyle='#092b3a';ctx.lineWidth=9;ctx.strokeText(state.flash,500,226);ctx.fillStyle='#ffdd6e';ctx.fillText(state.flash,500,226);if(state.flashSub){ctx.font='800 24px Barlow Condensed';ctx.fillStyle='#ffffff';ctx.fillText(state.flashSub,500,263)}ctx.restore()}
 function draw(){ctx.save();if(state.shake>0)ctx.translate(rand(-state.shake,state.shake),rand(-state.shake,state.shake));rinkDraw();for(const g of state.goalies)drawGoalie(g);for(const p of state.players)drawPlayer(p);drawPuck();drawParticles();drawFlash();ctx.restore()}
+// Read-only QA snapshot for regression tests of this standalone preview.
+window.__rinkRiotQA=()=>({
+ phase:state.phase,period:state.period,score:[...state.score],
+ skaters:state.players.map(p=>({id:p.id,team:p.team,role:p.role,x:p.x,y:p.y,charge:p.charge,stun:p.stun})),
+ controlled:state.controlled,shotPlayer:state.shotPlayer,puckOwner:state.puck.owner
+});
 function loop(timestamp){let dt=Math.min(.032,(timestamp-(state.lastFrame||timestamp))/1000);state.lastFrame=timestamp;step(dt);draw();requestAnimationFrame(loop)}faceoff(true);draw();requestAnimationFrame(loop);
 })();
 </script>
