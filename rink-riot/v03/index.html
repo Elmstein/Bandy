@@ -102,15 +102,130 @@ $('overlayButton').addEventListener('click',start);$('mobilePause').addEventList
 function switchPlayer(){if(state.phase!=='playing')return;state.shotPlayer=null;for(const p of state.players)p.charge=0;state.controlled=(state.controlled+1)%3;updateHud();tone(460,.055,'triangle',.016)}
 function dirFor(p){let dx=p.dirX,dy=p.dirY;if(length(dx,dy)<.01){dx=p.team===0?1:-1;dy=0}const n=length(dx,dy);return{x:dx/n,y:dy/n}}
 function releasePuck(p,dx,dy,speed,kind){let n=length(dx,dy);if(n<.02){dx=p.team===0?1:-1;dy=0;n=1}dx/=n;dy/=n;state.puck.owner=null;state.puck.x=p.x+dx*25;state.puck.y=p.y+dy*25;state.puck.vx=dx*speed;state.puck.vy=dy*speed;state.puck.ignore=.2;p.cool=.36;sfx(kind);spawn(p.x+dx*20,p.y+dy*20,colors[p.team],7)}
-function shoot(p,ai=false){if(p.cool>0)return;if(state.puck.owner!==p.id){if(distance(state.puck,p)>38)return;state.puck.owner=p.id}let d=dirFor(p);if(ai){const gx=p.team===0?rink.goalRight:rink.goalLeft;const gy=300+rand(-33,33);d={x:gx-p.x,y:gy-p.y}}releasePuck(p,d.x,d.y,870,'shot');state.shake=3}
-function pass(p){if(p.cool>0||state.puck.owner!==p.id)return;const m=state.players.find(q=>q.team===p.team&&q.id!==p.id);const dx=m.x+m.vx*.18-p.x,dy=m.y+m.vy*.18-p.y;releasePuck(p,dx,dy,660,'pass')}
-function check(p){if(p.cool>0||p.stun>0)return;p.cool=.62;p.hit=.24;const foes=state.players.filter(q=>q.team!==p.team).sort((a,b)=>distance(a,p)-distance(b,p));const v=foes[0];if(v&&distance(v,p)<65){const d=length(v.x-p.x,v.y-p.y)||1;v.vx+=(v.x-p.x)/d*340;v.vy+=(v.y-p.y)/d*340;v.stun=.36;if(state.puck.owner===v.id){state.puck.owner=null;state.puck.x=v.x;state.puck.y=v.y;state.puck.vx=(v.x-p.x)/d*245;state.puck.vy=(v.y-p.y)/d*245;state.puck.ignore=.14}spawn(v.x,v.y,'#ffffff',17);state.shake=8;sfx('hit')}else{tone(130,.08,'triangle',.018,70)}}
-function act(action){if(state.phase==='ready'||state.phase==='ended'){if(action==='shoot'){start()}return}if(state.phase!=='playing'||state.freeze>0)return;const p=state.players[state.controlled];if(action==='shoot')shoot(p);if(action==='pass')pass(p);if(action==='check')check(p);if(action==='switch')switchPlayer()}
+function shoot(p,ai=false){
+ if(p.cool>0||p.stun>0)return;
+ if(state.puck.owner!==p.id){if(distance(state.puck,p)>38)return;state.puck.owner=p.id}
+ const charge=clamp(p.charge/1.1,0,1);p.charge=0;
+ let d=dirFor(p);
+ if(ai){const gx=p.team===0?rink.goalRight:rink.goalLeft,gy=300+rand(-31,31);d={x:gx-p.x,y:gy-p.y}}
+ const power=(790+charge*490)*ROLES[p.role].shot;
+ releasePuck(p,d.x,d.y,power,'shot');state.shake=3+charge*5;
+ if(charge>.68){state.flash='POWER SHOT!';state.flashSub=ROLES[p.role].name;state.flashTimer=.37;spawn(p.x,p.y,'#ffe28c',15)}
+}
+function beginShot(){
+ if(state.phase==='ready'||state.phase==='ended'){start();return}
+ if(state.phase!=='playing'||state.freeze>0||state.shotPlayer!==null)return;
+ const p=state.players[state.controlled];
+ if(!p||p.cool>0||p.stun>0)return;
+ state.shotPlayer=p.id;p.charge=.001
+}
+function finishShot(){
+ const id=state.shotPlayer;state.shotPlayer=null;
+ if(id===null||id===undefined)return;
+ const p=state.players[id];if(p&&state.phase==='playing'&&state.freeze<=0)shoot(p)
+}
+function pass(p){
+ if(p.cool>0||state.puck.owner!==p.id)return;
+ const mates=state.players.filter(q=>q.team===p.team&&q.id!==p.id);
+ const aim=dirFor(p);
+ mates.sort((a,b)=>{
+  const grade=q=>{const dx=q.x-p.x,dy=q.y-p.y,d=length(dx,dy)||1;return (dx*aim.x+dy*aim.y)/d*1.5-d*.0007};
+  return grade(b)-grade(a)
+ });
+ const m=mates[0];if(!m)return;
+ const dx=m.x+m.vx*.17-p.x,dy=m.y+m.vy*.17-p.y;
+ releasePuck(p,dx,dy,705,'pass')
+}
+function deke(p){
+ if(p.cool>0||p.stun>0)return;
+ const d=dirFor(p),side=Math.sin(state.elapsed*13+p.id)>0?1:-1;
+ p.x=clamp(p.x+d.x*23-d.y*28*side,rink.left+22,rink.right-22);
+ p.y=clamp(p.y+d.y*23+d.x*28*side,rink.top+22,rink.bottom-22);
+ p.cool=.40;p.dodge=.32;spawn(p.x,p.y,'#8eeaff',11);tone(420,.08,'triangle',.03,680)
+}
+function check(p){
+ if(p.cool>0||p.stun>0)return;
+ p.cool=p.role==='enforcer'?.52:.63;p.hit=.24;
+ const direction=dirFor(p),power=ROLES[p.role].check;
+ const foes=state.players.filter(q=>q.team!==p.team).sort((a,b)=>distance(a,p)-distance(b,p));
+ const v=foes.find(q=>{const dx=q.x-p.x,dy=q.y-p.y,d=length(dx,dy)||1;return d<67+power*11 && (dx*direction.x+dy*direction.y)/d>-.28});
+ if(v&&v.dodge<=0){
+  const d=length(v.x-p.x,v.y-p.y)||1,ux=(v.x-p.x)/d,uy=(v.y-p.y)/d;
+  v.vx+=ux*300*power;v.vy+=uy*300*power;v.stun=.2+.17*power;
+  if(state.puck.owner===v.id){state.puck.owner=null;state.puck.x=v.x;state.puck.y=v.y;state.puck.vx=ux*310;state.puck.vy=uy*310;state.puck.ignore=.15}
+  spawn(v.x,v.y,'#ffffff',Math.round(12+power*5));state.shake=5+power*3;sfx('hit')
+ }else tone(130,.08,'triangle',.018,70)
+}
+function act(action){
+ if(action==='shoot'){beginShot();return}
+ if(state.phase==='ready'||state.phase==='ended')return;
+ if(state.phase!=='playing'||state.freeze>0)return;
+ const p=state.players[state.controlled];
+ if(action==='pass')pass(p);
+ if(action==='check'){if(state.puck.owner===p.id)deke(p);else check(p)}
+ if(action==='switch')switchPlayer()
+}
 const actionKeys={'j':'shoot','k':'pass','l':'check',' ':'switch','x':'shoot','c':'pass','v':'check','tab':'switch'};
-window.addEventListener('keydown',e=>{const k=e.key.toLowerCase();if([' ','arrowup','arrowdown','arrowleft','arrowright','tab'].includes(k))e.preventDefault();if(!keys.has(k)&&actionKeys[k])act(actionKeys[k]);if(!keys.has(k)&&k==='p')pause();if(!keys.has(k)&&k==='enter'&&state.phase!=='playing')start();keys.add(k)});window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));window.addEventListener('blur',()=>{keys.clear();touchX=touchY=0;if(state.phase==='playing')pause()});
-for(const b of document.querySelectorAll('[data-action]')){b.addEventListener('pointerdown',e=>{e.preventDefault();act(b.dataset.action)});b.addEventListener('contextmenu',e=>e.preventDefault())}
-const zone=$('stickZone'),head=$('stickHead');function updateStick(e){const r=zone.getBoundingClientRect();const x=e.clientX-(r.left+r.width/2),y=e.clientY-(r.top+r.height/2);const len=length(x,y),rad=40,scale=len>rad?rad/len:1;const px=x*scale,py=y*scale;touchX=px/rad;touchY=py/rad;head.style.left='calc(50% + '+px+'px)';head.style.top='calc(50% + '+py+'px)'}function resetStick(){touchX=0;touchY=0;stickPointer=null;head.style.left='50%';head.style.top='50%'}zone.addEventListener('pointerdown',e=>{e.preventDefault();stickPointer=e.pointerId;zone.setPointerCapture(e.pointerId);updateStick(e)});zone.addEventListener('pointermove',e=>{if(e.pointerId===stickPointer)updateStick(e)});zone.addEventListener('pointerup',e=>{if(e.pointerId===stickPointer)resetStick()});zone.addEventListener('pointercancel',resetStick);
-function inputVector(){let dx=(keys.has('d')||keys.has('arrowright')?1:0)-(keys.has('a')||keys.has('arrowleft')?1:0),dy=(keys.has('s')||keys.has('arrowdown')?1:0)-(keys.has('w')||keys.has('arrowup')?1:0);dx+=touchX;dy+=touchY;const pads=navigator.getGamepads?.()||[];const pad=Array.from(pads).find(x=>x&&x.connected);if(pad){const px=pad.axes[0]||0,py=pad.axes[1]||0;dx+=Math.abs(px)>.17?px:0;dy+=Math.abs(py)>.17?py:0;const btn=pad.buttons;for(const [index,action] of [[0,'shoot'],[1,'pass'],[2,'check'],[3,'switch'],[9,'pause']]){const active=!!btn[index]?.pressed;if(active&&!state.gamepadPrev[index]){if(action==='pause')pause();else act(action)}state.gamepadPrev[index]=active}}else{state.gamepadPrev=[]}const n=length(dx,dy);return n>1?{x:dx/n,y:dy/n}:{x:dx,y:dy}}
+window.addEventListener('keydown',e=>{
+ const k=e.key.toLowerCase();
+ if([' ','arrowup','arrowdown','arrowleft','arrowright','tab'].includes(k))e.preventDefault();
+ if(!keys.has(k)&&actionKeys[k])act(actionKeys[k]);
+ if(!keys.has(k)&&(k==='p'||k==='escape'))pause();
+ if(!keys.has(k)&&k==='enter'&&state.phase!=='playing')start();
+ keys.add(k)
+});
+window.addEventListener('keyup',e=>{
+ const k=e.key.toLowerCase();
+ if(actionKeys[k]==='shoot')finishShot();
+ keys.delete(k)
+});
+window.addEventListener('blur',()=>{
+ keys.clear();touchX=touchY=0;state.shotPlayer=null;
+ for(const p of state.players)p.charge=0;
+ if(state.phase==='playing')pause()
+});
+for(const b of document.querySelectorAll('[data-action]')){
+ b.addEventListener('pointerdown',e=>{
+  e.preventDefault();
+  try{b.setPointerCapture(e.pointerId)}catch{}
+  act(b.dataset.action)
+ });
+ b.addEventListener('pointerup',e=>{e.preventDefault();if(b.dataset.action==='shoot')finishShot()});
+ b.addEventListener('pointercancel',()=>{state.shotPlayer=null;for(const p of state.players)p.charge=0});
+ b.addEventListener('contextmenu',e=>e.preventDefault())
+}
+const zone=$('stickZone'),head=$('stickHead');
+function updateStick(e){
+ const r=zone.getBoundingClientRect(),x=e.clientX-(r.left+r.width/2),y=e.clientY-(r.top+r.height/2);
+ const len=length(x,y),rad=40,scale=len>rad?rad/len:1,px=x*scale,py=y*scale;
+ touchX=px/rad;touchY=py/rad;
+ head.style.left='calc(50% + '+px+'px)';head.style.top='calc(50% + '+py+'px)'
+}
+function resetStick(){touchX=0;touchY=0;stickPointer=null;head.style.left='50%';head.style.top='50%'}
+zone.addEventListener('pointerdown',e=>{e.preventDefault();stickPointer=e.pointerId;zone.setPointerCapture(e.pointerId);updateStick(e)});
+zone.addEventListener('pointermove',e=>{if(e.pointerId===stickPointer)updateStick(e)});
+zone.addEventListener('pointerup',e=>{if(e.pointerId===stickPointer)resetStick()});
+zone.addEventListener('pointercancel',resetStick);
+function inputVector(){
+ let dx=(keys.has('d')||keys.has('arrowright')?1:0)-(keys.has('a')||keys.has('arrowleft')?1:0);
+ let dy=(keys.has('s')||keys.has('arrowdown')?1:0)-(keys.has('w')||keys.has('arrowup')?1:0);
+ dx+=touchX;dy+=touchY;
+ const pads=navigator.getGamepads?.()||[],pad=Array.from(pads).find(x=>x&&x.connected);
+ if(pad){
+  const px=pad.axes[0]||0,py=pad.axes[1]||0;
+  dx+=Math.abs(px)>.17?px:0;dy+=Math.abs(py)>.17?py:0;
+  const btn=pad.buttons;
+  dx+=(btn[15]?.pressed?1:0)-(btn[14]?.pressed?1:0);
+  dy+=(btn[13]?.pressed?1:0)-(btn[12]?.pressed?1:0);
+  for(const [index,action] of [[0,'shoot'],[1,'pass'],[2,'check'],[3,'switch'],[9,'pause']]){
+   const active=!!btn[index]?.pressed,previous=!!state.gamepadPrev[index];
+   if(active&&!previous){if(action==='pause')pause();else act(action)}
+   if(!active&&previous&&action==='shoot')finishShot();
+   state.gamepadPrev[index]=active
+  }
+ }else{if(state.gamepadPrev[0])finishShot();state.gamepadPrev=[]}
+ const n=length(dx,dy);return n>1?{x:dx/n,y:dy/n}:{x:dx,y:dy}
+}
 function movePlayer(p,dx,dy,dt){
  const stats=ROLES[p.role];
  if(p.stun>0){p.vx*=Math.exp(-6*dt);p.vy*=Math.exp(-6*dt)}
